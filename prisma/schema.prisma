@@ -1,0 +1,1042 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// =========================================================================
+// ENUMS
+// =========================================================================
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  HOTEL_OWNER
+  HOTEL_MANAGER
+  RECEPTIONIST
+  HOUSEKEEPING_STAFF
+  HOTEL_ACCOUNTANT
+  CAR_RENTAL_OWNER
+  CAR_RENTAL_STAFF
+  TRAVEL_AGENCY
+  TOUR_PROVIDER
+  AFFILIATE_PARTNER
+  CUSTOMER
+  SUPPORT_AGENT
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING_VERIFICATION
+  SUSPENDED
+}
+
+enum OrganizationType {
+  HOTEL
+  CAR_RENTAL
+  TRAVEL_AGENCY
+  TOUR_PROVIDER
+  AFFILIATE
+}
+
+enum VerificationStatus {
+  DRAFT
+  PENDING_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum PropertyStatus {
+  DRAFT
+  PENDING_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+  SUSPENDED
+  PUBLISHED
+  UNPUBLISHED
+}
+
+enum OrgMemberStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+}
+
+enum CurrencyCode {
+  MAD
+  EUR
+  USD
+}
+
+enum RateSource {
+  MANUAL
+  AUTOMATIC
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  LPG
+}
+
+enum TransmissionType {
+  MANUAL
+  AUTOMATIC
+}
+
+enum MileagePolicy {
+  UNLIMITED
+  LIMITED
+}
+
+enum FuelPolicy {
+  FULL_TO_FULL
+  FULL_TO_EMPTY
+  SAME_TO_SAME
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  RESERVED
+  RENTED
+  MAINTENANCE
+  INACTIVE
+}
+
+enum ReservationType {
+  HOTEL
+  CAR
+}
+
+enum BookingStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  PAY_AT_PROPERTY
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+enum CouponScope {
+  ALL
+  HOTEL
+  CAR
+}
+
+enum CouponStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+}
+
+enum CommissionType {
+  PERCENTAGE
+  FIXED
+}
+
+enum ReviewTargetType {
+  HOTEL
+  VEHICLE
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CategoryType {
+  HOTEL_TYPE
+  VEHICLE_CATEGORY
+}
+
+enum AmenityCategory {
+  HOTEL
+  ROOM
+  VEHICLE
+  GENERAL
+}
+
+enum CmsPageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum UploadPurpose {
+  LEGAL_DOCUMENT
+  PROPERTY_PHOTO
+  PROPERTY_VIDEO
+  ROOM_PHOTO
+  ROOM_VIDEO
+  VEHICLE_PHOTO
+  VEHICLE_VIDEO
+  AVATAR
+  OTHER
+}
+
+// =========================================================================
+// IDENTITY & ACCESS
+// =========================================================================
+
+model User {
+  id            String     @id @default(uuid())
+  email         String     @unique
+  emailVerified DateTime?
+  passwordHash  String?
+  firstName     String
+  lastName      String
+  phone         String?
+  avatarUrl     String?
+  locale        String     @default("en")
+  role          Role       @default(CUSTOMER)
+  status        UserStatus @default(PENDING_VERIFICATION)
+  lastLoginAt   DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  accounts                Account[]
+  sessions                Session[]
+  organizationMemberships OrganizationMember[]
+  auditLogs               AuditLog[]
+  reservations            Reservation[]
+  reviews                 Review[]
+  uploadedFiles           UploadedFile[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+  notifications           Notification[]
+
+  @@index([role])
+  @@index([status])
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expires   DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// =========================================================================
+// MULTI-TENANT ORGANIZATIONS
+// =========================================================================
+
+model Organization {
+  id                 String             @id @default(uuid())
+  type               OrganizationType
+  legalName          String
+  displayName        String
+  registrationNumber String?
+  taxId              String?
+  countryId          String?
+  cityId             String?
+  address            String?
+  phone              String?
+  email              String?
+  website            String?
+  baseCurrency       CurrencyCode       @default(MAD)
+  logoUrl            String?
+  verificationStatus VerificationStatus @default(DRAFT)
+  rejectionReason    String?
+  changeRequestNotes String?
+  submittedAt        DateTime?
+  reviewedByUserId   String?
+  reviewedAt         DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  country Country? @relation(fields: [countryId], references: [id])
+  city    City?    @relation(fields: [cityId], references: [id])
+
+  members         OrganizationMember[]
+  hotels          Hotel[]
+  carBranches     CarBranch[]
+  vehicles        Vehicle[]
+  reservations    Reservation[]
+  uploadedFiles   UploadedFile[]
+  auditLogs       AuditLog[]
+  coupons         Coupon[]
+  commissionRules CommissionRule[]
+
+  @@index([type])
+  @@index([verificationStatus])
+}
+
+model OrganizationMember {
+  id              String          @id @default(uuid())
+  organizationId  String
+  userId          String
+  role            Role
+  status          OrgMemberStatus @default(ACTIVE)
+  invitedByUserId String?
+  joinedAt        DateTime        @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+}
+
+// =========================================================================
+// FILES & AUDIT
+// =========================================================================
+
+model UploadedFile {
+  id               String        @id @default(uuid())
+  url              String
+  key              String
+  filename         String
+  mimeType         String
+  sizeBytes        Int
+  purpose          UploadPurpose
+  organizationId   String?
+  uploadedByUserId String
+
+  createdAt DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  uploadedBy   User          @relation(fields: [uploadedByUserId], references: [id])
+
+  @@index([organizationId])
+  @@index([purpose])
+}
+
+model AuditLog {
+  id             String  @id @default(uuid())
+  actorUserId    String?
+  organizationId String?
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+
+  createdAt DateTime @default(now())
+
+  actor        User?         @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([organizationId])
+  @@index([createdAt])
+}
+
+// =========================================================================
+// LOCALIZATION, GEOGRAPHY, CURRENCY
+// =========================================================================
+
+model Translation {
+  id        String @id @default(uuid())
+  namespace String
+  key       String
+  locale    String
+  value     String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([namespace, key, locale])
+}
+
+model Country {
+  id   String @id @default(uuid())
+  code String @unique
+  name Json
+
+  createdAt DateTime @default(now())
+
+  cities        City[]
+  organizations Organization[]
+  hotels        Hotel[]
+  carBranches   CarBranch[]
+}
+
+model City {
+  id        String @id @default(uuid())
+  countryId String
+  name      Json
+
+  createdAt DateTime @default(now())
+
+  country       Country        @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  organizations Organization[]
+  hotels        Hotel[]
+  carBranches   CarBranch[]
+
+  @@index([countryId])
+}
+
+model ExchangeRate {
+  id              String       @id @default(uuid())
+  baseCurrency    CurrencyCode
+  targetCurrency  CurrencyCode
+  rate            Decimal      @db.Decimal(18, 8)
+  source          RateSource   @default(MANUAL)
+  effectiveAt     DateTime     @default(now())
+  createdByUserId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([baseCurrency, targetCurrency, effectiveAt])
+}
+
+model GlobalSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// =========================================================================
+// TAXONOMIES: AMENITIES, CATEGORIES, CANCELLATION POLICIES, COUPONS, COMMISSIONS
+// =========================================================================
+
+model Amenity {
+  id       String          @id @default(uuid())
+  code     String          @unique
+  category AmenityCategory
+  icon     String?
+  name     Json
+
+  createdAt DateTime @default(now())
+
+  hotels    Hotel[]    @relation("HotelAmenities")
+  roomTypes RoomType[] @relation("RoomTypeAmenities")
+}
+
+model Category {
+  id   String       @id @default(uuid())
+  type CategoryType
+  code String
+  name Json
+
+  createdAt DateTime @default(now())
+
+  hotels   Hotel[]
+  vehicles Vehicle[]
+
+  @@unique([type, code])
+}
+
+model CancellationPolicy {
+  id          String @id @default(uuid())
+  name        Json
+  description Json
+  rules       Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roomTypes RoomType[]
+}
+
+model Coupon {
+  id               String        @id @default(uuid())
+  code             String        @unique
+  type             CouponType
+  value            Decimal       @db.Decimal(12, 2)
+  currency         CurrencyCode?
+  maxDiscount      Decimal?      @db.Decimal(12, 2)
+  minBookingAmount Decimal?      @db.Decimal(12, 2)
+  scope            CouponScope   @default(ALL)
+  organizationId   String?
+  validFrom        DateTime
+  validTo          DateTime
+  usageLimit       Int?
+  usageCount       Int           @default(0)
+  perUserLimit     Int?
+  status           CouponStatus  @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@index([organizationId])
+}
+
+model CommissionRule {
+  id             String          @id @default(uuid())
+  organizationId String?
+  serviceType    ReservationType
+  type           CommissionType
+  value          Decimal         @db.Decimal(12, 4)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, serviceType])
+}
+
+// =========================================================================
+// HOTEL DOMAIN
+// =========================================================================
+
+model Hotel {
+  id                     String         @id @default(uuid())
+  organizationId         String
+  name                   String
+  legalCompanyName       String?
+  description            Json
+  categoryId             String?
+  starRating             Int?
+  countryId              String?
+  cityId                 String?
+  address                String
+  mapLat                 Decimal?       @db.Decimal(10, 7)
+  mapLng                 Decimal?       @db.Decimal(10, 7)
+  phone                  String?
+  email                  String?
+  website                String?
+  checkInTime            String         @default("15:00")
+  checkOutTime           String         @default("11:00")
+  cancellationPolicyText Json?
+  childrenPolicyText     Json?
+  petPolicyText          Json?
+  parking                Boolean        @default(false)
+  breakfast              Boolean        @default(false)
+  restaurant             Boolean        @default(false)
+  swimmingPool           Boolean        @default(false)
+  spa                    Boolean        @default(false)
+  gym                    Boolean        @default(false)
+  wifi                   Boolean        @default(false)
+  airportShuttle         Boolean        @default(false)
+  nearbyAttractions      Json?
+  mainImageUrl           String?
+  status                 PropertyStatus @default(DRAFT)
+  rejectionReason        String?
+  changeRequestNotes     String?
+  submittedAt            DateTime?
+  reviewedByUserId       String?
+  reviewedAt             DateTime?
+  publishedAt            DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?    @relation(fields: [categoryId], references: [id])
+  country      Country?     @relation(fields: [countryId], references: [id])
+  city         City?        @relation(fields: [cityId], references: [id])
+
+  amenities    Amenity[]              @relation("HotelAmenities")
+  media        HotelMedia[]
+  roomTypes    RoomType[]
+  reviews      Review[]
+  reservations HotelReservationLink[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([cityId])
+  @@index([countryId])
+}
+
+model HotelMedia {
+  id        String    @id @default(uuid())
+  hotelId   String
+  url       String
+  type      MediaType @default(IMAGE)
+  sortOrder Int       @default(0)
+  isMain    Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+
+  hotel Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId])
+}
+
+model RoomType {
+  id                   String       @id @default(uuid())
+  hotelId              String
+  name                 String
+  roomTypeLabel        String
+  description          Json
+  maxGuests            Int
+  maxAdults            Int
+  maxChildren          Int          @default(0)
+  bedTypes             String[]
+  numberOfBeds         Int          @default(1)
+  bathrooms            Int          @default(1)
+  roomSizeSqm          Decimal?     @db.Decimal(8, 2)
+  smokingAllowed       Boolean      @default(false)
+  accessible           Boolean      @default(false)
+  breakfastIncluded    Boolean      @default(false)
+  refundable           Boolean      @default(true)
+  basePrice            Decimal      @db.Decimal(12, 2)
+  weekendPrice         Decimal?     @db.Decimal(12, 2)
+  taxRatePercent       Decimal      @default(0) @db.Decimal(5, 2)
+  cleaningFee          Decimal      @default(0) @db.Decimal(12, 2)
+  currency             CurrencyCode @default(MAD)
+  availableQuantity    Int          @default(1)
+  minStay              Int          @default(1)
+  maxStay              Int?
+  instantBooking       Boolean      @default(true)
+  cancellationPolicyId String?
+  isActive             Boolean      @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  hotel              Hotel               @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  cancellationPolicy CancellationPolicy? @relation(fields: [cancellationPolicyId], references: [id])
+
+  amenities             Amenity[]                  @relation("RoomTypeAmenities")
+  media                 RoomMedia[]
+  seasonalPrices        RoomSeasonalPrice[]
+  availabilityOverrides RoomAvailabilityOverride[]
+  reservationItems      ReservationRoomItem[]
+
+  @@index([hotelId])
+  @@index([isActive])
+}
+
+model RoomMedia {
+  id         String    @id @default(uuid())
+  roomTypeId String
+  url        String
+  type       MediaType @default(IMAGE)
+  sortOrder  Int       @default(0)
+  isMain     Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+
+  roomType RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  @@index([roomTypeId])
+}
+
+model RoomSeasonalPrice {
+  id           String   @id @default(uuid())
+  roomTypeId   String
+  name         String?
+  startDate    DateTime @db.Date
+  endDate      DateTime @db.Date
+  price        Decimal  @db.Decimal(12, 2)
+  weekendPrice Decimal? @db.Decimal(12, 2)
+
+  createdAt DateTime @default(now())
+
+  roomType RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  @@index([roomTypeId, startDate, endDate])
+}
+
+model RoomAvailabilityOverride {
+  id               String   @id @default(uuid())
+  roomTypeId       String
+  date             DateTime @db.Date
+  closedForBooking Boolean  @default(false)
+  quantityOverride Int?
+  priceOverride    Decimal? @db.Decimal(12, 2)
+  reason           String?
+
+  createdAt DateTime @default(now())
+
+  roomType RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([roomTypeId, date])
+}
+
+// =========================================================================
+// CAR RENTAL DOMAIN
+// =========================================================================
+
+model CarBranch {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  countryId      String?
+  cityId         String?
+  address        String
+  mapLat         Decimal? @db.Decimal(10, 7)
+  mapLng         Decimal? @db.Decimal(10, 7)
+  phone          String?
+  email          String?
+  isMainBranch   Boolean  @default(false)
+  isActive       Boolean  @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  country      Country?     @relation(fields: [countryId], references: [id])
+  city         City?        @relation(fields: [cityId], references: [id])
+  vehicles     Vehicle[]
+
+  @@index([organizationId])
+}
+
+model Vehicle {
+  id                       String           @id @default(uuid())
+  organizationId           String
+  branchId                 String
+  categoryId               String?
+  brand                    String
+  model                    String
+  year                     Int
+  color                    String?
+  fuel                     FuelType
+  transmission             TransmissionType
+  seats                    Int
+  doors                    Int
+  engine                   String?
+  registrationReference    String?
+  description              Json
+  pricePerDay              Decimal          @db.Decimal(12, 2)
+  currency                 CurrencyCode     @default(MAD)
+  deposit                  Decimal?         @db.Decimal(12, 2)
+  insuranceOptions         Json?
+  mileagePolicy            MileagePolicy    @default(UNLIMITED)
+  mileageLimitKm           Int?
+  fuelPolicy               FuelPolicy       @default(FULL_TO_FULL)
+  driverOptionAvailable    Boolean          @default(false)
+  gpsAvailable             Boolean          @default(false)
+  childSeatAvailable       Boolean          @default(false)
+  airportDeliveryAvailable Boolean          @default(false)
+  mainImageUrl             String?
+  status                   VehicleStatus    @default(AVAILABLE)
+  approvalStatus           PropertyStatus   @default(DRAFT)
+  rejectionReason          String?
+  changeRequestNotes       String?
+  submittedAt              DateTime?
+  reviewedByUserId         String?
+  reviewedAt               DateTime?
+  publishedAt              DateTime?
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branch       CarBranch    @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  category     Category?    @relation(fields: [categoryId], references: [id])
+
+  media        VehicleMedia[]
+  reviews      Review[]
+  reservations CarReservationLink[]
+
+  @@index([organizationId])
+  @@index([branchId])
+  @@index([status])
+  @@index([approvalStatus])
+}
+
+model VehicleMedia {
+  id        String    @id @default(uuid())
+  vehicleId String
+  url       String
+  type      MediaType @default(IMAGE)
+  sortOrder Int       @default(0)
+  isMain    Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+}
+
+// =========================================================================
+// RESERVATIONS
+// =========================================================================
+
+model Reservation {
+  id               String          @id @default(uuid())
+  bookingReference String          @unique
+  type             ReservationType
+  status           BookingStatus   @default(PENDING)
+  customerUserId   String
+  organizationId   String
+
+  currency           CurrencyCode
+  exchangeRateToBase Decimal?     @db.Decimal(18, 8)
+  basePriceAmount    Decimal      @db.Decimal(12, 2)
+  taxAmount          Decimal      @default(0) @db.Decimal(12, 2)
+  feeAmount          Decimal      @default(0) @db.Decimal(12, 2)
+  discountAmount     Decimal      @default(0) @db.Decimal(12, 2)
+  commissionAmount   Decimal      @default(0) @db.Decimal(12, 2)
+  totalAmount        Decimal      @db.Decimal(12, 2)
+
+  couponId                   String?
+  couponCodeSnapshot         String?
+  cancellationPolicySnapshot Json?
+
+  paymentMethod PaymentMethod @default(PAY_AT_PROPERTY)
+  paymentStatus PaymentStatus @default(PENDING)
+
+  guestFirstName  String
+  guestLastName   String
+  guestEmail      String
+  guestPhone      String?
+  specialRequests String?
+  internalNotes   String?
+
+  // Hotel-specific
+  hotelId      String?
+  checkInDate  DateTime? @db.Date
+  checkOutDate DateTime? @db.Date
+
+  // Car-specific
+  vehicleId             String?
+  pickupAt              DateTime?
+  returnAt              DateTime?
+  pickupLocation        String?
+  dropoffLocation       String?
+  driverOptionRequested Boolean?  @default(false)
+  gpsRequested          Boolean?  @default(false)
+  childSeatRequested    Boolean?  @default(false)
+  airportDelivery       Boolean?  @default(false)
+
+  confirmedAt       DateTime?
+  completedAt       DateTime?
+  cancelledAt       DateTime?
+  cancelledReason   String?
+  cancelledByUserId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer     User         @relation(fields: [customerUserId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  coupon       Coupon?      @relation(fields: [couponId], references: [id])
+
+  hotelLink HotelReservationLink?
+  carLink   CarReservationLink?
+  roomItems ReservationRoomItem[]
+  guests    ReservationGuest[]
+  review    Review?
+
+  @@index([customerUserId])
+  @@index([organizationId])
+  @@index([status])
+  @@index([type])
+  @@index([checkInDate, checkOutDate])
+  @@index([pickupAt, returnAt])
+}
+
+// Denormalized link tables kept 1:1 with Reservation purely to give Hotel/Vehicle
+// a typed relation back to their reservations without nullable FK ambiguity.
+model HotelReservationLink {
+  reservationId String @id
+  hotelId       String
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  hotel       Hotel       @relation(fields: [hotelId], references: [id])
+
+  @@index([hotelId])
+}
+
+model CarReservationLink {
+  reservationId String @id
+  vehicleId     String
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  vehicle     Vehicle     @relation(fields: [vehicleId], references: [id])
+
+  @@index([vehicleId])
+}
+
+model ReservationRoomItem {
+  id            String  @id @default(uuid())
+  reservationId String
+  roomTypeId    String
+  quantity      Int
+  nights        Int
+  unitPrice     Decimal @db.Decimal(12, 2)
+  subtotal      Decimal @db.Decimal(12, 2)
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  roomType    RoomType    @relation(fields: [roomTypeId], references: [id])
+
+  @@index([reservationId])
+  @@index([roomTypeId])
+}
+
+model ReservationGuest {
+  id            String  @id @default(uuid())
+  reservationId String
+  fullName      String
+  age           Int?
+  idDocumentRef String?
+  isPrimary     Boolean @default(false)
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+}
+
+// =========================================================================
+// REVIEWS
+// =========================================================================
+
+model Review {
+  id              String           @id @default(uuid())
+  userId          String
+  targetType      ReviewTargetType
+  hotelId         String?
+  vehicleId       String?
+  reservationId   String?          @unique
+  rating          Int
+  title           String?
+  comment         String?
+  partnerResponse String?
+  status          ReviewStatus     @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hotel       Hotel?       @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  vehicle     Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+
+  @@index([hotelId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+// =========================================================================
+// CMS
+// =========================================================================
+
+model CmsPage {
+  id      String        @id @default(uuid())
+  slug    String        @unique
+  title   Json
+  content Json
+  status  CmsPageStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model HomepageSection {
+  id        String  @id @default(uuid())
+  key       String  @unique
+  title     Json?
+  config    Json
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+
+  updatedAt DateTime @updatedAt
+}
+
+// =========================================================================
+// NOTIFICATIONS (minimal, Phase 1 in-app only)
+// =========================================================================
+
+model Notification {
+  id       String    @id @default(uuid())
+  userId   String
+  type     String
+  title    String
+  message  String
+  metadata Json?
+  readAt   DateTime?
+
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}

@@ -1,0 +1,501 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db";
+import { requireRole, ROLE_GROUPS } from "@/lib/rbac";
+import { logAudit } from "@/lib/audit";
+
+const PLATFORM_STAFF = ROLE_GROUPS.platformStaff;
+
+// ---- Organizations ----
+
+export async function approveOrganizationAction(locale: string, organizationId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.organization.update({
+    where: { id: organizationId },
+    data: {
+      verificationStatus: "APPROVED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      rejectionReason: null,
+      changeRequestNotes: null,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    organizationId,
+    action: "admin.organization.approve",
+    entityType: "Organization",
+    entityId: organizationId,
+  });
+  revalidatePath(`/${locale}/admin/organizations`);
+}
+
+export async function rejectOrganizationAction(
+  locale: string,
+  organizationId: string,
+  reason: string
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.organization.update({
+    where: { id: organizationId },
+    data: {
+      verificationStatus: "REJECTED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      rejectionReason: reason,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    organizationId,
+    action: "admin.organization.reject",
+    entityType: "Organization",
+    entityId: organizationId,
+    metadata: { reason },
+  });
+  revalidatePath(`/${locale}/admin/organizations`);
+}
+
+export async function requestOrganizationChangesAction(
+  locale: string,
+  organizationId: string,
+  notes: string
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.organization.update({
+    where: { id: organizationId },
+    data: {
+      verificationStatus: "CHANGES_REQUESTED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      changeRequestNotes: notes,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    organizationId,
+    action: "admin.organization.request_changes",
+    entityType: "Organization",
+    entityId: organizationId,
+    metadata: { notes },
+  });
+  revalidatePath(`/${locale}/admin/organizations`);
+}
+
+export async function suspendOrganizationAction(locale: string, organizationId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.organization.update({
+    where: { id: organizationId },
+    data: { verificationStatus: "SUSPENDED", reviewedByUserId: admin.id, reviewedAt: new Date() },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    organizationId,
+    action: "admin.organization.suspend",
+    entityType: "Organization",
+    entityId: organizationId,
+  });
+  revalidatePath(`/${locale}/admin/organizations`);
+}
+
+// ---- Hotels ----
+
+export async function approveHotelAction(locale: string, hotelId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.hotel.update({
+    where: { id: hotelId },
+    data: {
+      status: "APPROVED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      rejectionReason: null,
+      changeRequestNotes: null,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.hotel.approve",
+    entityType: "Hotel",
+    entityId: hotelId,
+  });
+  revalidatePath(`/${locale}/admin/hotels`);
+}
+
+export async function rejectHotelAction(locale: string, hotelId: string, reason: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.hotel.update({
+    where: { id: hotelId },
+    data: { status: "REJECTED", reviewedByUserId: admin.id, reviewedAt: new Date(), rejectionReason: reason },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.hotel.reject",
+    entityType: "Hotel",
+    entityId: hotelId,
+    metadata: { reason },
+  });
+  revalidatePath(`/${locale}/admin/hotels`);
+}
+
+export async function requestHotelChangesAction(locale: string, hotelId: string, notes: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.hotel.update({
+    where: { id: hotelId },
+    data: {
+      status: "CHANGES_REQUESTED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      changeRequestNotes: notes,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.hotel.request_changes",
+    entityType: "Hotel",
+    entityId: hotelId,
+    metadata: { notes },
+  });
+  revalidatePath(`/${locale}/admin/hotels`);
+}
+
+export async function publishHotelAction(locale: string, hotelId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.hotel.update({
+    where: { id: hotelId },
+    data: { status: "PUBLISHED", publishedAt: new Date() },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.hotel.publish",
+    entityType: "Hotel",
+    entityId: hotelId,
+  });
+  revalidatePath(`/${locale}/admin/hotels`);
+}
+
+export async function unpublishHotelAction(locale: string, hotelId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.hotel.update({ where: { id: hotelId }, data: { status: "UNPUBLISHED" } });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.hotel.unpublish",
+    entityType: "Hotel",
+    entityId: hotelId,
+  });
+  revalidatePath(`/${locale}/admin/hotels`);
+}
+
+export async function suspendHotelAction(locale: string, hotelId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.hotel.update({ where: { id: hotelId }, data: { status: "SUSPENDED" } });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.hotel.suspend",
+    entityType: "Hotel",
+    entityId: hotelId,
+  });
+  revalidatePath(`/${locale}/admin/hotels`);
+}
+
+// ---- Vehicles ----
+
+export async function approveVehicleAction(locale: string, vehicleId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.vehicle.update({
+    where: { id: vehicleId },
+    data: {
+      approvalStatus: "APPROVED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      rejectionReason: null,
+      changeRequestNotes: null,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.vehicle.approve",
+    entityType: "Vehicle",
+    entityId: vehicleId,
+  });
+  revalidatePath(`/${locale}/admin/vehicles`);
+}
+
+export async function rejectVehicleAction(locale: string, vehicleId: string, reason: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.vehicle.update({
+    where: { id: vehicleId },
+    data: {
+      approvalStatus: "REJECTED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      rejectionReason: reason,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.vehicle.reject",
+    entityType: "Vehicle",
+    entityId: vehicleId,
+    metadata: { reason },
+  });
+  revalidatePath(`/${locale}/admin/vehicles`);
+}
+
+export async function requestVehicleChangesAction(
+  locale: string,
+  vehicleId: string,
+  notes: string
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.vehicle.update({
+    where: { id: vehicleId },
+    data: {
+      approvalStatus: "CHANGES_REQUESTED",
+      reviewedByUserId: admin.id,
+      reviewedAt: new Date(),
+      changeRequestNotes: notes,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.vehicle.request_changes",
+    entityType: "Vehicle",
+    entityId: vehicleId,
+    metadata: { notes },
+  });
+  revalidatePath(`/${locale}/admin/vehicles`);
+}
+
+export async function publishVehicleAction(locale: string, vehicleId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.vehicle.update({
+    where: { id: vehicleId },
+    data: { approvalStatus: "PUBLISHED", publishedAt: new Date() },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.vehicle.publish",
+    entityType: "Vehicle",
+    entityId: vehicleId,
+  });
+  revalidatePath(`/${locale}/admin/vehicles`);
+}
+
+export async function unpublishVehicleAction(locale: string, vehicleId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.vehicle.update({
+    where: { id: vehicleId },
+    data: { approvalStatus: "UNPUBLISHED" },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.vehicle.unpublish",
+    entityType: "Vehicle",
+    entityId: vehicleId,
+  });
+  revalidatePath(`/${locale}/admin/vehicles`);
+}
+
+export async function suspendVehicleAction(locale: string, vehicleId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.vehicle.update({
+    where: { id: vehicleId },
+    data: { approvalStatus: "SUSPENDED" },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.vehicle.suspend",
+    entityType: "Vehicle",
+    entityId: vehicleId,
+  });
+  revalidatePath(`/${locale}/admin/vehicles`);
+}
+
+// ---- Users ----
+
+export async function suspendUserAction(locale: string, userId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.user.update({ where: { id: userId }, data: { status: "SUSPENDED" } });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.user.suspend",
+    entityType: "User",
+    entityId: userId,
+  });
+  revalidatePath(`/${locale}/admin/users`);
+}
+
+export async function activateUserAction(locale: string, userId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.user.update({ where: { id: userId }, data: { status: "ACTIVE" } });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.user.activate",
+    entityType: "User",
+    entityId: userId,
+  });
+  revalidatePath(`/${locale}/admin/users`);
+}
+
+// ---- Exchange rates ----
+
+export async function addExchangeRateAction(
+  locale: string,
+  targetCurrency: "EUR" | "USD",
+  rate: number
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.exchangeRate.create({
+    data: {
+      baseCurrency: "MAD",
+      targetCurrency,
+      rate,
+      source: "MANUAL",
+      createdByUserId: admin.id,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.exchange_rate.add",
+    entityType: "ExchangeRate",
+    metadata: { targetCurrency, rate },
+  });
+  revalidatePath(`/${locale}/admin/exchange-rates`);
+}
+
+// ---- Amenities ----
+
+export async function createAmenityAction(
+  locale: string,
+  code: string,
+  category: "HOTEL" | "ROOM" | "VEHICLE" | "GENERAL",
+  nameEn: string,
+  nameFr: string,
+  nameAr: string
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.amenity.create({
+    data: { code, category, name: { en: nameEn, fr: nameFr, ar: nameAr } },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.amenity.create",
+    entityType: "Amenity",
+    metadata: { code },
+  });
+  revalidatePath(`/${locale}/admin/amenities`);
+}
+
+// ---- Coupons ----
+
+export async function createCouponAction(
+  locale: string,
+  input: {
+    code: string;
+    type: "PERCENTAGE" | "FIXED";
+    value: number;
+    scope: "ALL" | "HOTEL" | "CAR";
+    validFrom: string;
+    validTo: string;
+    usageLimit?: number;
+  }
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.coupon.create({
+    data: {
+      code: input.code,
+      type: input.type,
+      value: input.value,
+      scope: input.scope,
+      validFrom: new Date(input.validFrom),
+      validTo: new Date(input.validTo),
+      usageLimit: input.usageLimit,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.coupon.create",
+    entityType: "Coupon",
+    metadata: { code: input.code },
+  });
+  revalidatePath(`/${locale}/admin/coupons`);
+}
+
+export async function toggleCouponStatusAction(
+  locale: string,
+  couponId: string,
+  status: "ACTIVE" | "INACTIVE"
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.coupon.update({ where: { id: couponId }, data: { status } });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.coupon.status",
+    entityType: "Coupon",
+    entityId: couponId,
+    metadata: { status },
+  });
+  revalidatePath(`/${locale}/admin/coupons`);
+}
+
+// ---- CMS ----
+
+export async function updateCmsPageAction(
+  locale: string,
+  slug: string,
+  content: Record<string, unknown>
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.cmsPage.update({
+    where: { slug },
+    data: { content: content as never },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.cms.update",
+    entityType: "CmsPage",
+    metadata: { slug },
+  });
+  revalidatePath(`/${locale}/admin/cms`);
+}
+
+// ---- Reviews ----
+
+export async function moderateReviewAction(
+  locale: string,
+  reviewId: string,
+  status: "APPROVED" | "REJECTED"
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.review.update({ where: { id: reviewId }, data: { status } });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.review.moderate",
+    entityType: "Review",
+    entityId: reviewId,
+    metadata: { status },
+  });
+  revalidatePath(`/${locale}/admin/reviews`);
+}
+
+// ---- Global settings ----
+
+export async function updateGlobalSettingsAction(
+  locale: string,
+  value: { defaultLocale: string; defaultCurrency: string; maintenanceMode: boolean }
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.globalSetting.upsert({
+    where: { key: "platform" },
+    update: { value },
+    create: { key: "platform", value },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.settings.update",
+    entityType: "GlobalSetting",
+    metadata: value,
+  });
+  revalidatePath(`/${locale}/admin/settings`);
+}
