@@ -65,9 +65,6 @@ export default async function AffiliateProgramPage({
             </Card>
           ))}
         </div>
-        <p className="mt-10 text-center text-sm text-muted-foreground">
-          {tMarketing("affiliateComingSoon")}
-        </p>
       </section>
     </main>
   );

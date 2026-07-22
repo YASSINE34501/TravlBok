@@ -20,6 +20,7 @@ export const ROLE_GROUPS = {
     "TRAVEL_AGENCY",
     "TOUR_PROVIDER",
   ] as Role[],
+  affiliatePartners: ["AFFILIATE_PARTNER"] as Role[],
 } as const;
 
 export type SessionUser = {

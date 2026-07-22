@@ -203,6 +203,7 @@ enum UploadPurpose {
   VEHICLE_PHOTO
   VEHICLE_VIDEO
   AVATAR
+  PROMO_MATERIAL
   OTHER
 }
 
@@ -349,6 +350,7 @@ model Organization {
   subscription    Subscription?
   payments        Payment[]
   invoices        Invoice[]
+  affiliate       Affiliate?
 
   @@index([type])
   @@index([verificationStatus])
@@ -866,6 +868,134 @@ model WebhookLog {
 }
 
 // =========================================================================
+// AFFILIATES
+// =========================================================================
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+  CANCELLED
+}
+
+enum WithdrawalStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  PAID
+}
+
+model Affiliate {
+  id                String   @id @default(uuid())
+  organizationId    String   @unique
+  referralCode      String   @unique
+  payoutMethod      Json?
+  minimumWithdrawal Decimal? @db.Decimal(12, 2)
+  holdingPeriodDays Int?
+  idDocumentRef     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaigns    Campaign[]
+  clicks       AffiliateClick[]
+  commissions  Commission[]
+  withdrawals  Withdrawal[]
+
+  @@index([referralCode])
+}
+
+model Campaign {
+  id         String   @id @default(uuid())
+  affiliateId String
+  name       String
+  slug       String
+  isActive   Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+
+  affiliate Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  clicks    AffiliateClick[]
+
+  @@unique([affiliateId, slug])
+}
+
+model AffiliateClick {
+  id                     String   @id @default(uuid())
+  affiliateId            String
+  campaignId             String?
+  visitorId              String
+  ipAddressHash          String
+  userAgent              String?
+  landingPath            String
+  convertedReservationId String?  @unique
+
+  createdAt DateTime @default(now())
+
+  affiliate   Affiliate    @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  campaign    Campaign?    @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  commissions Commission[]
+
+  @@index([affiliateId, createdAt])
+  @@index([visitorId])
+}
+
+model AffiliateCommissionRule {
+  id             String          @id @default(uuid())
+  organizationId String?
+  serviceType    ReservationType
+  type           CommissionType
+  value          Decimal         @db.Decimal(12, 4)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, serviceType])
+}
+
+model Commission {
+  id            String           @id @default(uuid())
+  affiliateId   String
+  reservationId String           @unique
+  clickId       String?
+  amount        Decimal          @db.Decimal(12, 2)
+  currency      CurrencyCode
+  rateSnapshot  Decimal          @db.Decimal(12, 4)
+  status        CommissionStatus @default(PENDING)
+  holdReleaseAt DateTime?
+  rejectionReason String?
+  withdrawalId  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  affiliate   Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  reservation Reservation      @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  click       AffiliateClick?  @relation(fields: [clickId], references: [id], onDelete: SetNull)
+  withdrawal  Withdrawal?      @relation(fields: [withdrawalId], references: [id], onDelete: SetNull)
+
+  @@index([affiliateId, status])
+}
+
+model Withdrawal {
+  id                   String           @id @default(uuid())
+  affiliateId          String
+  amount               Decimal          @db.Decimal(12, 2)
+  currency             CurrencyCode
+  status               WithdrawalStatus @default(REQUESTED)
+  payoutMethodSnapshot Json
+  requestedAt          DateTime         @default(now())
+  processedAt          DateTime?
+  processedByUserId    String?
+  rejectionReason      String?
+
+  affiliate   Affiliate    @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  commissions Commission[]
+}
+
+// =========================================================================
 // HOTEL DOMAIN
 // =========================================================================
 
@@ -1208,8 +1338,9 @@ model Reservation {
   roomItems ReservationRoomItem[]
   guests    ReservationGuest[]
   review    Review?
-  payments  Payment[]
-  invoice   Invoice?
+  payments   Payment[]
+  invoice    Invoice?
+  commission Commission?
 
   @@index([customerUserId])
   @@index([organizationId])

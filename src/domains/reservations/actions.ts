@@ -14,6 +14,8 @@ import { calculateHotelPriceBreakdown, calculateCarPriceBreakdown } from "./pric
 import { resolveCoupon, getCommissionRate } from "./coupons";
 import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 import { createBookingPaymentAndInvoice } from "@/domains/payments/booking-payment";
+import { recordAffiliateConversion } from "@/domains/affiliates/conversion";
+import { handleReservationStatusChangeForCommission } from "@/domains/affiliates/commission-lifecycle";
 
 type BookingResult =
   | { success: true; reservationId: string; bookingReference: string }
@@ -210,6 +212,8 @@ export async function createHotelReservationAction(
           },
         });
 
+        await recordAffiliateConversion(tx, reservation);
+
         return reservation;
       },
       { isolationLevel: "Serializable" }
@@ -365,6 +369,8 @@ export async function createCarReservationAction(
           },
         });
 
+        await recordAffiliateConversion(tx, reservation);
+
         return reservation;
       },
       { isolationLevel: "Serializable" }
@@ -430,6 +436,8 @@ export async function cancelReservationAction(
     entityId: reservationId,
   });
 
+  await handleReservationStatusChangeForCommission(reservationId, "CANCELLED");
+
   return { success: true };
 }
 
@@ -468,6 +476,8 @@ export async function updatePartnerReservationStatusAction(
     entityType: "Reservation",
     entityId: reservationId,
   });
+
+  await handleReservationStatusChangeForCommission(reservationId, status);
 
   return { success: true };
 }

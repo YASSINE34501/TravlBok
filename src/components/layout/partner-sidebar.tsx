@@ -13,6 +13,8 @@ import {
   CreditCard,
   Wallet,
   Receipt,
+  Link2,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -26,25 +28,43 @@ export function PartnerSidebar({
   const t = useTranslations("Partner");
   const pathname = usePathname();
 
-  const items = [
-    { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
-    { href: "/dashboard/organization", label: t("settings"), icon: Settings },
-    ...(organizationType === "HOTEL"
-      ? [{ href: "/dashboard/properties", label: t("properties"), icon: Building2 }]
-      : []),
-    ...(organizationType === "CAR_RENTAL"
+  const items =
+    organizationType === "AFFILIATE"
       ? [
-          { href: "/dashboard/branches", label: t("branches"), icon: MapPinned },
-          { href: "/dashboard/vehicles", label: t("vehicles"), icon: Car },
+          { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
+          { href: "/dashboard/organization", label: t("settings"), icon: Settings },
+          { href: "/dashboard/affiliate", label: t("affiliateOverview"), icon: Link2 },
+          { href: "/dashboard/affiliate/campaigns", label: t("affiliateCampaigns"), icon: Link2 },
+          {
+            href: "/dashboard/affiliate/withdrawals",
+            label: t("affiliateWithdrawals"),
+            icon: Wallet,
+          },
+          {
+            href: "/dashboard/affiliate/promo-materials",
+            label: t("affiliatePromoMaterials"),
+            icon: ImageIcon,
+          },
         ]
-      : []),
-    { href: "/dashboard/bookings", label: t("bookings"), icon: CalendarCheck },
-    { href: "/dashboard/reviews", label: t("reviews"), icon: Star },
-    { href: "/dashboard/payments", label: t("payments"), icon: Wallet },
-    { href: "/dashboard/invoices", label: t("invoices"), icon: Receipt },
-    { href: "/dashboard/staff", label: t("staff"), icon: Users },
-    { href: "/dashboard/subscription", label: t("subscription"), icon: CreditCard },
-  ];
+      : [
+          { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
+          { href: "/dashboard/organization", label: t("settings"), icon: Settings },
+          ...(organizationType === "HOTEL"
+            ? [{ href: "/dashboard/properties", label: t("properties"), icon: Building2 }]
+            : []),
+          ...(organizationType === "CAR_RENTAL"
+            ? [
+                { href: "/dashboard/branches", label: t("branches"), icon: MapPinned },
+                { href: "/dashboard/vehicles", label: t("vehicles"), icon: Car },
+              ]
+            : []),
+          { href: "/dashboard/bookings", label: t("bookings"), icon: CalendarCheck },
+          { href: "/dashboard/reviews", label: t("reviews"), icon: Star },
+          { href: "/dashboard/payments", label: t("payments"), icon: Wallet },
+          { href: "/dashboard/invoices", label: t("invoices"), icon: Receipt },
+          { href: "/dashboard/staff", label: t("staff"), icon: Users },
+          { href: "/dashboard/subscription", label: t("subscription"), icon: CreditCard },
+        ];
 
   return (
     <nav className="flex flex-col gap-1">

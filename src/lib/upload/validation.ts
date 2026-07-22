@@ -48,6 +48,11 @@ const PURPOSE_RULES: Record<
     maxSizeBytes: 3 * 1024 * 1024,
     folder: "avatars",
   },
+  PROMO_MATERIAL: {
+    allowedTypes: [...IMAGE_TYPES, ...VIDEO_TYPES],
+    maxSizeBytes: 50 * 1024 * 1024,
+    folder: "promo-materials",
+  },
   OTHER: {
     allowedTypes: [...DOCUMENT_TYPES, ...VIDEO_TYPES],
     maxSizeBytes: 20 * 1024 * 1024,

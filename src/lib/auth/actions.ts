@@ -24,10 +24,15 @@ const ORG_ROLE_TO_TYPE: Partial<Record<Role, OrganizationType>> = {
   HOTEL_OWNER: "HOTEL",
   CAR_RENTAL_OWNER: "CAR_RENTAL",
   TRAVEL_AGENCY: "TRAVEL_AGENCY",
+  AFFILIATE_PARTNER: "AFFILIATE",
 };
 
 function generateToken(): string {
   return randomBytes(32).toString("hex");
+}
+
+function generateReferralCode(): string {
+  return randomBytes(4).toString("hex").toUpperCase();
 }
 
 export async function registerAction(
@@ -53,9 +58,10 @@ export async function registerAction(
 
   const passwordHash = await hashPassword(data.password);
   const orgType = ORG_ROLE_TO_TYPE[data.role];
-  const freePlan = orgType
-    ? await prisma.subscriptionPlan.findFirst({ where: { tier: "FREE", isArchived: false } })
-    : null;
+  const freePlan =
+    orgType && orgType !== "AFFILIATE"
+      ? await prisma.subscriptionPlan.findFirst({ where: { tier: "FREE", isArchived: false } })
+      : null;
 
   const user = await prisma.$transaction(async (tx) => {
     const createdUser = await tx.user.create({
@@ -102,6 +108,15 @@ export async function registerAction(
             billingInterval: "MONTHLY",
             currentPeriodStart: now,
             currentPeriodEnd: farFuture,
+          },
+        });
+      }
+
+      if (orgType === "AFFILIATE") {
+        await tx.affiliate.create({
+          data: {
+            organizationId: organization.id,
+            referralCode: generateReferralCode(),
           },
         });
       }
