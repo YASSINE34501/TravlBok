@@ -11,6 +11,8 @@ import {
   Settings,
   Users,
   CreditCard,
+  Wallet,
+  Receipt,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -38,6 +40,8 @@ export function PartnerSidebar({
       : []),
     { href: "/dashboard/bookings", label: t("bookings"), icon: CalendarCheck },
     { href: "/dashboard/reviews", label: t("reviews"), icon: Star },
+    { href: "/dashboard/payments", label: t("payments"), icon: Wallet },
+    { href: "/dashboard/invoices", label: t("invoices"), icon: Receipt },
     { href: "/dashboard/staff", label: t("staff"), icon: Users },
     { href: "/dashboard/subscription", label: t("subscription"), icon: CreditCard },
   ];

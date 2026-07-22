@@ -324,6 +324,8 @@
     "staff": "الموظفون",
     "staffEmailPlaceholder": "البريد الإلكتروني للموظف",
     "inviteStaff": "دعوة",
+    "payments": "المدفوعات",
+    "invoices": "الفواتير",
     "subscription": "الاشتراك",
     "currentPlan": "الخطة الحالية",
     "changePlan": "تغيير الخطة",
@@ -382,6 +384,22 @@
     "downloadInvoice": "تنزيل الفاتورة",
     "cancelBooking": "إلغاء الحجز",
     "bookingHistory": "سجل الحجوزات"
+  },
+  "Payments": {
+    "paymentMethod": "طريقة الدفع",
+    "cashAtProperty": "نقداً / الدفع في العقار",
+    "card": "بطاقة ائتمان أو خصم",
+    "paypal": "PayPal",
+    "bankTransfer": "تحويل بنكي",
+    "manual": "يدوي (بالتنسيق مع الدعم)",
+    "status": "حالة الدفع",
+    "amount": "المبلغ",
+    "provider": "المزود",
+    "invoiceNumber": "رقم الفاتورة",
+    "issuedAt": "تاريخ الإصدار",
+    "confirmPayment": "تأكيد الدفع",
+    "refund": "استرداد",
+    "refundIssued": "تم إصدار الاسترداد"
   },
   "Marketing": {
     "affiliateStep1Title": "احصل على رابط الإحالة الخاص بك",

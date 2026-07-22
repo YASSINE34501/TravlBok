@@ -324,6 +324,8 @@
     "staff": "Staff",
     "staffEmailPlaceholder": "Staff member's email",
     "inviteStaff": "Invite",
+    "payments": "Payments",
+    "invoices": "Invoices",
     "subscription": "Subscription",
     "currentPlan": "Current plan",
     "changePlan": "Change plan",
@@ -382,6 +384,22 @@
     "downloadInvoice": "Download invoice",
     "cancelBooking": "Cancel booking",
     "bookingHistory": "Booking history"
+  },
+  "Payments": {
+    "paymentMethod": "Payment method",
+    "cashAtProperty": "Cash / pay at property",
+    "card": "Credit or debit card",
+    "paypal": "PayPal",
+    "bankTransfer": "Bank transfer",
+    "manual": "Manual (arrange with support)",
+    "status": "Payment status",
+    "amount": "Amount",
+    "provider": "Provider",
+    "invoiceNumber": "Invoice number",
+    "issuedAt": "Issued",
+    "confirmPayment": "Confirm payment",
+    "refund": "Refund",
+    "refundIssued": "Refund issued"
   },
   "Marketing": {
     "affiliateStep1Title": "Get your referral link",

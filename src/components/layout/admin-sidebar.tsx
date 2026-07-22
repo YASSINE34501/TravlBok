@@ -21,6 +21,7 @@ import {
   Settings,
   CreditCard,
   Wallet,
+  Receipt,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,8 @@ export function AdminSidebar() {
     { href: "/admin/users", label: t("users"), icon: Users },
     { href: "/admin/subscription-plans", label: t("subscriptionPlans"), icon: CreditCard },
     { href: "/admin/subscriptions", label: t("subscriptions"), icon: Wallet },
+    { href: "/admin/payments", label: "Payments", icon: Wallet },
+    { href: "/admin/invoices", label: "Invoices", icon: Receipt },
     { href: "/admin/exchange-rates", label: t("exchangeRates"), icon: Globe },
     { href: "/admin/countries", label: t("countries"), icon: Globe },
     { href: "/admin/cities", label: t("cities"), icon: MapPin },

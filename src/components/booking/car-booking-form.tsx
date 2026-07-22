@@ -16,6 +16,7 @@ import { createCarReservationAction } from "@/domains/reservations/actions";
 import { formatMoney } from "@/lib/currency/format";
 import { useRouter } from "@/i18n/navigation";
 import type { CurrencyCode } from "@/lib/currency/config";
+import { PaymentMethodSelect, type PaymentProviderChoice } from "./payment-method-select";
 
 type Breakdown = {
   currency: CurrencyCode;
@@ -49,6 +50,9 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
   const [guestEmail, setGuestEmail] = useState("");
   const [guestPhone, setGuestPhone] = useState("");
   const [specialRequests, setSpecialRequests] = useState("");
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProviderChoice>(
+    "CASH_AT_PROPERTY"
+  );
 
   const [breakdown, setBreakdown] = useState<Breakdown | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -98,6 +102,7 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
         guestPhone,
         specialRequests,
         couponCode,
+        paymentProvider,
       });
       if (!result.success) {
         toast.error(tCommon("somethingWentWrong"));
@@ -237,6 +242,7 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
               className="mt-1"
             />
           </div>
+          <PaymentMethodSelect value={paymentProvider} onChange={setPaymentProvider} />
           <div>
             <Label htmlFor="coupon">{t("couponCode")}</Label>
             <div className="mt-1 flex gap-2">

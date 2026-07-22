@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const paymentProviderSchema = z.enum([
+  "STRIPE",
+  "PAYPAL",
+  "BANK_TRANSFER",
+  "MANUAL",
+  "CASH_AT_PROPERTY",
+]);
+
 export const hotelBookingSchema = z
   .object({
     roomTypeId: z.string().min(1),
@@ -12,6 +20,7 @@ export const hotelBookingSchema = z
     guestPhone: z.string().trim().max(30).optional().or(z.literal("")),
     specialRequests: z.string().trim().max(1000).optional().or(z.literal("")),
     couponCode: z.string().trim().max(40).optional().or(z.literal("")),
+    paymentProvider: paymentProviderSchema.default("CASH_AT_PROPERTY"),
   })
   .refine((data) => data.checkOutDate > data.checkInDate, {
     path: ["checkOutDate"],
@@ -37,6 +46,7 @@ export const carBookingSchema = z
     guestPhone: z.string().trim().max(30).optional().or(z.literal("")),
     specialRequests: z.string().trim().max(1000).optional().or(z.literal("")),
     couponCode: z.string().trim().max(40).optional().or(z.literal("")),
+    paymentProvider: paymentProviderSchema.default("CASH_AT_PROPERTY"),
   })
   .refine((data) => data.returnAt > data.pickupAt, {
     path: ["returnAt"],

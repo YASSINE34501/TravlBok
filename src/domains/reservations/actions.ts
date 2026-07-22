@@ -13,6 +13,7 @@ import {
 import { calculateHotelPriceBreakdown, calculateCarPriceBreakdown } from "./pricing";
 import { resolveCoupon, getCommissionRate } from "./coupons";
 import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
+import { createBookingPaymentAndInvoice } from "@/domains/payments/booking-payment";
 
 type BookingResult =
   | { success: true; reservationId: string; bookingReference: string }
@@ -165,6 +166,7 @@ export async function createHotelReservationAction(
             discountAmount: breakdown.discountAmount,
             commissionAmount: breakdown.commissionAmount,
             totalAmount: breakdown.totalAmount,
+            paymentMethod: data.paymentProvider === "CASH_AT_PROPERTY" ? "PAY_AT_PROPERTY" : "MANUAL",
             couponId: coupon.couponId,
             couponCodeSnapshot: coupon.couponId ? data.couponCode : null,
             guestFirstName: data.guestFirstName,
@@ -220,6 +222,8 @@ export async function createHotelReservationAction(
       entityType: "Reservation",
       entityId: result.id,
     });
+
+    await createBookingPaymentAndInvoice(result, data.paymentProvider);
 
     return {
       success: true,
@@ -323,6 +327,7 @@ export async function createCarReservationAction(
             discountAmount: breakdown.discountAmount,
             commissionAmount: breakdown.commissionAmount,
             totalAmount: breakdown.totalAmount,
+            paymentMethod: data.paymentProvider === "CASH_AT_PROPERTY" ? "PAY_AT_PROPERTY" : "MANUAL",
             couponId: coupon.couponId,
             couponCodeSnapshot: coupon.couponId ? data.couponCode : null,
             guestFirstName: data.guestFirstName,
@@ -372,6 +377,8 @@ export async function createCarReservationAction(
       entityType: "Reservation",
       entityId: result.id,
     });
+
+    await createBookingPaymentAndInvoice(result, data.paymentProvider);
 
     return {
       success: true,
