@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireOrganizationAccess, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { vehicleSchema, type VehicleInput } from "@/lib/validation/vehicle";
+import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 
 type ActionResult =
   | { success: true; vehicleId: string }
@@ -59,6 +60,9 @@ export async function createVehicleAction(
     where: { id: parsed.data.branchId, organizationId },
   });
   if (!branch) return { success: false, error: "invalidInput" };
+
+  const limitCheck = await checkOrganizationLimit(organizationId, "VEHICLES");
+  if (!limitCheck.allowed) return { success: false, error: "planLimitReached" };
 
   const vehicle = await prisma.vehicle.create({
     data: { organizationId, ...buildVehicleData(parsed.data) },

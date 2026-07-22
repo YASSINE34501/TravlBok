@@ -231,6 +231,132 @@ async function main() {
   });
   console.log(`Super Admin ready: ${adminEmail} / TravlBok#Admin2026`);
 
+  // ---- Subscription plans ----
+  const planData: Array<{
+    tier: "FREE" | "STARTER" | "PROFESSIONAL" | "BUSINESS" | "ENTERPRISE";
+    name: { en: string; fr: string; ar: string };
+    monthlyPrice: number;
+    annualPrice: number;
+    trialDays: number;
+    maxProperties: number | null;
+    maxRoomsPerProperty: number | null;
+    maxVehicles: number | null;
+    maxBranches: number | null;
+    maxStaff: number | null;
+    maxMonthlyBookings: number | null;
+    featurePms: boolean;
+    featureAnalytics: boolean;
+    featureAffiliateTools: boolean;
+    featureApiAccess: boolean;
+    featurePrioritySupport: boolean;
+    sortOrder: number;
+  }> = [
+    {
+      tier: "FREE",
+      name: { en: "Free", fr: "Gratuit", ar: "مجاني" },
+      monthlyPrice: 0,
+      annualPrice: 0,
+      trialDays: 0,
+      maxProperties: 1,
+      maxRoomsPerProperty: 3,
+      maxVehicles: 1,
+      maxBranches: 1,
+      maxStaff: 1,
+      maxMonthlyBookings: 20,
+      featurePms: false,
+      featureAnalytics: false,
+      featureAffiliateTools: false,
+      featureApiAccess: false,
+      featurePrioritySupport: false,
+      sortOrder: 0,
+    },
+    {
+      tier: "STARTER",
+      name: { en: "Starter", fr: "Starter", ar: "المبتدئ" },
+      monthlyPrice: 199,
+      annualPrice: 1990,
+      trialDays: 14,
+      maxProperties: 3,
+      maxRoomsPerProperty: 15,
+      maxVehicles: 5,
+      maxBranches: 2,
+      maxStaff: 5,
+      maxMonthlyBookings: 150,
+      featurePms: false,
+      featureAnalytics: true,
+      featureAffiliateTools: false,
+      featureApiAccess: false,
+      featurePrioritySupport: false,
+      sortOrder: 1,
+    },
+    {
+      tier: "PROFESSIONAL",
+      name: { en: "Professional", fr: "Professionnel", ar: "الاحترافي" },
+      monthlyPrice: 499,
+      annualPrice: 4990,
+      trialDays: 14,
+      maxProperties: 10,
+      maxRoomsPerProperty: 60,
+      maxVehicles: 20,
+      maxBranches: 5,
+      maxStaff: 20,
+      maxMonthlyBookings: 800,
+      featurePms: true,
+      featureAnalytics: true,
+      featureAffiliateTools: true,
+      featureApiAccess: false,
+      featurePrioritySupport: false,
+      sortOrder: 2,
+    },
+    {
+      tier: "BUSINESS",
+      name: { en: "Business", fr: "Business", ar: "الأعمال" },
+      monthlyPrice: 999,
+      annualPrice: 9990,
+      trialDays: 14,
+      maxProperties: 30,
+      maxRoomsPerProperty: null,
+      maxVehicles: 100,
+      maxBranches: 15,
+      maxStaff: 60,
+      maxMonthlyBookings: 3000,
+      featurePms: true,
+      featureAnalytics: true,
+      featureAffiliateTools: true,
+      featureApiAccess: true,
+      featurePrioritySupport: true,
+      sortOrder: 3,
+    },
+    {
+      tier: "ENTERPRISE",
+      name: { en: "Enterprise", fr: "Entreprise", ar: "المؤسسات" },
+      monthlyPrice: 2499,
+      annualPrice: 24990,
+      trialDays: 30,
+      maxProperties: null,
+      maxRoomsPerProperty: null,
+      maxVehicles: null,
+      maxBranches: null,
+      maxStaff: null,
+      maxMonthlyBookings: null,
+      featurePms: true,
+      featureAnalytics: true,
+      featureAffiliateTools: true,
+      featureApiAccess: true,
+      featurePrioritySupport: true,
+      sortOrder: 4,
+    },
+  ];
+
+  const plans: Record<string, Awaited<ReturnType<typeof prisma.subscriptionPlan.create>>> = {};
+  for (const plan of planData) {
+    const existing = await prisma.subscriptionPlan.findFirst({ where: { tier: plan.tier } });
+    plans[plan.tier] = existing
+      ? existing
+      : await prisma.subscriptionPlan.create({ data: plan });
+  }
+  console.log("Subscription plans seeded: Free, Starter, Professional, Business, Enterprise.");
+
   // ---- Demo hotel owner + hotel + rooms ----
   const demoHotelOwnerEmail = "owner@riad-demo.ma";
   const demoOwnerPasswordHash = await hashPassword("Partner#Demo2026");
@@ -273,6 +399,19 @@ async function main() {
       },
     });
   }
+
+  await prisma.subscription.upsert({
+    where: { organizationId: demoOrg.id },
+    update: {},
+    create: {
+      organizationId: demoOrg.id,
+      planId: plans.PROFESSIONAL.id,
+      status: "ACTIVE",
+      billingInterval: "MONTHLY",
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  });
 
   const riadCategory = await prisma.category.findUniqueOrThrow({
     where: { type_code: { type: "HOTEL_TYPE", code: "RIAD" } },
@@ -422,6 +561,19 @@ async function main() {
       },
     });
   }
+
+  await prisma.subscription.upsert({
+    where: { organizationId: carOrg.id },
+    update: {},
+    create: {
+      organizationId: carOrg.id,
+      planId: plans.STARTER.id,
+      status: "ACTIVE",
+      billingInterval: "MONTHLY",
+      currentPeriodStart: new Date(),
+      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    },
+  });
 
   let branch = await prisma.carBranch.findFirst({
     where: { organizationId: carOrg.id },

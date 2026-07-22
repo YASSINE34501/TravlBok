@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { requireOrganizationAccess, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { hotelSchema, type HotelInput } from "@/lib/validation/hotel";
+import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 
 type ActionResult =
   | { success: true; hotelId: string }
@@ -54,6 +55,11 @@ export async function createHotelAction(
   const parsed = hotelSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: "invalidInput" };
+  }
+
+  const limitCheck = await checkOrganizationLimit(organizationId, "PROPERTIES");
+  if (!limitCheck.allowed) {
+    return { success: false, error: "planLimitReached" };
   }
 
   const hotel = await prisma.hotel.create({

@@ -152,6 +152,7 @@ enum CouponScope {
   ALL
   HOTEL
   CAR
+  SUBSCRIPTION
 }
 
 enum CouponStatus {
@@ -345,6 +346,7 @@ model Organization {
   auditLogs       AuditLog[]
   coupons         Coupon[]
   commissionRules CommissionRule[]
+  subscription    Subscription?
 
   @@index([type])
   @@index([verificationStatus])
@@ -543,8 +545,9 @@ model Coupon {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  reservations Reservation[]
+  organization  Organization?  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  reservations  Reservation[]
+  subscriptions Subscription[]
 
   @@index([organizationId])
 }
@@ -562,6 +565,123 @@ model CommissionRule {
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, serviceType])
+}
+
+// =========================================================================
+// SUBSCRIPTIONS
+// =========================================================================
+
+enum SubscriptionPlanTier {
+  FREE
+  STARTER
+  PROFESSIONAL
+  BUSINESS
+  ENTERPRISE
+}
+
+enum BillingInterval {
+  MONTHLY
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  GRACE_PERIOD
+  SUSPENDED
+  CANCELLED
+  EXPIRED
+}
+
+enum UsageMetric {
+  PROPERTIES
+  ROOMS_PER_PROPERTY
+  VEHICLES
+  BRANCHES
+  STAFF
+  STORAGE_MB
+  MONTHLY_BOOKINGS
+}
+
+model SubscriptionPlan {
+  id          String               @id @default(uuid())
+  tier        SubscriptionPlanTier
+  name        Json
+  description Json?
+
+  monthlyPrice Decimal      @db.Decimal(12, 2)
+  annualPrice  Decimal      @db.Decimal(12, 2)
+  currency     CurrencyCode @default(MAD)
+  trialDays    Int          @default(0)
+
+  maxProperties       Int?
+  maxRoomsPerProperty Int?
+  maxVehicles         Int?
+  maxBranches         Int?
+  maxStaff            Int?
+  maxStorageMb        Int?
+  maxMonthlyBookings  Int?
+
+  featureAnalytics             Boolean @default(false)
+  featurePms                   Boolean @default(false)
+  featureChannelManager        Boolean @default(false)
+  featureDynamicPricing        Boolean @default(false)
+  featureApiAccess             Boolean @default(false)
+  featureAffiliateTools        Boolean @default(false)
+  featurePrioritySupport       Boolean @default(false)
+  featureCustomCommissionRates Boolean @default(false)
+
+  isCustom   Boolean @default(false)
+  isArchived Boolean @default(false)
+  sortOrder  Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+
+  @@index([tier])
+}
+
+model Subscription {
+  id                 String             @id @default(uuid())
+  organizationId     String             @unique
+  planId             String
+  status             SubscriptionStatus @default(TRIALING)
+  billingInterval    BillingInterval    @default(MONTHLY)
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  trialEndsAt        DateTime?
+  cancelAtPeriodEnd  Boolean            @default(false)
+  cancelledAt        DateTime?
+  gracePeriodEndsAt  DateTime?
+  couponId           String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         SubscriptionPlan @relation(fields: [planId], references: [id])
+  coupon       Coupon?          @relation(fields: [couponId], references: [id])
+  usageRecords UsageRecord[]
+
+  @@index([planId])
+  @@index([status])
+}
+
+model UsageRecord {
+  id             String      @id @default(uuid())
+  subscriptionId String
+  metric         UsageMetric
+  period         DateTime    @db.Date
+  value          Int
+
+  recordedAt DateTime @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId, metric, period])
 }
 
 // =========================================================================

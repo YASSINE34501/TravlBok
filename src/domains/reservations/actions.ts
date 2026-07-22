@@ -12,6 +12,7 @@ import {
 } from "@/lib/validation/reservation";
 import { calculateHotelPriceBreakdown, calculateCarPriceBreakdown } from "./pricing";
 import { resolveCoupon, getCommissionRate } from "./coupons";
+import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 
 type BookingResult =
   | { success: true; reservationId: string; bookingReference: string }
@@ -50,6 +51,14 @@ export async function createHotelReservationAction(
         });
         if (!roomType || roomType.hotel.status !== "PUBLISHED") {
           throw new BookingError("notFound");
+        }
+
+        const bookingLimit = await checkOrganizationLimit(
+          roomType.hotel.organizationId,
+          "MONTHLY_BOOKINGS"
+        );
+        if (!bookingLimit.allowed) {
+          throw new BookingError("organizationBookingLimitReached");
         }
 
         const isClosed = roomType.availabilityOverrides.some((o) => o.closedForBooking);
@@ -251,6 +260,14 @@ export async function createCarReservationAction(
         }
         if (vehicle.status === "MAINTENANCE" || vehicle.status === "INACTIVE") {
           throw new BookingError("datesUnavailable");
+        }
+
+        const bookingLimit = await checkOrganizationLimit(
+          vehicle.organizationId,
+          "MONTHLY_BOOKINGS"
+        );
+        if (!bookingLimit.allowed) {
+          throw new BookingError("organizationBookingLimitReached");
         }
 
         const overlapping = await tx.reservation.count({

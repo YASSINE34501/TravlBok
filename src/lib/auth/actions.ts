@@ -52,6 +52,10 @@ export async function registerAction(
   }
 
   const passwordHash = await hashPassword(data.password);
+  const orgType = ORG_ROLE_TO_TYPE[data.role];
+  const freePlan = orgType
+    ? await prisma.subscriptionPlan.findFirst({ where: { tier: "FREE", isArchived: false } })
+    : null;
 
   const user = await prisma.$transaction(async (tx) => {
     const createdUser = await tx.user.create({
@@ -66,7 +70,6 @@ export async function registerAction(
       },
     });
 
-    const orgType = ORG_ROLE_TO_TYPE[data.role];
     if (orgType) {
       const organization = await tx.organization.create({
         data: {
@@ -86,6 +89,22 @@ export async function registerAction(
           status: "ACTIVE",
         },
       });
+
+      if (freePlan) {
+        const now = new Date();
+        const farFuture = new Date(now);
+        farFuture.setFullYear(farFuture.getFullYear() + 100);
+        await tx.subscription.create({
+          data: {
+            organizationId: organization.id,
+            planId: freePlan.id,
+            status: "ACTIVE",
+            billingInterval: "MONTHLY",
+            currentPeriodStart: now,
+            currentPeriodEnd: farFuture,
+          },
+        });
+      }
     }
 
     await tx.auditLog.create({

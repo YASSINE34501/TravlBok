@@ -320,7 +320,15 @@
     "blackoutDates": "Blackout dates",
     "blackoutReasonPlaceholder": "Reason (optional)",
     "addBlackoutDate": "Add blackout date",
-    "blackoutDateAdded": "Blackout date added"
+    "blackoutDateAdded": "Blackout date added",
+    "staff": "Staff",
+    "staffEmailPlaceholder": "Staff member's email",
+    "inviteStaff": "Invite",
+    "subscription": "Subscription",
+    "currentPlan": "Current plan",
+    "changePlan": "Change plan",
+    "cancelSubscription": "Cancel subscription",
+    "cancelSubscriptionScheduled": "Your subscription will end at the close of the current billing period."
   },
   "Admin": {
     "dashboard": "Dashboard",
@@ -352,6 +360,8 @@
     "coupons": "Coupons",
     "cmsPages": "CMS pages",
     "homepageSections": "Homepage sections",
+    "subscriptionPlans": "Subscription plans",
+    "subscriptions": "Subscriptions",
     "auditLogs": "Audit logs",
     "settings": "Settings"
   },

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireOrganizationAccess, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { branchSchema, type BranchInput } from "@/lib/validation/branch";
+import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 
 type ActionResult =
   | { success: true; branchId: string }
@@ -21,6 +22,9 @@ export async function createBranchAction(
 
   const parsed = branchSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "invalidInput" };
+
+  const limitCheck = await checkOrganizationLimit(organizationId, "BRANCHES");
+  if (!limitCheck.allowed) return { success: false, error: "planLimitReached" };
 
   const branch = await prisma.carBranch.create({
     data: {

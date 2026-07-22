@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireOrganizationAccess, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 import {
   roomSchema,
   seasonalPriceSchema,
@@ -71,6 +72,13 @@ export async function createRoomAction(
   const parsed = roomSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: "invalidInput" };
+  }
+
+  const limitCheck = await checkOrganizationLimit(organizationId, "ROOMS_PER_PROPERTY", {
+    hotelId,
+  });
+  if (!limitCheck.allowed) {
+    return { success: false, error: "planLimitReached" };
   }
 
   const room = await prisma.roomType.create({

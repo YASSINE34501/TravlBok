@@ -320,7 +320,15 @@
     "blackoutDates": "تواريخ الحظر",
     "blackoutReasonPlaceholder": "السبب (اختياري)",
     "addBlackoutDate": "إضافة تاريخ حظر",
-    "blackoutDateAdded": "تمت إضافة تاريخ الحظر"
+    "blackoutDateAdded": "تمت إضافة تاريخ الحظر",
+    "staff": "الموظفون",
+    "staffEmailPlaceholder": "البريد الإلكتروني للموظف",
+    "inviteStaff": "دعوة",
+    "subscription": "الاشتراك",
+    "currentPlan": "الخطة الحالية",
+    "changePlan": "تغيير الخطة",
+    "cancelSubscription": "إلغاء الاشتراك",
+    "cancelSubscriptionScheduled": "سينتهي اشتراكك في نهاية فترة الفوترة الحالية."
   },
   "Admin": {
     "dashboard": "لوحة التحكم",
@@ -352,6 +360,8 @@
     "coupons": "القسائم",
     "cmsPages": "صفحات المحتوى",
     "homepageSections": "أقسام الصفحة الرئيسية",
+    "subscriptionPlans": "خطط الاشتراك",
+    "subscriptions": "الاشتراكات",
     "auditLogs": "سجلات التدقيق",
     "settings": "الإعدادات"
   },

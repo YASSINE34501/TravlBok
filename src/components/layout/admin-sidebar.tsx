@@ -19,6 +19,8 @@ import {
   LayoutGrid,
   Star,
   Settings,
+  CreditCard,
+  Wallet,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -33,6 +35,8 @@ export function AdminSidebar() {
     { href: "/admin/hotels", label: t("totalHotels"), icon: BedDouble },
     { href: "/admin/vehicles", label: t("totalVehicles"), icon: Car },
     { href: "/admin/users", label: t("users"), icon: Users },
+    { href: "/admin/subscription-plans", label: t("subscriptionPlans"), icon: CreditCard },
+    { href: "/admin/subscriptions", label: t("subscriptions"), icon: Wallet },
     { href: "/admin/exchange-rates", label: t("exchangeRates"), icon: Globe },
     { href: "/admin/countries", label: t("countries"), icon: Globe },
     { href: "/admin/cities", label: t("cities"), icon: MapPin },

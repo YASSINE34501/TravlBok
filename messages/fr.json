@@ -320,7 +320,15 @@
     "blackoutDates": "Dates bloquées",
     "blackoutReasonPlaceholder": "Motif (facultatif)",
     "addBlackoutDate": "Ajouter une date bloquée",
-    "blackoutDateAdded": "Date bloquée ajoutée"
+    "blackoutDateAdded": "Date bloquée ajoutée",
+    "staff": "Personnel",
+    "staffEmailPlaceholder": "E-mail du membre du personnel",
+    "inviteStaff": "Inviter",
+    "subscription": "Abonnement",
+    "currentPlan": "Forfait actuel",
+    "changePlan": "Changer de forfait",
+    "cancelSubscription": "Annuler l'abonnement",
+    "cancelSubscriptionScheduled": "Votre abonnement prendra fin à la fin de la période de facturation en cours."
   },
   "Admin": {
     "dashboard": "Tableau de bord",
@@ -352,6 +360,8 @@
     "coupons": "Coupons",
     "cmsPages": "Pages CMS",
     "homepageSections": "Sections de la page d'accueil",
+    "subscriptionPlans": "Forfaits d'abonnement",
+    "subscriptions": "Abonnements",
     "auditLogs": "Journaux d'audit",
     "settings": "Paramètres"
   },
