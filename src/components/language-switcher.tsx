@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { locales } from "@/i18n/routing";
+import { setUserLocaleAction } from "@/lib/i18n/actions";
 
 export function LanguageSwitcher() {
   const t = useTranslations("Locale");
@@ -20,6 +21,7 @@ export function LanguageSwitcher() {
 
   function handleSelect(nextLocale: (typeof locales)[number]) {
     router.replace(pathname, { locale: nextLocale });
+    void setUserLocaleAction(nextLocale);
   }
 
   return (

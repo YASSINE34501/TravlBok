@@ -20,6 +20,7 @@ export default async function BookingConfirmationPage({
   const t = await getTranslations("Booking");
   const tStatus = await getTranslations("BookingStatus");
   const tCommon = await getTranslations("Common");
+  const tSearch = await getTranslations("Search");
 
   const reservation = await prisma.reservation.findFirst({
     where: { id: reservationId, customerUserId: user.id },
@@ -61,22 +62,22 @@ export default async function BookingConfirmationPage({
         <CardContent className="space-y-4 text-sm">
           {reservation.type === "HOTEL" ? (
             <>
-              <Row label="Check-in" value={reservation.checkInDate?.toDateString() ?? ""} />
-              <Row label="Check-out" value={reservation.checkOutDate?.toDateString() ?? ""} />
+              <Row label={tSearch("checkIn")} value={reservation.checkInDate?.toDateString() ?? ""} />
+              <Row label={tSearch("checkOut")} value={reservation.checkOutDate?.toDateString() ?? ""} />
               {reservation.roomItems.map((item) => (
                 <Row
                   key={item.id}
                   label={item.roomType.name}
-                  value={`× ${item.quantity} · ${item.nights} nights`}
+                  value={`× ${item.quantity} · ${item.nights} ${tCommon("nights")}`}
                 />
               ))}
             </>
           ) : (
             <>
-              <Row label="Pickup" value={reservation.pickupAt?.toLocaleString() ?? ""} />
-              <Row label="Return" value={reservation.returnAt?.toLocaleString() ?? ""} />
+              <Row label={tSearch("pickupDate")} value={reservation.pickupAt?.toLocaleString() ?? ""} />
+              <Row label={tSearch("returnDate")} value={reservation.returnAt?.toLocaleString() ?? ""} />
               {reservation.pickupLocation && (
-                <Row label="Pickup location" value={reservation.pickupLocation} />
+                <Row label={tSearch("pickupLocation")} value={reservation.pickupLocation} />
               )}
             </>
           )}
@@ -105,6 +106,10 @@ export default async function BookingConfirmationPage({
               value={`-${formatMoney(reservation.discountAmount.toString(), reservation.currency, locale)}`}
             />
           )}
+          <Row
+            label={t("commission")}
+            value={formatMoney(reservation.commissionAmount.toString(), reservation.currency, locale)}
+          />
           <Separator />
           <Row
             label={t("total")}

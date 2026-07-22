@@ -597,6 +597,8 @@ model Hotel {
   gym                    Boolean        @default(false)
   wifi                   Boolean        @default(false)
   airportShuttle         Boolean        @default(false)
+  acceptsPayAtProperty   Boolean        @default(true)
+  acceptsOnlinePayment   Boolean        @default(true)
   nearbyAttractions      Json?
   mainImageUrl           String?
   status                 PropertyStatus @default(DRAFT)

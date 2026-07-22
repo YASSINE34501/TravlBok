@@ -66,6 +66,8 @@ export default async function NewPropertyPage({
           gym: false,
           wifi: false,
           airportShuttle: false,
+          acceptsPayAtProperty: true,
+          acceptsOnlinePayment: true,
           amenityIds: [],
         }}
       />

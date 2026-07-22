@@ -23,6 +23,8 @@ export const hotelSchema = z.object({
   gym: z.boolean(),
   wifi: z.boolean(),
   airportShuttle: z.boolean(),
+  acceptsPayAtProperty: z.boolean(),
+  acceptsOnlinePayment: z.boolean(),
   amenityIds: z.array(z.string()),
 });
 

@@ -27,14 +27,21 @@ export default async function HotelsSearchPage({
 
   const searchInput = {
     destination: query.destination,
+    checkInDate: query.checkIn ? new Date(query.checkIn) : undefined,
+    checkOutDate: query.checkOut ? new Date(query.checkOut) : undefined,
     guests: query.guests ? Number(query.guests) : undefined,
+    rooms: query.rooms ? Number(query.rooms) : undefined,
     minPrice: query.minPrice ? Number(query.minPrice) : undefined,
     maxPrice: query.maxPrice ? Number(query.maxPrice) : undefined,
     stars: query.stars ? query.stars.split(",").map(Number) : undefined,
+    minRating: query.minRating ? Number(query.minRating) : undefined,
     amenities: query.amenities ? query.amenities.split(",") : undefined,
     propertyTypeCode: query.propertyType,
     breakfastIncluded: query.breakfast === "1",
     freeCancellation: query.freeCancellation === "1",
+    paymentOptions: query.paymentOptions
+      ? (query.paymentOptions.split(",") as ("PAY_AT_PROPERTY" | "ONLINE_PAYMENT")[])
+      : undefined,
     sort: (query.sort as SortOption) ?? "recommended",
     page: query.page ? Number(query.page) : 1,
   };

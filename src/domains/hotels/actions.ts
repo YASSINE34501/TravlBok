@@ -39,6 +39,8 @@ function buildHotelData(input: HotelInput) {
     gym: input.gym,
     wifi: input.wifi,
     airportShuttle: input.airportShuttle,
+    acceptsPayAtProperty: input.acceptsPayAtProperty,
+    acceptsOnlinePayment: input.acceptsOnlinePayment,
   };
 }
 

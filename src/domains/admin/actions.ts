@@ -479,6 +479,208 @@ export async function moderateReviewAction(
   revalidatePath(`/${locale}/admin/reviews`);
 }
 
+// ---- Countries ----
+
+export async function createCountryAction(
+  locale: string,
+  code: string,
+  nameEn: string,
+  nameFr: string,
+  nameAr: string
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.country.create({
+    data: { code: code.toUpperCase(), name: { en: nameEn, fr: nameFr, ar: nameAr } },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.country.create",
+    entityType: "Country",
+    metadata: { code },
+  });
+  revalidatePath(`/${locale}/admin/countries`);
+}
+
+// ---- Cities ----
+
+export async function createCityAction(
+  locale: string,
+  countryId: string,
+  nameEn: string,
+  nameFr: string,
+  nameAr: string
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.city.create({
+    data: { countryId, name: { en: nameEn, fr: nameFr, ar: nameAr } },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.city.create",
+    entityType: "City",
+    metadata: { countryId },
+  });
+  revalidatePath(`/${locale}/admin/cities`);
+}
+
+// ---- Categories ----
+
+export async function createCategoryAction(
+  locale: string,
+  type: "HOTEL_TYPE" | "VEHICLE_CATEGORY",
+  code: string,
+  nameEn: string,
+  nameFr: string,
+  nameAr: string
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.category.create({
+    data: { type, code, name: { en: nameEn, fr: nameFr, ar: nameAr } },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.category.create",
+    entityType: "Category",
+    metadata: { type, code },
+  });
+  revalidatePath(`/${locale}/admin/categories`);
+}
+
+// ---- Cancellation policies ----
+
+export async function createCancellationPolicyAction(
+  locale: string,
+  input: {
+    nameEn: string;
+    nameFr: string;
+    nameAr: string;
+    descriptionEn: string;
+    descriptionFr: string;
+    descriptionAr: string;
+    rules: unknown;
+  }
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.cancellationPolicy.create({
+    data: {
+      name: { en: input.nameEn, fr: input.nameFr, ar: input.nameAr },
+      description: { en: input.descriptionEn, fr: input.descriptionFr, ar: input.descriptionAr },
+      rules: input.rules as never,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.cancellation_policy.create",
+    entityType: "CancellationPolicy",
+  });
+  revalidatePath(`/${locale}/admin/cancellation-policies`);
+}
+
+// ---- Commission rules ----
+
+export async function createCommissionRuleAction(
+  locale: string,
+  input: {
+    organizationId: string | null;
+    serviceType: "HOTEL" | "CAR";
+    type: "PERCENTAGE" | "FIXED";
+    value: number;
+  }
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.commissionRule.create({
+    data: {
+      organizationId: input.organizationId,
+      serviceType: input.serviceType,
+      type: input.type,
+      value: input.value,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.commission_rule.create",
+    entityType: "CommissionRule",
+    metadata: input,
+  });
+  revalidatePath(`/${locale}/admin/commission-rules`);
+}
+
+export async function deleteCommissionRuleAction(locale: string, commissionRuleId: string) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.commissionRule.delete({ where: { id: commissionRuleId } });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.commission_rule.delete",
+    entityType: "CommissionRule",
+    entityId: commissionRuleId,
+  });
+  revalidatePath(`/${locale}/admin/commission-rules`);
+}
+
+// ---- Homepage sections ----
+
+export async function upsertHomepageSectionAction(
+  locale: string,
+  input: {
+    key: string;
+    titleEn?: string;
+    titleFr?: string;
+    titleAr?: string;
+    config: unknown;
+    sortOrder: number;
+    isActive: boolean;
+  }
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  const title =
+    input.titleEn || input.titleFr || input.titleAr
+      ? { en: input.titleEn ?? "", fr: input.titleFr ?? "", ar: input.titleAr ?? "" }
+      : undefined;
+  await prisma.homepageSection.upsert({
+    where: { key: input.key },
+    update: {
+      title: title as never,
+      config: input.config as never,
+      sortOrder: input.sortOrder,
+      isActive: input.isActive,
+    },
+    create: {
+      key: input.key,
+      title: title as never,
+      config: input.config as never,
+      sortOrder: input.sortOrder,
+      isActive: input.isActive,
+    },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.homepage_section.upsert",
+    entityType: "HomepageSection",
+    metadata: { key: input.key },
+  });
+  revalidatePath(`/${locale}/admin/homepage-sections`);
+}
+
+export async function toggleHomepageSectionAction(
+  locale: string,
+  homepageSectionId: string,
+  isActive: boolean
+) {
+  const admin = await requireRole(locale, PLATFORM_STAFF);
+  await prisma.homepageSection.update({
+    where: { id: homepageSectionId },
+    data: { isActive },
+  });
+  await logAudit({
+    actorUserId: admin.id,
+    action: "admin.homepage_section.toggle",
+    entityType: "HomepageSection",
+    entityId: homepageSectionId,
+    metadata: { isActive },
+  });
+  revalidatePath(`/${locale}/admin/homepage-sections`);
+}
+
 // ---- Global settings ----
 
 export async function updateGlobalSettingsAction(

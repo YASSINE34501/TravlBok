@@ -1,9 +1,13 @@
 import "server-only";
 import { prisma } from "@/lib/db";
-import type { Prisma, FuelType, TransmissionType } from "@/generated/prisma/client";
+import { Prisma, type FuelType, type TransmissionType } from "@/generated/prisma/client";
+import { getUnavailableVehicleIds } from "./availability";
 
 export type VehicleSearchParams = {
   location?: string;
+  dropoffLocation?: string;
+  pickupAt?: Date;
+  returnAt?: Date;
   categoryCode?: string;
   brand?: string;
   transmission?: TransmissionType;
@@ -12,6 +16,8 @@ export type VehicleSearchParams = {
   minPrice?: number;
   maxPrice?: number;
   unlimitedMileage?: boolean;
+  insuranceRequired?: boolean;
+  deliveryRequired?: boolean;
   sort?: "recommended" | "price_asc" | "price_desc";
   page?: number;
   pageSize?: number;
@@ -41,6 +47,22 @@ export async function searchVehicles(params: VehicleSearchParams) {
           },
         }
       : {}),
+    ...(params.dropoffLocation
+      ? {
+          OR: [
+            { branch: { is: { name: { contains: params.dropoffLocation, mode: "insensitive" } } } },
+            {
+              branch: {
+                is: {
+                  city: {
+                    is: { name: { path: ["en"], string_contains: params.dropoffLocation } },
+                  },
+                },
+              },
+            },
+          ],
+        }
+      : {}),
     ...(params.categoryCode ? { category: { is: { code: params.categoryCode } } } : {}),
     ...(params.brand ? { brand: { contains: params.brand, mode: "insensitive" } } : {}),
     ...(params.transmission ? { transmission: params.transmission } : {}),
@@ -49,7 +71,21 @@ export async function searchVehicles(params: VehicleSearchParams) {
     ...(params.minPrice ? { pricePerDay: { gte: params.minPrice } } : {}),
     ...(params.maxPrice ? { pricePerDay: { lte: params.maxPrice } } : {}),
     ...(params.unlimitedMileage ? { mileagePolicy: "UNLIMITED" } : {}),
+    ...(params.insuranceRequired ? { insuranceOptions: { not: Prisma.JsonNull } } : {}),
+    ...(params.deliveryRequired ? { airportDeliveryAvailable: true } : {}),
   };
+
+  if (params.pickupAt && params.returnAt) {
+    const candidates = await prisma.vehicle.findMany({ where, select: { id: true } });
+    const unavailable = await getUnavailableVehicleIds(
+      params.pickupAt,
+      params.returnAt,
+      candidates.map((c) => c.id)
+    );
+    if (unavailable.size > 0) {
+      where.id = { notIn: Array.from(unavailable) };
+    }
+  }
 
   const orderBy: Prisma.VehicleOrderByWithRelationInput =
     params.sort === "price_asc"

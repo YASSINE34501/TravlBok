@@ -55,7 +55,9 @@
     "perNight": "لليلة الواحدة",
     "perDay": "لليوم الواحد",
     "taxesFeesIncluded": "شامل الضرائب والرسوم",
-    "taxesFeesExcluded": "غير شامل الضرائب والرسوم"
+    "taxesFeesExcluded": "غير شامل الضرائب والرسوم",
+    "payAtProperty": "الدفع في العقار",
+    "onlinePayment": "الدفع عبر الإنترنت"
   },
   "Locale": {
     "en": "English",
@@ -250,6 +252,14 @@
     "MAINTENANCE": "صيانة",
     "INACTIVE": "غير نشط"
   },
+  "VehicleAttributes": {
+    "transmissionManual": "يدوي",
+    "transmissionAutomatic": "أوتوماتيكي",
+    "fuelPetrol": "بنزين",
+    "fuelDiesel": "ديزل",
+    "fuelElectric": "كهربائي",
+    "fuelHybrid": "هجين"
+  },
   "Onboarding": {
     "hotelTitle": "أضف عقارك على TravlBok",
     "carRentalTitle": "أضف أسطولك على TravlBok",
@@ -299,7 +309,18 @@
     "roomsFor": "الغرف",
     "editRoom": "تعديل الغرفة",
     "vehicleDetails": "تفاصيل المركبة",
-    "branchDetails": "تفاصيل الفرع"
+    "branchDetails": "تفاصيل الفرع",
+    "seasonalPricing": "التسعير الموسمي",
+    "seasonNamePlaceholder": "الاسم",
+    "seasonStart": "البداية",
+    "seasonEnd": "النهاية",
+    "seasonPricePlaceholder": "السعر",
+    "addSeason": "إضافة موسم",
+    "seasonAdded": "تمت إضافة الموسم",
+    "blackoutDates": "تواريخ الحظر",
+    "blackoutReasonPlaceholder": "السبب (اختياري)",
+    "addBlackoutDate": "إضافة تاريخ حظر",
+    "blackoutDateAdded": "تمت إضافة تاريخ الحظر"
   },
   "Admin": {
     "dashboard": "لوحة التحكم",
@@ -330,6 +351,7 @@
     "commissions": "العمولات",
     "coupons": "القسائم",
     "cmsPages": "صفحات المحتوى",
+    "homepageSections": "أقسام الصفحة الرئيسية",
     "auditLogs": "سجلات التدقيق",
     "settings": "الإعدادات"
   },

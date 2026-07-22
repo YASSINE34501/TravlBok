@@ -55,7 +55,9 @@
     "perNight": "par nuit",
     "perDay": "par jour",
     "taxesFeesIncluded": "Taxes et frais inclus",
-    "taxesFeesExcluded": "Hors taxes et frais"
+    "taxesFeesExcluded": "Hors taxes et frais",
+    "payAtProperty": "Payer sur place",
+    "onlinePayment": "Paiement en ligne"
   },
   "Locale": {
     "en": "English",
@@ -250,6 +252,14 @@
     "MAINTENANCE": "Maintenance",
     "INACTIVE": "Inactif"
   },
+  "VehicleAttributes": {
+    "transmissionManual": "Manuelle",
+    "transmissionAutomatic": "Automatique",
+    "fuelPetrol": "Essence",
+    "fuelDiesel": "Diesel",
+    "fuelElectric": "Électrique",
+    "fuelHybrid": "Hybride"
+  },
   "Onboarding": {
     "hotelTitle": "Ajoutez votre établissement sur TravlBok",
     "carRentalTitle": "Ajoutez votre flotte sur TravlBok",
@@ -299,7 +309,18 @@
     "roomsFor": "Chambres",
     "editRoom": "Modifier la chambre",
     "vehicleDetails": "Détails du véhicule",
-    "branchDetails": "Détails de l'agence"
+    "branchDetails": "Détails de l'agence",
+    "seasonalPricing": "Tarification saisonnière",
+    "seasonNamePlaceholder": "Nom",
+    "seasonStart": "Début",
+    "seasonEnd": "Fin",
+    "seasonPricePlaceholder": "Prix",
+    "addSeason": "Ajouter une saison",
+    "seasonAdded": "Saison ajoutée",
+    "blackoutDates": "Dates bloquées",
+    "blackoutReasonPlaceholder": "Motif (facultatif)",
+    "addBlackoutDate": "Ajouter une date bloquée",
+    "blackoutDateAdded": "Date bloquée ajoutée"
   },
   "Admin": {
     "dashboard": "Tableau de bord",
@@ -330,6 +351,7 @@
     "commissions": "Commissions",
     "coupons": "Coupons",
     "cmsPages": "Pages CMS",
+    "homepageSections": "Sections de la page d'accueil",
     "auditLogs": "Journaux d'audit",
     "settings": "Paramètres"
   },

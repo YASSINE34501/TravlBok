@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export function RoomAvailabilityManager({
   seasonalPrices: SeasonalPrice[];
   blackoutDates: BlackoutDate[];
 }) {
+  const t = useTranslations("Partner");
   const [isPending, startTransition] = useTransition();
   const [seasonName, setSeasonName] = useState("");
   const [seasonStart, setSeasonStart] = useState("");
@@ -57,7 +59,7 @@ export function RoomAvailabilityManager({
         price: Number(seasonPrice),
       });
       if (result.success) {
-        toast.success("Season added");
+        toast.success(t("seasonAdded"));
         setSeasonName("");
         setSeasonStart("");
         setSeasonEnd("");
@@ -74,7 +76,7 @@ export function RoomAvailabilityManager({
         reason: blackoutReason,
       });
       if (result.success) {
-        toast.success("Blackout date added");
+        toast.success(t("blackoutDateAdded"));
         setBlackoutDate("");
         setBlackoutReason("");
       }
@@ -85,7 +87,7 @@ export function RoomAvailabilityManager({
     <div className="grid gap-6 sm:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Seasonal pricing</CardTitle>
+          <CardTitle>{t("seasonalPricing")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {seasonalPrices.map((season) => (
@@ -118,13 +120,13 @@ export function RoomAvailabilityManager({
           ))}
           <div className="grid grid-cols-2 gap-2">
             <Input
-              placeholder="Name"
+              placeholder={t("seasonNamePlaceholder")}
               value={seasonName}
               onChange={(e) => setSeasonName(e.target.value)}
               className="col-span-2"
             />
             <div>
-              <Label className="text-xs">Start</Label>
+              <Label className="text-xs">{t("seasonStart")}</Label>
               <Input
                 type="date"
                 value={seasonStart}
@@ -132,7 +134,7 @@ export function RoomAvailabilityManager({
               />
             </div>
             <div>
-              <Label className="text-xs">End</Label>
+              <Label className="text-xs">{t("seasonEnd")}</Label>
               <Input
                 type="date"
                 value={seasonEnd}
@@ -141,21 +143,21 @@ export function RoomAvailabilityManager({
             </div>
             <Input
               type="number"
-              placeholder="Price"
+              placeholder={t("seasonPricePlaceholder")}
               value={seasonPrice}
               onChange={(e) => setSeasonPrice(e.target.value)}
               className="col-span-2"
             />
           </div>
           <Button size="sm" disabled={isPending} onClick={handleAddSeason}>
-            Add season
+            {t("addSeason")}
           </Button>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Blackout dates</CardTitle>
+          <CardTitle>{t("blackoutDates")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {blackoutDates.map((entry) => (
@@ -192,13 +194,13 @@ export function RoomAvailabilityManager({
               onChange={(e) => setBlackoutDate(e.target.value)}
             />
             <Input
-              placeholder="Reason (optional)"
+              placeholder={t("blackoutReasonPlaceholder")}
               value={blackoutReason}
               onChange={(e) => setBlackoutReason(e.target.value)}
             />
           </div>
           <Button size="sm" disabled={isPending} onClick={handleAddBlackout}>
-            Add blackout date
+            {t("addBlackoutDate")}
           </Button>
         </CardContent>
       </Card>

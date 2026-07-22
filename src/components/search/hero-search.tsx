@@ -19,8 +19,10 @@ export function HeroSearch() {
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(2);
+  const [rooms, setRooms] = useState(1);
 
   const [carLocation, setCarLocation] = useState("");
+  const [carDropoffLocation, setCarDropoffLocation] = useState("");
   const [pickupDate, setPickupDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
 
@@ -31,6 +33,7 @@ export function HeroSearch() {
     if (checkIn) params.set("checkIn", checkIn);
     if (checkOut) params.set("checkOut", checkOut);
     if (guests) params.set("guests", String(guests));
+    if (rooms) params.set("rooms", String(rooms));
     router.push(`/hotels?${params.toString()}`);
   }
 
@@ -38,6 +41,7 @@ export function HeroSearch() {
     event.preventDefault();
     const params = new URLSearchParams();
     if (carLocation) params.set("location", carLocation);
+    if (carDropoffLocation) params.set("dropoffLocation", carDropoffLocation);
     if (pickupDate) params.set("pickupDate", pickupDate);
     if (returnDate) params.set("returnDate", returnDate);
     router.push(`/cars?${params.toString()}`);
@@ -86,7 +90,7 @@ export function HeroSearch() {
                 className="mt-1"
               />
             </div>
-            <div className="sm:col-span-3">
+            <div className="sm:col-span-2">
               <Label htmlFor="guests">{tCommon("guests")}</Label>
               <Input
                 id="guests"
@@ -95,6 +99,18 @@ export function HeroSearch() {
                 max={20}
                 value={guests}
                 onChange={(e) => setGuests(Number(e.target.value))}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="rooms">{tCommon("rooms")}</Label>
+              <Input
+                id="rooms"
+                type="number"
+                min={1}
+                max={10}
+                value={rooms}
+                onChange={(e) => setRooms(Number(e.target.value))}
                 className="mt-1"
               />
             </div>
@@ -109,13 +125,23 @@ export function HeroSearch() {
             onSubmit={submitCarSearch}
             className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4"
           >
-            <div className="sm:col-span-2">
+            <div>
               <Label htmlFor="car-location">{t("pickupLocation")}</Label>
               <Input
                 id="car-location"
                 placeholder={t("destinationPlaceholder")}
                 value={carLocation}
                 onChange={(e) => setCarLocation(e.target.value)}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="car-dropoff-location">{t("dropoffLocation")}</Label>
+              <Input
+                id="car-dropoff-location"
+                placeholder={t("destinationPlaceholder")}
+                value={carDropoffLocation}
+                onChange={(e) => setCarDropoffLocation(e.target.value)}
                 className="mt-1"
               />
             </div>

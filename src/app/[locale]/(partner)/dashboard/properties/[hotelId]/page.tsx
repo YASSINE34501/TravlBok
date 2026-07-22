@@ -117,6 +117,8 @@ export default async function EditPropertyPage({
           gym: hotel.gym,
           wifi: hotel.wifi,
           airportShuttle: hotel.airportShuttle,
+          acceptsPayAtProperty: hotel.acceptsPayAtProperty,
+          acceptsOnlinePayment: hotel.acceptsOnlinePayment,
           amenityIds: hotel.amenities.map((a) => a.id),
         }}
       />

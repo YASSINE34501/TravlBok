@@ -1,17 +1,23 @@
 import "server-only";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@/generated/prisma/client";
+import { getUnavailableRoomTypeIds } from "./availability";
 
 export type HotelSearchParams = {
   destination?: string;
+  checkInDate?: Date;
+  checkOutDate?: Date;
   guests?: number;
+  rooms?: number;
   minPrice?: number;
   maxPrice?: number;
   stars?: number[];
+  minRating?: number;
   amenities?: string[];
   propertyTypeCode?: string;
   breakfastIncluded?: boolean;
   freeCancellation?: boolean;
+  paymentOptions?: ("PAY_AT_PROPERTY" | "ONLINE_PAYMENT")[];
   sort?: "recommended" | "price_asc" | "price_desc" | "rating";
   page?: number;
   pageSize?: number;
@@ -29,6 +35,34 @@ export async function searchHotels(params: HotelSearchParams) {
     ...(params.breakfastIncluded ? { breakfastIncluded: true } : {}),
     ...(params.freeCancellation ? { refundable: true } : {}),
   };
+
+  if (params.checkInDate && params.checkOutDate) {
+    const candidates = await prisma.roomType.findMany({
+      where: roomTypeFilters,
+      select: { id: true },
+    });
+    const unavailable = await getUnavailableRoomTypeIds(
+      params.checkInDate,
+      params.checkOutDate,
+      params.rooms ?? 1,
+      candidates.map((c) => c.id)
+    );
+    if (unavailable.size > 0) {
+      roomTypeFilters.id = { notIn: Array.from(unavailable) };
+    }
+  }
+
+  const paymentOptionFilter: Prisma.HotelWhereInput | undefined =
+    params.paymentOptions && params.paymentOptions.length > 0
+      ? {
+          OR: params.paymentOptions.map(
+            (option): Prisma.HotelWhereInput =>
+              option === "PAY_AT_PROPERTY"
+                ? { acceptsPayAtProperty: true }
+                : { acceptsOnlinePayment: true }
+          ),
+        }
+      : undefined;
 
   const where: Prisma.HotelWhereInput = {
     status: "PUBLISHED",
@@ -54,6 +88,7 @@ export async function searchHotels(params: HotelSearchParams) {
     ...(params.amenities && params.amenities.length > 0
       ? { amenities: { some: { code: { in: params.amenities } } } }
       : {}),
+    ...(paymentOptionFilter ? { AND: [paymentOptionFilter] } : {}),
     roomTypes: { some: roomTypeFilters },
   };
 
@@ -95,7 +130,10 @@ export async function searchHotels(params: HotelSearchParams) {
         fromPriceCurrency: hotel.roomTypes[0]?.currency ?? "MAD",
       };
     })
-    .filter((hotel) => hotel.roomTypes.length > 0);
+    .filter((hotel) => hotel.roomTypes.length > 0)
+    // No `avgRating` column exists (it's derived from included reviews above),
+    // so minRating can only be applied as a post-query filter, not a Prisma `where`.
+    .filter((hotel) => !params.minRating || (hotel.avgRating ?? 0) >= params.minRating);
 
   if (params.sort === "price_asc") {
     results.sort((a, b) => Number(a.fromPrice ?? 0) - Number(b.fromPrice ?? 0));

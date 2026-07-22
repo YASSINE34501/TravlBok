@@ -55,7 +55,9 @@
     "perNight": "per night",
     "perDay": "per day",
     "taxesFeesIncluded": "Taxes and fees included",
-    "taxesFeesExcluded": "Excludes taxes and fees"
+    "taxesFeesExcluded": "Excludes taxes and fees",
+    "payAtProperty": "Pay at property",
+    "onlinePayment": "Online payment"
   },
   "Locale": {
     "en": "English",
@@ -250,6 +252,14 @@
     "MAINTENANCE": "Maintenance",
     "INACTIVE": "Inactive"
   },
+  "VehicleAttributes": {
+    "transmissionManual": "Manual",
+    "transmissionAutomatic": "Automatic",
+    "fuelPetrol": "Petrol",
+    "fuelDiesel": "Diesel",
+    "fuelElectric": "Electric",
+    "fuelHybrid": "Hybrid"
+  },
   "Onboarding": {
     "hotelTitle": "List your property on TravlBok",
     "carRentalTitle": "List your fleet on TravlBok",
@@ -299,7 +309,18 @@
     "roomsFor": "Rooms",
     "editRoom": "Edit room",
     "vehicleDetails": "Vehicle details",
-    "branchDetails": "Branch details"
+    "branchDetails": "Branch details",
+    "seasonalPricing": "Seasonal pricing",
+    "seasonNamePlaceholder": "Name",
+    "seasonStart": "Start",
+    "seasonEnd": "End",
+    "seasonPricePlaceholder": "Price",
+    "addSeason": "Add season",
+    "seasonAdded": "Season added",
+    "blackoutDates": "Blackout dates",
+    "blackoutReasonPlaceholder": "Reason (optional)",
+    "addBlackoutDate": "Add blackout date",
+    "blackoutDateAdded": "Blackout date added"
   },
   "Admin": {
     "dashboard": "Dashboard",
@@ -330,6 +351,7 @@
     "commissions": "Commissions",
     "coupons": "Coupons",
     "cmsPages": "CMS pages",
+    "homepageSections": "Homepage sections",
     "auditLogs": "Audit logs",
     "settings": "Settings"
   },

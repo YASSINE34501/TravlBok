@@ -21,10 +21,12 @@ type CategoryOption = { id: string; code: string; name: string };
 export function VehicleFilters({ categories }: { categories: CategoryOption[] }) {
   const t = useTranslations("Search");
   const tCommon = useTranslations("Common");
+  const tVehicle = useTranslations("VehicleAttributes");
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [category, setCategory] = useState(searchParams.get("category") ?? "any");
+  const [brand, setBrand] = useState(searchParams.get("brand") ?? "");
   const [transmission, setTransmission] = useState(
     searchParams.get("transmission") ?? "any"
   );
@@ -35,6 +37,8 @@ export function VehicleFilters({ categories }: { categories: CategoryOption[] })
   const [unlimitedMileage, setUnlimitedMileage] = useState(
     searchParams.get("unlimitedMileage") === "1"
   );
+  const [insurance, setInsurance] = useState(searchParams.get("insurance") === "1");
+  const [delivery, setDelivery] = useState(searchParams.get("delivery") === "1");
 
   const categoryItems: Record<string, string> = {
     any: tCommon("viewAll"),
@@ -42,15 +46,15 @@ export function VehicleFilters({ categories }: { categories: CategoryOption[] })
   };
   const transmissionItems: Record<string, string> = {
     any: tCommon("viewAll"),
-    MANUAL: "Manual",
-    AUTOMATIC: "Automatic",
+    MANUAL: tVehicle("transmissionManual"),
+    AUTOMATIC: tVehicle("transmissionAutomatic"),
   };
   const fuelItems: Record<string, string> = {
     any: tCommon("viewAll"),
-    PETROL: "Petrol",
-    DIESEL: "Diesel",
-    ELECTRIC: "Electric",
-    HYBRID: "Hybrid",
+    PETROL: tVehicle("fuelPetrol"),
+    DIESEL: tVehicle("fuelDiesel"),
+    ELECTRIC: tVehicle("fuelElectric"),
+    HYBRID: tVehicle("fuelHybrid"),
   };
 
   function setOrDelete(params: URLSearchParams, key: string, value: string | null) {
@@ -64,24 +68,30 @@ export function VehicleFilters({ categories }: { categories: CategoryOption[] })
   function applyFilters() {
     const params = new URLSearchParams(searchParams.toString());
     setOrDelete(params, "category", category !== "any" ? category : null);
+    setOrDelete(params, "brand", brand || null);
     setOrDelete(params, "transmission", transmission !== "any" ? transmission : null);
     setOrDelete(params, "fuel", fuel !== "any" ? fuel : null);
     setOrDelete(params, "minSeats", minSeats || null);
     setOrDelete(params, "minPrice", minPrice || null);
     setOrDelete(params, "maxPrice", maxPrice || null);
     setOrDelete(params, "unlimitedMileage", unlimitedMileage ? "1" : null);
+    setOrDelete(params, "insurance", insurance ? "1" : null);
+    setOrDelete(params, "delivery", delivery ? "1" : null);
     params.delete("page");
     router.push(`/cars?${params.toString()}`);
   }
 
   function clearFilters() {
     setCategory("any");
+    setBrand("");
     setTransmission("any");
     setFuel("any");
     setMinSeats("");
     setMinPrice("");
     setMaxPrice("");
     setUnlimitedMileage(false);
+    setInsurance(false);
+    setDelivery(false);
     router.push("/cars");
   }
 
@@ -116,8 +126,8 @@ export function VehicleFilters({ categories }: { categories: CategoryOption[] })
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="any">{tCommon("viewAll")}</SelectItem>
-            <SelectItem value="MANUAL">Manual</SelectItem>
-            <SelectItem value="AUTOMATIC">Automatic</SelectItem>
+            <SelectItem value="MANUAL">{tVehicle("transmissionManual")}</SelectItem>
+            <SelectItem value="AUTOMATIC">{tVehicle("transmissionAutomatic")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -130,12 +140,22 @@ export function VehicleFilters({ categories }: { categories: CategoryOption[] })
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="any">{tCommon("viewAll")}</SelectItem>
-            <SelectItem value="PETROL">Petrol</SelectItem>
-            <SelectItem value="DIESEL">Diesel</SelectItem>
-            <SelectItem value="ELECTRIC">Electric</SelectItem>
-            <SelectItem value="HYBRID">Hybrid</SelectItem>
+            <SelectItem value="PETROL">{tVehicle("fuelPetrol")}</SelectItem>
+            <SelectItem value="DIESEL">{tVehicle("fuelDiesel")}</SelectItem>
+            <SelectItem value="ELECTRIC">{tVehicle("fuelElectric")}</SelectItem>
+            <SelectItem value="HYBRID">{tVehicle("fuelHybrid")}</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="brand">{t("brand")}</Label>
+        <Input
+          id="brand"
+          className="mt-2"
+          value={brand}
+          onChange={(e) => setBrand(e.target.value)}
+        />
       </div>
 
       <div>
@@ -171,13 +191,29 @@ export function VehicleFilters({ categories }: { categories: CategoryOption[] })
         </div>
       </div>
 
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={unlimitedMileage}
-          onCheckedChange={(checked) => setUnlimitedMileage(checked === true)}
-        />
-        {t("unlimitedMileage")}
-      </label>
+      <div className="space-y-1.5">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={unlimitedMileage}
+            onCheckedChange={(checked) => setUnlimitedMileage(checked === true)}
+          />
+          {t("unlimitedMileage")}
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={insurance}
+            onCheckedChange={(checked) => setInsurance(checked === true)}
+          />
+          {t("insurance")}
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={delivery}
+            onCheckedChange={(checked) => setDelivery(checked === true)}
+          />
+          {t("deliveryOption")}
+        </label>
+      </div>
 
       <div className="flex gap-2">
         <Button className="flex-1" onClick={applyFilters}>

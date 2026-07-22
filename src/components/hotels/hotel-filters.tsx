@@ -37,6 +37,8 @@ export function HotelFilters({
 
   const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") ?? "");
+  const [rooms, setRooms] = useState(searchParams.get("rooms") ?? "");
+  const [minRating, setMinRating] = useState(searchParams.get("minRating") ?? "any");
   const [stars, setStars] = useState<string[]>(
     searchParams.get("stars")?.split(",").filter(Boolean) ?? []
   );
@@ -52,6 +54,16 @@ export function HotelFilters({
   const [freeCancellation, setFreeCancellation] = useState(
     searchParams.get("freeCancellation") === "1"
   );
+  const [paymentOptions, setPaymentOptions] = useState<string[]>(
+    searchParams.get("paymentOptions")?.split(",").filter(Boolean) ?? []
+  );
+
+  const ratingItems: Record<string, string> = {
+    any: tCommon("viewAll"),
+    "3": "3+",
+    "4": "4+",
+    "4.5": "4.5+",
+  };
 
   function setOrDelete(params: URLSearchParams, key: string, value: string | null) {
     if (value) {
@@ -65,6 +77,8 @@ export function HotelFilters({
     const params = new URLSearchParams(searchParams.toString());
     setOrDelete(params, "minPrice", minPrice || null);
     setOrDelete(params, "maxPrice", maxPrice || null);
+    setOrDelete(params, "rooms", rooms || null);
+    setOrDelete(params, "minRating", minRating !== "any" ? minRating : null);
     setOrDelete(params, "stars", stars.length ? stars.join(",") : null);
     setOrDelete(
       params,
@@ -74,6 +88,11 @@ export function HotelFilters({
     setOrDelete(params, "propertyType", propertyType !== "any" ? propertyType : null);
     setOrDelete(params, "breakfast", breakfastIncluded ? "1" : null);
     setOrDelete(params, "freeCancellation", freeCancellation ? "1" : null);
+    setOrDelete(
+      params,
+      "paymentOptions",
+      paymentOptions.length ? paymentOptions.join(",") : null
+    );
     params.delete("page");
     router.push(`/hotels?${params.toString()}`);
   }
@@ -81,20 +100,26 @@ export function HotelFilters({
   function clearFilters() {
     setMinPrice("");
     setMaxPrice("");
+    setRooms("");
+    setMinRating("any");
     setStars([]);
     setSelectedAmenities([]);
     setPropertyType("any");
     setBreakfastIncluded(false);
     setFreeCancellation(false);
+    setPaymentOptions([]);
     const params = new URLSearchParams(searchParams.toString());
     for (const key of [
       "minPrice",
       "maxPrice",
+      "rooms",
+      "minRating",
       "stars",
       "amenities",
       "propertyType",
       "breakfast",
       "freeCancellation",
+      "paymentOptions",
       "page",
     ]) {
       params.delete(key);
@@ -123,6 +148,37 @@ export function HotelFilters({
             onChange={(e) => setMaxPrice(e.target.value)}
           />
         </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold">{tCommon("rooms")}</h3>
+        <Input
+          type="number"
+          min={1}
+          className="mt-2"
+          value={rooms}
+          onChange={(e) => setRooms(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold">{t("rating")}</h3>
+        <Select
+          items={ratingItems}
+          value={minRating}
+          onValueChange={(value) => value && setMinRating(value)}
+        >
+          <SelectTrigger className="mt-2 w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(ratingItems).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
@@ -205,6 +261,38 @@ export function HotelFilters({
           />
           {t("freeCancellation")}
         </label>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold">{t("paymentOptions")}</h3>
+        <div className="mt-2 space-y-1.5">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={paymentOptions.includes("PAY_AT_PROPERTY")}
+              onCheckedChange={(checked) =>
+                setPaymentOptions((prev) =>
+                  checked
+                    ? [...prev, "PAY_AT_PROPERTY"]
+                    : prev.filter((o) => o !== "PAY_AT_PROPERTY")
+                )
+              }
+            />
+            {tCommon("payAtProperty")}
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={paymentOptions.includes("ONLINE_PAYMENT")}
+              onCheckedChange={(checked) =>
+                setPaymentOptions((prev) =>
+                  checked
+                    ? [...prev, "ONLINE_PAYMENT"]
+                    : prev.filter((o) => o !== "ONLINE_PAYMENT")
+                )
+              }
+            />
+            {tCommon("onlinePayment")}
+          </label>
+        </div>
       </div>
 
       <div className="flex gap-2">

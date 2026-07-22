@@ -416,6 +416,35 @@ export function HotelForm({
               ))}
             </div>
 
+            <div className="grid grid-cols-2 gap-2 border-t pt-4 sm:grid-cols-4">
+              <FormField
+                control={form.control}
+                name="acceptsPayAtProperty"
+                render={({ field }) => (
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
+                    Accepts pay at property
+                  </label>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="acceptsOnlinePayment"
+                render={({ field }) => (
+                  <label className="flex items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
+                    />
+                    Accepts online payment
+                  </label>
+                )}
+              />
+            </div>
+
             {amenities.length > 0 && (
               <FormField
                 control={form.control}
