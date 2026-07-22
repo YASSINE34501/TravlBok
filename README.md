@@ -2,7 +2,7 @@
 
 A travel marketplace and partner management SaaS platform — hotels, car rentals, travel agencies, affiliates, and a Super Admin platform, in Arabic (RTL), French, and English, with MAD/EUR/USD currency support.
 
-This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (core marketplace + partner onboarding) is implemented — see `PHASE-1-COMPLETION-REPORT.md` for full details.
+This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (core marketplace + partner onboarding, plus a post-completion remediation pass) and **Phase 2** (subscriptions, payments, affiliates, hotel PMS) are implemented — see `PHASE-1-COMPLETION-REPORT.md`, `PHASE-1-REMEDIATION-REPORT.md`, and `PHASE-2-COMPLETION-REPORT.md` for full details.
 
 ## Stack
 
@@ -13,6 +13,8 @@ This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (co
 - next-intl (ar/fr/en, RTL)
 - Zod, React Hook Form
 - Resend (email), S3-compatible or local-disk file storage
+- Stripe SDK + a thin PayPal REST client, behind a shared payment-provider abstraction (sandbox mode without credentials)
+- `exceljs` (PMS report Excel export), `qrcode` (affiliate campaign QR codes)
 
 ## Getting started
 
@@ -60,9 +62,13 @@ This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (co
 
 - `src/app/[locale]/(marketing)` — public marketplace (search, listings, booking, CMS pages)
 - `src/app/[locale]/(auth)` — login/register/password reset/email verification
-- `src/app/[locale]/(partner)/dashboard` — hotel & car rental partner portal
+- `src/app/[locale]/(partner)/dashboard` — hotel & car rental partner portal, plus affiliate and PMS dashboards
 - `src/app/[locale]/(admin)/admin` — Super Admin platform
-- `src/domains/*` — server actions and query functions, grouped by business domain
-- `src/lib/*` — shared infrastructure (auth, RBAC, currency, storage, validation)
+- `src/app/[locale]/r/[code]` — affiliate referral-link redirect route
+- `src/app/api/webhooks/*` — Stripe/PayPal payment webhooks
+- `src/app/api/cron/retry-failed-payments` — failed-payment retry endpoint (invoke from an external scheduler)
+- `src/app/api/pms/reports/[type]/export` — PMS report CSV/Excel export
+- `src/domains/*` — server actions and query functions, grouped by business domain (subscriptions, payments, affiliates, pms, housekeeping, and the original Phase 1 domains)
+- `src/lib/*` — shared infrastructure (auth, RBAC, currency, storage, validation, export)
 - `messages/*.json` — translation files (en/fr/ar)
-- `prisma/schema.prisma` — database schema; `prisma/seed.ts` — seed data
+- `prisma/schema.prisma` — database schema; `prisma/seed.ts` — seed data; `prisma/scripts/backfill-payments.ts` — one-off Payment/Invoice backfill for pre-Payments-milestone reservations

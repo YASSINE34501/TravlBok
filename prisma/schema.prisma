@@ -1030,6 +1030,7 @@ model Hotel {
   airportShuttle         Boolean        @default(false)
   acceptsPayAtProperty   Boolean        @default(true)
   acceptsOnlinePayment   Boolean        @default(true)
+  currentBusinessDate    DateTime?      @db.Date
   nearbyAttractions      Json?
   mainImageUrl           String?
   status                 PropertyStatus @default(DRAFT)
@@ -1049,11 +1050,19 @@ model Hotel {
   country      Country?     @relation(fields: [countryId], references: [id])
   city         City?        @relation(fields: [cityId], references: [id])
 
-  amenities    Amenity[]              @relation("HotelAmenities")
-  media        HotelMedia[]
-  roomTypes    RoomType[]
-  reviews      Review[]
-  reservations HotelReservationLink[]
+  amenities      Amenity[]              @relation("HotelAmenities")
+  media          HotelMedia[]
+  roomTypes      RoomType[]
+  reviews        Review[]
+  reservations   HotelReservationLink[]
+  roomInventory  RoomInventory[]
+  guestProfiles  GuestProfile[]
+  housekeepingTasks HousekeepingTask[]
+  maintenanceTasks  MaintenanceTask[]
+  staffShifts       StaffShift[]
+  guestRequests     GuestRequest[]
+  lostFoundItems    LostFoundItem[]
+  nightAudits       NightAudit[]
 
   @@index([organizationId])
   @@index([status])
@@ -1117,6 +1126,7 @@ model RoomType {
   seasonalPrices        RoomSeasonalPrice[]
   availabilityOverrides RoomAvailabilityOverride[]
   reservationItems      ReservationRoomItem[]
+  roomInventory         RoomInventory[]
 
   @@index([hotelId])
   @@index([isActive])
@@ -1278,6 +1288,7 @@ model Reservation {
   bookingReference String          @unique
   type             ReservationType
   status           BookingStatus   @default(PENDING)
+  bookingSource    String          @default("ONLINE")
   customerUserId   String
   organizationId   String
 
@@ -1341,6 +1352,8 @@ model Reservation {
   payments   Payment[]
   invoice    Invoice?
   commission Commission?
+  checkIn    CheckIn?
+  notes      ReservationNote[]
 
   @@index([customerUserId])
   @@index([organizationId])
@@ -1475,4 +1488,269 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, readAt])
+}
+
+// =========================================================================
+// HOTEL PMS
+// =========================================================================
+
+enum RoomOperationalStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+  DIRTY
+  CLEANING
+  INSPECTED
+  READY
+  OUT_OF_SERVICE
+  MAINTENANCE
+}
+
+enum HousekeepingTaskType {
+  CLEANING
+  INSPECTION
+  TURNDOWN
+  DEEP_CLEAN
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  INSPECTED
+  REOPENED
+}
+
+enum TaskPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+// Physical room unit — distinct from RoomType (a sellable category) and from
+// RoomAvailabilityOverride (a type-level pricing/closure override). Neither
+// existing model can express "guest occupies room 204"; this is purely
+// additive and never touches RoomType.availableQuantity, which stays the
+// marketplace's overbooking source of truth.
+model RoomInventory {
+  id                String                @id @default(uuid())
+  roomTypeId        String
+  hotelId           String
+  unitNumber        String
+  floor             String?
+  operationalStatus RoomOperationalStatus @default(AVAILABLE)
+  isActive          Boolean               @default(true)
+  notes             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  roomType RoomType @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  hotel    Hotel    @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  checkIns          CheckIn[]
+  housekeepingTasks HousekeepingTask[]
+  maintenanceTasks  MaintenanceTask[]
+  lostFoundItems    LostFoundItem[]
+
+  @@unique([hotelId, unitNumber])
+  @@index([roomTypeId, operationalStatus])
+}
+
+model GuestProfile {
+  id             String    @id @default(uuid())
+  organizationId String
+  hotelId        String
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  idDocumentType String?
+  idDocumentRef  String?
+  dateOfBirth    DateTime? @db.Date
+  nationality    String?
+  vipStatus      Boolean   @default(false)
+  blacklisted    Boolean   @default(false)
+  notes          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hotel    Hotel     @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  checkIns CheckIn[]
+
+  @@index([hotelId, email])
+}
+
+model CheckIn {
+  id                String   @id @default(uuid())
+  reservationId     String   @unique
+  roomInventoryId   String
+  guestProfileId    String?
+  idDocumentRef     String?
+  depositAmount     Decimal? @db.Decimal(12, 2)
+  depositCurrency   CurrencyCode?
+  notes             String?
+  checkedInByUserId String
+
+  checkedInAt DateTime @default(now())
+
+  reservation   Reservation   @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  roomInventory RoomInventory @relation(fields: [roomInventoryId], references: [id])
+  guestProfile  GuestProfile? @relation(fields: [guestProfileId], references: [id])
+  checkOut      CheckOut?
+
+  @@index([roomInventoryId])
+}
+
+model CheckOut {
+  id                  String   @id @default(uuid())
+  checkInId           String   @unique
+  extraChargesAmount  Decimal  @default(0) @db.Decimal(12, 2)
+  discountAmount      Decimal  @default(0) @db.Decimal(12, 2)
+  paymentId           String?
+  invoiceId           String?
+  roomConditionNotes  String?
+  checkedOutByUserId  String
+
+  checkedOutAt DateTime @default(now())
+
+  checkIn CheckIn @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+}
+
+model HousekeepingTask {
+  id               String               @id @default(uuid())
+  roomInventoryId  String
+  hotelId          String
+  type             HousekeepingTaskType @default(CLEANING)
+  status           TaskStatus           @default(PENDING)
+  priority         TaskPriority         @default(NORMAL)
+  assignedToUserId String?
+  createdByUserId  String
+  notes            String?
+  photoUrls        String[]
+  startedAt        DateTime?
+  completedAt      DateTime?
+  inspectedByUserId String?
+  inspectedAt      DateTime?
+  dueBy            DateTime?
+
+  createdAt DateTime @default(now())
+
+  roomInventory RoomInventory @relation(fields: [roomInventoryId], references: [id], onDelete: Cascade)
+  hotel         Hotel         @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId, status])
+  @@index([assignedToUserId])
+}
+
+model MaintenanceTask {
+  id               String       @id @default(uuid())
+  roomInventoryId  String?
+  hotelId          String
+  reportedByUserId String
+  title            String
+  description      String?
+  priority         TaskPriority @default(NORMAL)
+  status           TaskStatus   @default(PENDING)
+  photoUrls        String[]
+  resolvedAt       DateTime?
+  resolvedByUserId String?
+  resolutionNotes  String?
+
+  createdAt DateTime @default(now())
+
+  roomInventory RoomInventory? @relation(fields: [roomInventoryId], references: [id], onDelete: SetNull)
+  hotel         Hotel          @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId, status])
+}
+
+model StaffShift {
+  id           String   @id @default(uuid())
+  organizationId String
+  hotelId      String?
+  userId       String
+  roleSnapshot Role
+  shiftStart   DateTime
+  shiftEnd     DateTime
+  actualStart  DateTime?
+  actualEnd    DateTime?
+  status       String   @default("SCHEDULED")
+  notes        String?
+
+  createdAt DateTime @default(now())
+
+  hotel Hotel? @relation(fields: [hotelId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, shiftStart])
+  @@index([userId])
+}
+
+model ReservationNote {
+  id             String   @id @default(uuid())
+  reservationId  String
+  authorUserId   String
+  note           String
+
+  createdAt DateTime @default(now())
+
+  reservation Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+  @@index([reservationId])
+}
+
+model GuestRequest {
+  id               String     @id @default(uuid())
+  reservationId    String
+  hotelId          String
+  requestType      String
+  status           TaskStatus @default(PENDING)
+  assignedToUserId String?
+  notes            String?
+  createdByUserId  String
+
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  hotel Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@index([hotelId, status])
+}
+
+model LostFoundItem {
+  id                     String    @id @default(uuid())
+  hotelId                String
+  roomInventoryId        String?
+  description            String
+  foundByUserId          String
+  storageLocation        String?
+  photoUrls              String[]
+  status                 String    @default("STORED")
+  claimedByGuestProfileId String?
+  claimedAt              DateTime?
+
+  foundAt DateTime @default(now())
+
+  hotel         Hotel          @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+  roomInventory RoomInventory? @relation(fields: [roomInventoryId], references: [id], onDelete: SetNull)
+
+  @@index([hotelId, status])
+}
+
+model NightAudit {
+  id                String    @id @default(uuid())
+  hotelId           String
+  businessDate      DateTime  @db.Date
+  status            String    @default("PENDING")
+  performedByUserId String?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  summary           Json?
+  notes             String?
+
+  hotel Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  @@unique([hotelId, businessDate])
 }

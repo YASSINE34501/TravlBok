@@ -5,8 +5,67 @@ import { getProvider } from "./providers/registry";
 import { syncReservationPaymentSnapshot } from "./sync";
 import type { PaymentProviderCode, Reservation } from "@/generated/prisma/client";
 
-function generateInvoiceNumber(): string {
+export function generateInvoiceNumber(): string {
   return `INV-${Date.now().toString(36).toUpperCase()}-${randomBytes(3).toString("hex").toUpperCase()}`;
+}
+
+/**
+ * For charges that aren't the original booking breakdown (e.g. PMS
+ * check-out extra charges) — a standalone Payment + single-line Invoice,
+ * not routed through createBookingPaymentAndInvoice's full base/tax/fee/
+ * discount/commission line-item reconstruction.
+ */
+export async function createAdHocPaymentAndInvoice(
+  reservation: Reservation,
+  amount: number,
+  description: string,
+  providerCode: PaymentProviderCode
+) {
+  const provider = getProvider(providerCode);
+  const intent = await provider.createPaymentIntent({
+    amount,
+    currency: reservation.currency,
+    reservationId: reservation.id,
+    description,
+    customerEmail: reservation.guestEmail,
+  });
+
+  const payment = await prisma.payment.create({
+    data: {
+      organizationId: reservation.organizationId,
+      reservationId: reservation.id,
+      provider: providerCode,
+      providerReference: intent.providerReference,
+      status: intent.status,
+      amount,
+      currency: reservation.currency,
+      capturedAmount: intent.status === "PAID" ? amount : 0,
+    },
+  });
+
+  const invoice = await prisma.invoice.create({
+    data: {
+      invoiceNumber: generateInvoiceNumber(),
+      type: "BOOKING",
+      organizationId: reservation.organizationId,
+      paymentId: payment.id,
+      status: intent.status === "PAID" ? "PAID" : "ISSUED",
+      currency: reservation.currency,
+      subtotalAmount: amount,
+      totalAmount: amount,
+      issuedAt: new Date(),
+      billingSnapshot: {
+        guestName: `${reservation.guestFirstName} ${reservation.guestLastName}`,
+        guestEmail: reservation.guestEmail,
+        bookingReference: reservation.bookingReference,
+      },
+      lineItems: { create: [{ description, amount, unitAmount: amount, kind: "EXTRA" }] },
+    },
+  });
+
+  await syncReservationPaymentSnapshot(payment);
+
+  return { payment, invoice };
 }
 
 /**

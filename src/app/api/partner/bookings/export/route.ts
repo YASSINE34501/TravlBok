@@ -1,13 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-
-function csvEscape(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
+import { toCsv } from "@/lib/export/csv";
 
 export async function GET() {
   const session = await auth();
@@ -44,25 +38,21 @@ export async function GET() {
     "Created At",
   ];
 
-  const rows = reservations.map((r) =>
-    [
-      r.bookingReference,
-      r.type,
-      r.status,
-      `${r.guestFirstName} ${r.guestLastName}`,
-      r.guestEmail,
-      r.type === "HOTEL"
-        ? (r.hotelLink?.hotel.name ?? "")
-        : `${r.carLink?.vehicle.brand ?? ""} ${r.carLink?.vehicle.model ?? ""}`,
-      r.totalAmount.toString(),
-      r.currency,
-      r.createdAt.toISOString(),
-    ]
-      .map((v) => csvEscape(String(v)))
-      .join(",")
-  );
+  const rows = reservations.map((r) => [
+    r.bookingReference,
+    r.type,
+    r.status,
+    `${r.guestFirstName} ${r.guestLastName}`,
+    r.guestEmail,
+    r.type === "HOTEL"
+      ? (r.hotelLink?.hotel.name ?? "")
+      : `${r.carLink?.vehicle.brand ?? ""} ${r.carLink?.vehicle.model ?? ""}`,
+    r.totalAmount.toString(),
+    r.currency,
+    r.createdAt.toISOString(),
+  ]);
 
-  const csv = [header.join(","), ...rows].join("\n");
+  const csv = toCsv(header, rows);
 
   return new NextResponse(csv, {
     headers: {

@@ -15,6 +15,9 @@ import {
   Receipt,
   Link2,
   Image as ImageIcon,
+  ClipboardList,
+  Wrench,
+  BarChart3,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -50,7 +53,13 @@ export function PartnerSidebar({
           { href: "/dashboard", label: t("dashboard"), icon: LayoutDashboard },
           { href: "/dashboard/organization", label: t("settings"), icon: Settings },
           ...(organizationType === "HOTEL"
-            ? [{ href: "/dashboard/properties", label: t("properties"), icon: Building2 }]
+            ? [
+                { href: "/dashboard/properties", label: t("properties"), icon: Building2 },
+                { href: "/dashboard/pms", label: t("pmsFrontDesk"), icon: ClipboardList },
+                { href: "/dashboard/pms/housekeeping", label: t("pmsHousekeeping"), icon: ClipboardList },
+                { href: "/dashboard/pms/maintenance", label: t("pmsMaintenance"), icon: Wrench },
+                { href: "/dashboard/pms/reports", label: t("pmsReports"), icon: BarChart3 },
+              ]
             : []),
           ...(organizationType === "CAR_RENTAL"
             ? [
