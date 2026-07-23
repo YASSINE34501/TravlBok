@@ -3,10 +3,13 @@ import { Plus } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
+import { formatMoney } from "@/lib/currency/format";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getScopedBranchId } from "@/domains/branches/access";
+import { getBranchPerformance } from "@/domains/branches/queries";
 
 export default async function BranchesListPage({
   params,
@@ -15,13 +18,20 @@ export default async function BranchesListPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Partner");
-  const { organization } = await getPartnerContext(locale);
+  const { user, membership, organization } = await getPartnerContext(locale);
 
-  const branches = await prisma.carBranch.findMany({
-    where: { organizationId: organization.id, deletedAt: null },
-    include: { city: true, vehicles: { select: { id: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  const scopedBranchId = await getScopedBranchId(organization.id, user.id, membership.role);
+
+  const [allBranches, performance] = await Promise.all([
+    prisma.carBranch.findMany({
+      where: { organizationId: organization.id, deletedAt: null },
+      include: { city: true, vehicles: { select: { id: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    getBranchPerformance(organization.id),
+  ]);
+  const branches = scopedBranchId ? allBranches.filter((b) => b.id === scopedBranchId) : allBranches;
+  const performanceById = new Map(performance.map((p) => [p.id, p]));
 
   return (
     <div className="space-y-6">
@@ -51,7 +61,16 @@ export default async function BranchesListPage({
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    {branch.vehicles.length} vehicle(s)
+                    {branch.vehicles.length} vehicle(s) ·{" "}
+                    {performanceById.get(branch.id)?.utilizationPercent ?? 0}% utilization
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Revenue:{" "}
+                    {formatMoney(
+                      String(performanceById.get(branch.id)?.revenue ?? 0),
+                      organization.baseCurrency,
+                      locale
+                    )}
                   </p>
                 </CardContent>
               </Card>

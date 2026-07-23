@@ -367,15 +367,21 @@ model OrganizationMember {
   status          OrgMemberStatus @default(ACTIVE)
   invitedByUserId String?
   joinedAt        DateTime        @default(now())
+  // Car-rental "branch staff permissions" — null means unscoped (sees/manages
+  // every branch in the organization, e.g. owners/managers); set to restrict a
+  // CAR_RENTAL_STAFF member to a single branch's vehicles.
+  branchId        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch       CarBranch?   @relation(fields: [branchId], references: [id], onDelete: SetNull)
 
   @@unique([organizationId, userId])
   @@index([userId])
+  @@index([branchId])
 }
 
 // =========================================================================
@@ -1215,6 +1221,7 @@ model CarBranch {
   country      Country?     @relation(fields: [countryId], references: [id])
   city         City?        @relation(fields: [cityId], references: [id])
   vehicles     Vehicle[]
+  staff        OrganizationMember[]
 
   @@index([organizationId])
 }
@@ -1239,6 +1246,9 @@ model Vehicle {
   currency                 CurrencyCode     @default(MAD)
   deposit                  Decimal?         @db.Decimal(12, 2)
   insuranceOptions         Json?
+  insuranceExpiryAt        DateTime?        @db.Date
+  lastMaintenanceAt        DateTime?        @db.Date
+  nextMaintenanceDueAt     DateTime?        @db.Date
   mileagePolicy            MileagePolicy    @default(UNLIMITED)
   mileageLimitKm           Int?
   fuelPolicy               FuelPolicy       @default(FULL_TO_FULL)

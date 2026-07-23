@@ -3,6 +3,7 @@ import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { VehicleForm } from "@/components/partner/vehicle-form";
+import { getScopedBranchId } from "@/domains/branches/access";
 
 export default async function NewVehiclePage({
   params,
@@ -11,12 +12,15 @@ export default async function NewVehiclePage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Partner");
-  const { organization } = await getPartnerContext(locale);
+  const { user, membership, organization } = await getPartnerContext(locale);
 
-  const [branches, categories] = await Promise.all([
+  const scopedBranchId = await getScopedBranchId(organization.id, user.id, membership.role);
+
+  const [allBranches, categories] = await Promise.all([
     prisma.carBranch.findMany({ where: { organizationId: organization.id, deletedAt: null } }),
     prisma.category.findMany({ where: { type: "VEHICLE_CATEGORY" } }),
   ]);
+  const branches = scopedBranchId ? allBranches.filter((b) => b.id === scopedBranchId) : allBranches;
 
   return (
     <div className="space-y-6">
@@ -48,6 +52,9 @@ export default async function NewVehiclePage({
           pricePerDay: 0,
           currency: organization.baseCurrency,
           deposit: undefined,
+          insuranceExpiryAt: "",
+          lastMaintenanceAt: "",
+          nextMaintenanceDueAt: "",
           mileagePolicy: "UNLIMITED",
           mileageLimitKm: undefined,
           fuelPolicy: "FULL_TO_FULL",

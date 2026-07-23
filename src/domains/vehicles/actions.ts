@@ -6,6 +6,7 @@ import { requireOrganizationAccess, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { vehicleSchema, type VehicleInput } from "@/lib/validation/vehicle";
 import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
+import { getScopedBranchId } from "@/domains/branches/access";
 
 type ActionResult =
   | { success: true; vehicleId: string }
@@ -35,6 +36,9 @@ function buildVehicleData(input: VehicleInput) {
     pricePerDay: input.pricePerDay,
     currency: input.currency,
     deposit: input.deposit ?? null,
+    insuranceExpiryAt: input.insuranceExpiryAt ? new Date(input.insuranceExpiryAt) : null,
+    lastMaintenanceAt: input.lastMaintenanceAt ? new Date(input.lastMaintenanceAt) : null,
+    nextMaintenanceDueAt: input.nextMaintenanceDueAt ? new Date(input.nextMaintenanceDueAt) : null,
     mileagePolicy: input.mileagePolicy,
     mileageLimitKm: input.mileageLimitKm ?? null,
     fuelPolicy: input.fuelPolicy,
@@ -55,6 +59,11 @@ export async function createVehicleAction(
 
   const parsed = vehicleSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "invalidInput" };
+
+  const scopedBranchId = await getScopedBranchId(organizationId, user.id, user.role);
+  if (scopedBranchId && parsed.data.branchId !== scopedBranchId) {
+    return { success: false, error: "branchNotAllowed" };
+  }
 
   const branch = await prisma.carBranch.findFirst({
     where: { id: parsed.data.branchId, organizationId },
@@ -94,6 +103,11 @@ export async function updateVehicleAction(
   const vehicle = await prisma.vehicle.findFirst({ where: { id: vehicleId, organizationId } });
   if (!vehicle) return { success: false, error: "notFound" };
 
+  const scopedBranchId = await getScopedBranchId(organizationId, user.id, user.role);
+  if (scopedBranchId && (vehicle.branchId !== scopedBranchId || parsed.data.branchId !== scopedBranchId)) {
+    return { success: false, error: "branchNotAllowed" };
+  }
+
   await prisma.vehicle.update({
     where: { id: vehicleId },
     data: buildVehicleData(parsed.data),
@@ -108,6 +122,54 @@ export async function updateVehicleAction(
   });
 
   revalidatePath(`/${locale}/dashboard/vehicles/${vehicleId}`);
+  return { success: true, vehicleId };
+}
+
+/**
+ * Explicit fleet-transfer flow (separate from the general edit form) so a
+ * branch change is always intentional and individually audit-logged with
+ * both the origin and destination branch — the "fleet location" history.
+ */
+export async function transferVehicleAction(
+  locale: string,
+  organizationId: string,
+  vehicleId: string,
+  newBranchId: string
+): Promise<ActionResult> {
+  const user = await requireOrganizationAccess(locale, organizationId, VEHICLE_EDIT_ROLES);
+
+  const scopedBranchId = await getScopedBranchId(organizationId, user.id, user.role);
+  if (scopedBranchId) {
+    // Branch-scoped staff can't transfer vehicles at all — moving fleet
+    // across branches is an owner/manager (or unscoped staff) decision.
+    return { success: false, error: "branchNotAllowed" };
+  }
+
+  const vehicle = await prisma.vehicle.findFirst({ where: { id: vehicleId, organizationId } });
+  if (!vehicle) return { success: false, error: "notFound" };
+
+  const newBranch = await prisma.carBranch.findFirst({
+    where: { id: newBranchId, organizationId, deletedAt: null },
+  });
+  if (!newBranch) return { success: false, error: "notFound" };
+
+  if (vehicle.branchId === newBranchId) {
+    return { success: true, vehicleId };
+  }
+
+  await prisma.vehicle.update({ where: { id: vehicleId }, data: { branchId: newBranchId } });
+
+  await logAudit({
+    actorUserId: user.id,
+    organizationId,
+    action: "vehicle.transfer",
+    entityType: "Vehicle",
+    entityId: vehicleId,
+    metadata: { fromBranchId: vehicle.branchId, toBranchId: newBranchId },
+  });
+
+  revalidatePath(`/${locale}/dashboard/vehicles/${vehicleId}`);
+  revalidatePath(`/${locale}/dashboard/branches`);
   return { success: true, vehicleId };
 }
 

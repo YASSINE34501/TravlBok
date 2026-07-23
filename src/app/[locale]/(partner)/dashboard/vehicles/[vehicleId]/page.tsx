@@ -6,8 +6,10 @@ import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { VehicleForm } from "@/components/partner/vehicle-form";
 import { VehicleMediaManager } from "@/components/partner/vehicle-media-manager";
 import { SubmitVehicleButton } from "@/components/partner/submit-vehicle-button";
+import { VehicleTransferForm } from "@/components/partner/vehicle-transfer-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getScopedBranchId } from "@/domains/branches/access";
 
 export default async function EditVehiclePage({
   params,
@@ -17,9 +19,11 @@ export default async function EditVehiclePage({
   const { locale, vehicleId } = await params;
   const t = await getTranslations("Partner");
   const tStatus = await getTranslations("PropertyStatus");
-  const { organization } = await getPartnerContext(locale);
+  const { user, membership, organization } = await getPartnerContext(locale);
 
-  const [vehicle, branches, categories] = await Promise.all([
+  const scopedBranchId = await getScopedBranchId(organization.id, user.id, membership.role);
+
+  const [vehicle, allBranches, categories] = await Promise.all([
     prisma.vehicle.findFirst({
       where: { id: vehicleId, organizationId: organization.id, deletedAt: null },
       include: { media: { orderBy: { sortOrder: "asc" } } },
@@ -29,8 +33,18 @@ export default async function EditVehiclePage({
   ]);
 
   if (!vehicle) notFound();
+  if (scopedBranchId && vehicle.branchId !== scopedBranchId) notFound();
+
+  const branches = scopedBranchId ? allBranches.filter((b) => b.id === scopedBranchId) : allBranches;
 
   const description = vehicle.description as Record<string, string>;
+
+  const now = new Date();
+  const insuranceExpiringSoon =
+    vehicle.insuranceExpiryAt != null &&
+    vehicle.insuranceExpiryAt.getTime() - now.getTime() < 30 * 24 * 60 * 60 * 1000;
+  const maintenanceOverdue =
+    vehicle.nextMaintenanceDueAt != null && vehicle.nextMaintenanceDueAt.getTime() < now.getTime();
 
   return (
     <div className="space-y-6">
@@ -38,8 +52,29 @@ export default async function EditVehiclePage({
         <h1 className="text-2xl font-semibold">
           {vehicle.brand} {vehicle.model}
         </h1>
-        <Badge variant="secondary">{tStatus(vehicle.approvalStatus)}</Badge>
+        <div className="flex items-center gap-2">
+          {insuranceExpiringSoon && <Badge variant="destructive">Insurance expiring soon</Badge>}
+          {maintenanceOverdue && <Badge variant="destructive">Maintenance overdue</Badge>}
+          <Badge variant="secondary">{tStatus(vehicle.approvalStatus)}</Badge>
+        </div>
       </div>
+
+      {!scopedBranchId && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Fleet location</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VehicleTransferForm
+              locale={locale}
+              organizationId={organization.id}
+              vehicleId={vehicle.id}
+              currentBranchId={vehicle.branchId}
+              branches={allBranches.map((b) => ({ id: b.id, name: b.name }))}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -83,6 +118,15 @@ export default async function EditVehiclePage({
           pricePerDay: Number(vehicle.pricePerDay),
           currency: vehicle.currency,
           deposit: vehicle.deposit ? Number(vehicle.deposit) : undefined,
+          insuranceExpiryAt: vehicle.insuranceExpiryAt
+            ? vehicle.insuranceExpiryAt.toISOString().slice(0, 10)
+            : "",
+          lastMaintenanceAt: vehicle.lastMaintenanceAt
+            ? vehicle.lastMaintenanceAt.toISOString().slice(0, 10)
+            : "",
+          nextMaintenanceDueAt: vehicle.nextMaintenanceDueAt
+            ? vehicle.nextMaintenanceDueAt.toISOString().slice(0, 10)
+            : "",
           mileagePolicy: vehicle.mileagePolicy,
           mileageLimitKm: vehicle.mileageLimitKm ?? undefined,
           fuelPolicy: vehicle.fuelPolicy,

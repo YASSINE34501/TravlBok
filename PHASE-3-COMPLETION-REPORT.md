@@ -1,7 +1,7 @@
 # TravlBok — Phase 3 Completion Report
 
 **Scope:** Channel Manager, Dynamic Pricing, Multi-Property Management, Advanced Analytics, Notifications, Security, Performance/Scale, and Testing, per `MASTER-PLAN.md`.
-**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine).
+**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine), Milestone 3 (Multi-Property & Multi-Branch Management).
 
 ---
 
@@ -116,3 +116,33 @@ While staging this milestone's changes, found that `.gitignore`'s blanket `.env*
 - Whole-stay occupancy (not per-night) is used when pricing an actual booking/preview, matching the existing overbooking check's simplification; the pricing *calendar* (`recalculatePricingCalendarAction`) uses accurate per-day occupancy instead, since it has no single "stay" to aggregate over.
 - `DEMAND_LEVEL` is a deterministic occupancy-derived bucket, not a separate demand-forecasting signal — consistent with MASTER-PLAN's "Do not use external AI APIs initially."
 - Dynamic Pricing applies to hotel room types only; car rental pricing is unaffected.
+
+---
+
+## Milestone 3 — Multi-Property & Multi-Branch Management
+
+### What was already in place (audited, not rebuilt)
+An organization could already own multiple `Hotel`s / `CarBranch`es (Phase 1), `dashboard/bookings` and `dashboard/payments` already query by `organizationId` (already org-wide/central across every property — no per-hotel silo existed to fix), `dashboard/staff` already manages `OrganizationMember` org-wide ("Central staff"), and `Subscription.organizationId` is `@unique` — one subscription already covers every property under an org ("Group subscriptions"). This pass built the genuinely missing pieces: property/branch **comparison and consolidated financial rollups**, explicit **fleet transfer** and **insurance/maintenance tracking**, and **branch-level staff scoping** (none of these existed before, confirmed by reading every relevant page/action file first).
+
+### What was built
+
+**Hotel groups — property comparison & consolidated revenue** (`src/domains/hotels/analytics.ts`, `dashboard/properties/comparison`): `getPropertyComparison(organizationId)` rolls up `HotelReservationLink` + `ReservationRoomItem` for CONFIRMED/COMPLETED bookings into per-hotel revenue, booking count, nights sold, ADR, and average approved-review rating; the comparison page adds a consolidated-revenue/total-bookings summary on top and links out to the already-central Bookings/Staff pages rather than duplicating them. A "Compare properties" button appears on `dashboard/properties` once an org has more than one hotel.
+
+**Car rentals — fleet transfer, insurance & maintenance tracking**: `Vehicle` gained `insuranceExpiryAt`/`lastMaintenanceAt`/`nextMaintenanceDueAt` (nullable `Date` columns, additive). `transferVehicleAction` (`src/domains/vehicles/actions.ts`) is a dedicated action — separate from the general edit form — that changes `branchId` and writes an explicit `logAudit` entry with both `fromBranchId`/`toBranchId`, giving fleet-location a real history (no new table needed; `AuditLog` is the platform's existing audit trail). The vehicle detail page shows a "Fleet location" transfer control (owners/unscoped staff only) and destructive-styled "Insurance expiring soon" (<30 days) / "Maintenance overdue" badges; the vehicles list shows a compact "Needs attention" badge per card.
+
+**Car rentals — branch revenue/utilization** (`src/domains/branches/queries.ts`): `getBranchPerformance` computes, per branch, vehicle count, currently-rented count, a utilization % (rented/total — a snapshot, not a time-windowed rate), and revenue (`CarReservationLink` → CONFIRMED/COMPLETED `Reservation.totalAmount`). Surfaced on both the branches list (compact) and branch detail page (a stats card).
+
+**Car rentals — branch staff permissions** (`OrganizationMember.branchId`, nullable, `src/domains/branches/access.ts`): `getScopedBranchId(organizationId, userId, role)` returns `null` (unscoped — sees/manages every branch) for owners and platform staff, or for `CAR_RENTAL_STAFF` with no branch assigned; otherwise returns the one branch they're restricted to. This is **enforced**, not just displayed: `vehicles/page.tsx` and `branches/page.tsx` filter their lists by the scope, `vehicles/[vehicleId]`/`branches/[branchId]` `notFound()` a scoped staff member trying to open another branch's page directly by URL, and `createVehicleAction`/`updateVehicleAction`/`createBranchAction`/`updateBranchAction` re-check the scope server-side (a branch-scoped `CAR_RENTAL_STAFF` member can create/edit vehicles only in their own branch, and can't create/edit a `CarBranch` at all — opening or reassigning a whole branch stays an owner/manager decision). `transferVehicleAction` refuses branch-scoped staff outright — moving fleet across branches is deliberately unscoped-only. Assignment happens via a branch selector on `InviteStaffForm` (car-rental orgs only) and a per-row `StaffBranchSelect` on the staff page for existing members.
+
+### Verification
+- `npx tsc --noEmit`, `npx eslint .` — zero errors, zero warnings.
+- `npx prisma migrate dev` against the live Supabase database (new migration `20260723200947_phase3_multi_property_branch`, purely additive: nullable columns + one nullable FK).
+- `npm run build` — exit 0, all routes generated including `dashboard/properties/comparison`.
+- **Full end-to-end test against the real database** (same inline-Prisma method as Milestones 1–2): created two isolated test branches and a vehicle in branch A, an `OrganizationMember` scoped to branch A — confirmed the scoped-vehicle-list filter returns exactly that branch's vehicle; transferred the vehicle to branch B and confirmed both the `branchId` change and its `AuditLog` entry (fleet-location history); confirmed insurance-expiring/maintenance-overdue flag computation; confirmed branch utilization computed as 100% (1 rented / 1 vehicle) for branch B. Separately created a test hotel with a real 1000 MAD / 2-night confirmed booking and confirmed the property-comparison rollup (revenue, nights sold, ADR) matches exactly. All test data cleaned up and confirmed gone.
+- Live HTTP checks against a running dev server with real Supabase data and real login sessions: demo hotel owner (Riad Atlas) → `dashboard/properties/comparison` 200 with real "Consolidated revenue"/"Total bookings" content; demo car-rental owner (Atlas Rent A Car) → `dashboard/branches` 200 (shows real utilization/revenue figures), `dashboard/vehicles` 200, `dashboard/staff` 200 — no server errors in the dev log across all requests.
+- Not completed this pass: clicking through the transfer/branch-assignment forms via Chrome browser automation (still not exercised for form interactions this session) — the underlying Server Actions are the same ones verified end-to-end at the database level above.
+
+### Known limitations
+- Branch/property revenue rollups sum raw `Reservation.totalAmount` without cross-currency conversion (assumes a single organization base currency for this internal comparison view) — the same simplification used consistently across both new rollup queries; a true FX-aware rollup would need `ExchangeRate` history, out of scope for this pass.
+- Branch utilization is a live snapshot (currently-rented / total vehicles), not a historical rented-days / available-days rate over a chosen window — a simpler, honestly-labeled metric rather than a more complex time-series one.
+- "Fleet location" tracking is branch-level (a vehicle's current branch, changed only through the explicit transfer action) plus the branch's existing static city/lat-lng — there's no live GPS tracking, consistent with MASTER-PLAN's phrasing ("Track fleet location") being about which branch a vehicle belongs to, not real-time telemetry.

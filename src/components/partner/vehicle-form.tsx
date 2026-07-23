@@ -559,6 +559,55 @@ export function VehicleForm({
           </CardContent>
         </Card>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>Insurance & maintenance</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <FormField
+                control={form.control}
+                name="insuranceExpiryAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance expiry date</FormLabel>
+                    <FormControl>
+                      <Input type="date" value={field.value ?? ""} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastMaintenanceAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last maintenance date</FormLabel>
+                    <FormControl>
+                      <Input type="date" value={field.value ?? ""} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="nextMaintenanceDueAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Next maintenance due</FormLabel>
+                    <FormControl>
+                      <Input type="date" value={field.value ?? ""} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isSubmitting ? tCommon("loading") : tCommon("save")}
         </Button>

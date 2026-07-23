@@ -6,6 +6,7 @@ import { requireOrganizationAccess, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { branchSchema, type BranchInput } from "@/lib/validation/branch";
 import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
+import { getScopedBranchId } from "./access";
 
 type ActionResult =
   | { success: true; branchId: string }
@@ -19,6 +20,11 @@ export async function createBranchAction(
   input: BranchInput
 ): Promise<ActionResult> {
   const user = await requireOrganizationAccess(locale, organizationId, BRANCH_EDIT_ROLES);
+
+  // Opening a new branch is an owner/manager (unscoped) decision — a staff
+  // member restricted to one branch can't create another.
+  const scopedBranchId = await getScopedBranchId(organizationId, user.id, user.role);
+  if (scopedBranchId) return { success: false, error: "branchNotAllowed" };
 
   const parsed = branchSchema.safeParse(input);
   if (!parsed.success) return { success: false, error: "invalidInput" };
@@ -64,6 +70,11 @@ export async function updateBranchAction(
 
   const branch = await prisma.carBranch.findFirst({ where: { id: branchId, organizationId } });
   if (!branch) return { success: false, error: "notFound" };
+
+  const scopedBranchId = await getScopedBranchId(organizationId, user.id, user.role);
+  if (scopedBranchId && scopedBranchId !== branchId) {
+    return { success: false, error: "branchNotAllowed" };
+  }
 
   await prisma.carBranch.update({
     where: { id: branchId },

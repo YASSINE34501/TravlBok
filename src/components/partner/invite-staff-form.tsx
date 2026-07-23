@@ -20,10 +20,12 @@ export function InviteStaffForm({
   locale,
   organizationId,
   availableRoles,
+  branches,
 }: {
   locale: string;
   organizationId: string;
   availableRoles: Role[];
+  branches?: { id: string; name: string }[];
 }) {
   const t = useTranslations("Partner");
   const tCommon = useTranslations("Common");
@@ -31,15 +33,23 @@ export function InviteStaffForm({
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>(availableRoles[0]);
+  const [branchId, setBranchId] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const roleItems = Object.fromEntries(availableRoles.map((r) => [r, tRoles(r)]));
+  const branchItems = branches
+    ? Object.fromEntries([["", "Every branch"], ...branches.map((b) => [b.id, b.name])])
+    : undefined;
 
   async function handleSubmit() {
     if (!email) return;
     setIsSubmitting(true);
     try {
-      const result = await inviteStaffMemberAction(locale, organizationId, { email, role });
+      const result = await inviteStaffMemberAction(locale, organizationId, {
+        email,
+        role,
+        branchId: branchId || undefined,
+      });
       if (!result.success) {
         toast.error(tCommon("somethingWentWrong"));
         return;
@@ -53,7 +63,7 @@ export function InviteStaffForm({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+    <div className={`grid grid-cols-2 gap-2 ${branches ? "sm:grid-cols-5" : "sm:grid-cols-4"}`}>
       <Input
         type="email"
         placeholder={t("staffEmailPlaceholder")}
@@ -73,6 +83,21 @@ export function InviteStaffForm({
           ))}
         </SelectContent>
       </Select>
+      {branches && branchItems && (
+        <Select items={branchItems} value={branchId} onValueChange={(v) => setBranchId(v ?? "")}>
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Every branch</SelectItem>
+            {branches.map((b) => (
+              <SelectItem key={b.id} value={b.id}>
+                {b.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
       <Button disabled={isSubmitting} onClick={handleSubmit}>
         {t("inviteStaff")}
       </Button>

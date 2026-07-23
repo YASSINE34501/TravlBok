@@ -20,12 +20,19 @@ const STAFF_ROLES: Role[] = [
 export async function inviteStaffMemberAction(
   locale: string,
   organizationId: string,
-  input: { email: string; role: Role }
+  input: { email: string; role: Role; branchId?: string }
 ): Promise<ActionResult> {
   const user = await requireOrganizationAccess(locale, organizationId, ROLE_GROUPS.partnerOwners);
 
   if (!STAFF_ROLES.includes(input.role)) {
     return { success: false, error: "invalidInput" };
+  }
+
+  if (input.branchId) {
+    const branch = await prisma.carBranch.findFirst({
+      where: { id: input.branchId, organizationId, deletedAt: null },
+    });
+    if (!branch) return { success: false, error: "invalidInput" };
   }
 
   const limitCheck = await checkOrganizationLimit(organizationId, "STAFF");
@@ -52,6 +59,7 @@ export async function inviteStaffMemberAction(
       role: input.role,
       status: "INVITED",
       invitedByUserId: user.id,
+      branchId: input.branchId || null,
     },
   });
 
@@ -61,7 +69,43 @@ export async function inviteStaffMemberAction(
     action: "staff.invite",
     entityType: "OrganizationMember",
     entityId: invitee.id,
-    metadata: { role: input.role },
+    metadata: { role: input.role, branchId: input.branchId },
+  });
+
+  revalidatePath(`/${locale}/dashboard/staff`);
+  return { success: true };
+}
+
+/** "Branch staff permissions" — restrict (or unrestrict, via null) a car-rental staff member to one branch. */
+export async function updateStaffBranchAction(
+  locale: string,
+  organizationId: string,
+  memberId: string,
+  branchId: string | null
+): Promise<ActionResult> {
+  const user = await requireOrganizationAccess(locale, organizationId, ROLE_GROUPS.partnerOwners);
+
+  const membership = await prisma.organizationMember.findFirst({
+    where: { id: memberId, organizationId },
+  });
+  if (!membership) return { success: false, error: "notFound" };
+
+  if (branchId) {
+    const branch = await prisma.carBranch.findFirst({
+      where: { id: branchId, organizationId, deletedAt: null },
+    });
+    if (!branch) return { success: false, error: "invalidInput" };
+  }
+
+  await prisma.organizationMember.update({ where: { id: memberId }, data: { branchId } });
+
+  await logAudit({
+    actorUserId: user.id,
+    organizationId,
+    action: "staff.set_branch",
+    entityType: "OrganizationMember",
+    entityId: memberId,
+    metadata: { branchId },
   });
 
   revalidatePath(`/${locale}/dashboard/staff`);

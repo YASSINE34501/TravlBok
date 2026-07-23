@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getScopedBranchId } from "@/domains/branches/access";
 
 export default async function VehiclesListPage({
   params,
@@ -16,13 +17,21 @@ export default async function VehiclesListPage({
   const { locale } = await params;
   const t = await getTranslations("Partner");
   const tStatus = await getTranslations("VehicleStatus");
-  const { organization } = await getPartnerContext(locale);
+  const { user, membership, organization } = await getPartnerContext(locale);
+
+  const scopedBranchId = await getScopedBranchId(organization.id, user.id, membership.role);
 
   const vehicles = await prisma.vehicle.findMany({
-    where: { organizationId: organization.id, deletedAt: null },
+    where: {
+      organizationId: organization.id,
+      deletedAt: null,
+      ...(scopedBranchId ? { branchId: scopedBranchId } : {}),
+    },
     include: { branch: true },
     orderBy: { createdAt: "desc" },
   });
+
+  const now = new Date();
 
   return (
     <div className="space-y-6">
@@ -53,6 +62,11 @@ export default async function VehiclesListPage({
                     {formatMoney(vehicle.pricePerDay.toString(), vehicle.currency, locale)}{" "}
                     / day
                   </p>
+                  {(vehicle.nextMaintenanceDueAt && vehicle.nextMaintenanceDueAt < now) ||
+                  (vehicle.insuranceExpiryAt &&
+                    vehicle.insuranceExpiryAt.getTime() - now.getTime() < 30 * 24 * 60 * 60 * 1000) ? (
+                    <Badge variant="destructive">Needs attention</Badge>
+                  ) : null}
                 </CardContent>
               </Card>
             </Link>

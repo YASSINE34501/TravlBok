@@ -28,10 +28,17 @@ export default async function PropertiesListPage({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">{t("properties")}</h1>
-        <Button render={<Link href="/dashboard/properties/new" />}>
-          <Plus className="size-4" />
-          {t("addProperty")}
-        </Button>
+        <div className="flex items-center gap-2">
+          {hotels.length > 1 && (
+            <Button variant="outline" render={<Link href="/dashboard/properties/comparison" />}>
+              Compare properties
+            </Button>
+          )}
+          <Button render={<Link href="/dashboard/properties/new" />}>
+            <Plus className="size-4" />
+            {t("addProperty")}
+          </Button>
+        </div>
       </div>
 
       {hotels.length === 0 ? (
