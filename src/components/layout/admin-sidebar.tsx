@@ -25,6 +25,7 @@ import {
   Handshake,
   Banknote,
   Radio,
+  BarChart3,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function AdminSidebar() {
 
   const items = [
     { href: "/admin", label: t("dashboard"), icon: LayoutDashboard },
+    { href: "/admin/analytics", label: t("advancedAnalytics"), icon: BarChart3 },
     { href: "/admin/organizations", label: "Organizations", icon: Building2 },
     { href: "/admin/hotels", label: t("totalHotels"), icon: BedDouble },
     { href: "/admin/vehicles", label: t("totalVehicles"), icon: Car },

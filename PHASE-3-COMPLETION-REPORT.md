@@ -1,7 +1,7 @@
 # TravlBok — Phase 3 Completion Report
 
 **Scope:** Channel Manager, Dynamic Pricing, Multi-Property Management, Advanced Analytics, Notifications, Security, Performance/Scale, and Testing, per `MASTER-PLAN.md`.
-**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine), Milestone 3 (Multi-Property & Multi-Branch Management).
+**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine), Milestone 3 (Multi-Property & Multi-Branch Management), Milestone 4 (Advanced Analytics).
 
 ---
 
@@ -146,3 +146,37 @@ An organization could already own multiple `Hotel`s / `CarBranch`es (Phase 1), `
 - Branch/property revenue rollups sum raw `Reservation.totalAmount` without cross-currency conversion (assumes a single organization base currency for this internal comparison view) — the same simplification used consistently across both new rollup queries; a true FX-aware rollup would need `ExchangeRate` history, out of scope for this pass.
 - Branch utilization is a live snapshot (currently-rented / total vehicles), not a historical rented-days / available-days rate over a chosen window — a simpler, honestly-labeled metric rather than a more complex time-series one.
 - "Fleet location" tracking is branch-level (a vehicle's current branch, changed only through the explicit transfer action) plus the branch's existing static city/lat-lng — there's no live GPS tracking, consistent with MASTER-PLAN's phrasing ("Track fleet location") being about which branch a vehicle belongs to, not real-time telemetry.
+
+---
+
+## Milestone 4 — Advanced Analytics
+
+### What was audited first
+The existing Super Admin dashboard (`admin/page.tsx`) only showed simple lifetime counts (users, partners, hotels, one hardcoded-MAD revenue figure) with no date range, no filters, and no charts — none of MASTER-PLAN's 16 named metrics existed anywhere, and there was no chart library in `package.json` at all. `src/domains/pms/reports.ts`'s existing per-hotel ADR/occupancy/RevPAR formulas were read and **reused** (not reinvented) for the new platform-wide aggregate versions.
+
+### What was built
+
+**Metrics engine** (`src/domains/reports/analytics.ts`, `getAdvancedAnalytics(filters)`), covering every MASTER-PLAN metric:
+- **Financial**: Gross booking value (`sum(totalAmount)` excluding DRAFT/CANCELLED), Net revenue (commission + subscription revenue − affiliate commissions paid/payable — an explicit, documented definition), Commission revenue, Subscription revenue, Affiliate commissions total, Currency distribution (`Payment` grouped by `currency`).
+- **Booking behavior**: Cancellation rate, Affiliate conversion rate (`Commission` rows / CONFIRMED+COMPLETED reservations — the only acquisition-channel axis the schema actually tracks), Acquisition source (affiliate-attributed vs. direct) and booking-source distribution (`Reservation.bookingSource`: ONLINE vs. WALK_IN).
+- **Hospitality**: Occupancy rate, ADR, RevPAR — the exact same formulas as `pms/reports.ts` (`occupancy = roomNightsSold / roomNightsAvailable`, `adr = revenue / roomNightsSold`, `revpar = revenue / roomNightsAvailable`), aggregated across every matching hotel instead of one.
+- **Car rentals**: Car utilization (`rentedVehicleDays / (vehicleCount × daysInRange)`, clamped to 100%), Average rental duration.
+- **Rankings**: Top destinations (by city, joining `Reservation` → `HotelReservationLink`/`CarReservationLink` → `Hotel`/`CarBranch.city`), Top partners (`Reservation` grouped by `organizationId`), Top affiliates (`Commission` grouped by `affiliateId`).
+- **Subscriptions**: Churn rate (`Subscription` transitioning to CANCELLED/EXPIRED within the period ÷ active-at-period-start), New/Churned subscription counts, a 6-month Subscription growth trend (net-new per month).
+
+**Filters** exactly matching MASTER-PLAN's list — Date (defaults to trailing 30 days when unset, so occupancy/utilization always have a bounded, meaningful window), Country, City, Partner, Property, Service type, Currency, Subscription plan, Booking status — composed into a single `Prisma.ReservationWhereInput` (plus targeted extra filters for the Payment/Subscription/Vehicle-scoped metrics) so every metric respects the same filter set consistently.
+
+**UI** (`admin/analytics`): a filter bar (`AnalyticsFilterForm`, client component using `useSearchParams`/`router.push` — the same URL-driven filtering pattern the public hotel search already uses) above a stat-card grid, a currency-distribution/acquisition-source pair of cards, three ranking cards (destinations/partners/affiliates), and one small inline-SVG line chart (`SubscriptionGrowthChart`) for the 6-month subscription-growth trend. No new charting dependency was added — the single-series trend line is thin, gridline-anchored, direct-end-labeled SVG using this app's own existing shadcn/Tailwind theme tokens (`currentColor` via `text-primary`/`text-muted-foreground`/`stroke-border`), so it already tracks the app's light/dark theme rather than a separate hardcoded palette — read the dataviz skill first to confirm a single-series trend needs no legend and to get the mark-spec/anti-pattern checklist right.
+
+### Verification
+- `npx tsc --noEmit`, `npx eslint .` — zero errors, zero warnings.
+- `npm run build` — exit 0, `admin/analytics` route generated.
+- **Full formula verification against the real database**: created an isolated test hotel (2 room-inventory units) with one real 2-night/800 MAD confirmed booking inside a controlled 10-day window, and confirmed occupancy (10% = 2 room-nights ÷ 20 available), ADR (400 = 800/2), and RevPAR (40 = 800/20) match hand-computed expectations exactly; confirmed GBV (800) and commission-revenue (80) aggregates; created an isolated test vehicle with a real 5-day rental inside the same 10-day window and confirmed car utilization computes to exactly 50%. All test data cleaned up and confirmed gone.
+- Live HTTP checks against a running dev server with real Supabase data and a real Super Admin login session: `admin/analytics` → 200 with real "Gross booking value"/"Occupancy rate"/"Car utilization"/"Top destinations"/"Top partners"/"Top affiliates"/"Subscription growth" content; a filtered request (`?dateFrom=...&dateTo=...&serviceType=HOTEL&currency=MAD`) → 200 — confirmed the filter bar's query-string contract round-trips correctly. No server errors in the dev log across all requests.
+- Not completed this pass: clicking through the filter form via Chrome browser automation (still not exercised for form interactions this session) — the page correctly reads the exact query-string shape the client component produces, confirmed by the filtered HTTP check above.
+
+### Known limitations
+- All revenue figures are shown in one reporting currency without FX conversion (documented on the page itself) — Currency distribution is the one card that shows the true per-currency split; a fully currency-aware rollup would need `ExchangeRate` history applied per-transaction, out of scope for this pass (consistent with Milestone 3's same documented simplification).
+- "Acquisition source" is limited to what the schema actually tracks: affiliate-attributed vs. direct, and online vs. walk-in booking source. There's no UTM/referrer/campaign-medium field anywhere in the schema for a richer channel breakdown (e.g. organic search vs. paid vs. social) — adding one would be a separate, larger tracking initiative, not fabricated here.
+- Top-destinations/partners/affiliates rankings are computed by fetching matching rows and reducing in JS rather than a single SQL `GROUP BY`, matching the current dataset's scale (same precedent as `pms/reports.ts`'s `getRevenueByRoomType`, which only reaches for `$queryRaw` for the one case — a date-series LEFT JOIN — that Prisma's typed API genuinely can't express). Revisit with raw SQL if/when data volume makes the in-memory reduction a real bottleneck.
+- Churn-rate/subscription-growth's "active at period start" is an approximation (`createdAt < dateFrom`, not accounting for subscriptions that both started and cancelled entirely within the window) — reasonable for a rate metric over month-plus windows, less precise for very short custom ranges.
