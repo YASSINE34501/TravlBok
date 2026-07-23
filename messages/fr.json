@@ -332,6 +332,7 @@
     "pmsMaintenance": "Maintenance",
     "pmsReports": "Rapports PMS",
     "channels": "Gestionnaire de canaux",
+    "pricing": "Tarification dynamique",
     "affiliateOverview": "Aperçu affilié",
     "affiliateCampaigns": "Liens de campagne",
     "affiliateWithdrawals": "Retraits",
@@ -386,6 +387,7 @@
     "subscriptions": "Abonnements",
     "affiliates": "Affiliés",
     "channelManager": "Gestionnaire de canaux",
+    "dynamicPricing": "Tarification dynamique",
     "auditLogs": "Journaux d'audit",
     "settings": "Paramètres"
   },

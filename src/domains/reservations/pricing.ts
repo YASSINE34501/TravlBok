@@ -15,6 +15,10 @@ export function isWeekendNight(date: Date): boolean {
   return day === 5 || day === 6; // Friday, Saturday
 }
 
+export function toDateKey(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 type SeasonalPrice = {
   startDate: Date;
   endDate: Date;
@@ -70,20 +74,29 @@ export function calculateHotelPriceBreakdown(params: {
   overrides: AvailabilityOverride[];
   commissionRate: number;
   discountAmount: number;
+  /**
+   * Precomputed per-night prices (keyed by `toDateKey`), from the Dynamic
+   * Pricing engine (src/domains/dynamic-pricing). A night present in this
+   * map wins over `resolveNightlyPrice`'s season/base calculation; a night
+   * with a manual `RoomAvailabilityOverride.priceOverride` is never present
+   * here (the engine skips those nights — manual overrides always win).
+   */
+  nightlyPriceOverrides?: Map<string, number>;
 }) {
   const nights = enumerateNights(params.checkIn, params.checkOut);
-  const nightlySubtotal = nights.reduce(
-    (sum, night) =>
-      sum +
+  const nightlySubtotal = nights.reduce((sum, night) => {
+    const dynamicPrice = params.nightlyPriceOverrides?.get(toDateKey(night));
+    const nightlyPrice =
+      dynamicPrice ??
       resolveNightlyPrice(
         night,
         params.basePrice,
         params.weekendPrice,
         params.seasonalPrices,
         params.overrides
-      ),
-    0
-  );
+      );
+    return sum + nightlyPrice;
+  }, 0);
 
   const basePriceAmount = round2(nightlySubtotal * params.quantity);
   const feeAmount = round2(params.cleaningFee * params.quantity);

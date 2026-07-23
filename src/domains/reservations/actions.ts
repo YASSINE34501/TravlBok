@@ -10,13 +10,15 @@ import {
   type HotelBookingInput,
   type CarBookingInput,
 } from "@/lib/validation/reservation";
-import { calculateHotelPriceBreakdown, calculateCarPriceBreakdown } from "./pricing";
+import { calculateHotelPriceBreakdown, calculateCarPriceBreakdown, enumerateNights } from "./pricing";
 import { resolveCoupon, getCommissionRate } from "./coupons";
 import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 import { createBookingPaymentAndInvoice } from "@/domains/payments/booking-payment";
 import { recordAffiliateConversion } from "@/domains/affiliates/conversion";
 import { handleReservationStatusChangeForCommission } from "@/domains/affiliates/commission-lifecycle";
 import { notifyChannelsOfCancellation } from "@/domains/channel-manager/sync";
+import { getStayDynamicPricing, toNightlyPriceOverrideMap } from "@/domains/dynamic-pricing/resolver";
+import { logDynamicPricesForBooking } from "@/domains/dynamic-pricing/log";
 
 type BookingResult =
   | { success: true; reservationId: string; bookingReference: string }
@@ -97,6 +99,14 @@ export async function createHotelReservationAction(
 
         const commissionRate = await getCommissionRate(roomType.hotel.organizationId, "HOTEL");
 
+        const dynamicPricing = await getStayDynamicPricing(
+          roomType.hotel.organizationId,
+          roomType,
+          checkIn,
+          checkOut
+        );
+        const nightlyPriceOverrides = toNightlyPriceOverrideMap(dynamicPricing);
+
         const preDiscountBreakdown = calculateHotelPriceBreakdown({
           checkIn,
           checkOut,
@@ -118,6 +128,7 @@ export async function createHotelReservationAction(
           })),
           commissionRate,
           discountAmount: 0,
+          nightlyPriceOverrides,
         });
 
         const coupon = await resolveCoupon(
@@ -150,6 +161,7 @@ export async function createHotelReservationAction(
           })),
           commissionRate,
           discountAmount: coupon.discountAmount,
+          nightlyPriceOverrides,
         });
 
         const bookingReference = generateBookingReference();
@@ -215,25 +227,28 @@ export async function createHotelReservationAction(
 
         await recordAffiliateConversion(tx, reservation);
 
-        return reservation;
+        return { reservation, roomTypeId: roomType.id, dynamicPricing };
       },
       { isolationLevel: "Serializable" }
     );
 
+    const { reservation, roomTypeId, dynamicPricing } = result;
+
     await logAudit({
       actorUserId: user.id,
-      organizationId: result.organizationId,
+      organizationId: reservation.organizationId,
       action: "reservation.create",
       entityType: "Reservation",
-      entityId: result.id,
+      entityId: reservation.id,
     });
 
-    await createBookingPaymentAndInvoice(result, data.paymentProvider);
+    await createBookingPaymentAndInvoice(reservation, data.paymentProvider);
+    await logDynamicPricesForBooking(roomTypeId, enumerateNights(checkIn, checkOut), dynamicPricing);
 
     return {
       success: true,
-      reservationId: result.id,
-      bookingReference: result.bookingReference,
+      reservationId: reservation.id,
+      bookingReference: reservation.bookingReference,
     };
   } catch (error) {
     if (error instanceof BookingError) {

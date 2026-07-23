@@ -96,6 +96,8 @@ export default async function EditRoomPage({
           maxStay: room.maxStay ?? undefined,
           instantBooking: room.instantBooking,
           amenityIds: room.amenities.map((a) => a.id),
+          minPrice: room.minPrice ? Number(room.minPrice) : undefined,
+          maxPrice: room.maxPrice ? Number(room.maxPrice) : undefined,
         }}
       />
 

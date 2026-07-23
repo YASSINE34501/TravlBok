@@ -57,6 +57,8 @@ function buildRoomData(input: RoomInput) {
     minStay: input.minStay,
     maxStay: input.maxStay ?? null,
     instantBooking: input.instantBooking,
+    minPrice: input.minPrice ?? null,
+    maxPrice: input.maxPrice ?? null,
   };
 }
 

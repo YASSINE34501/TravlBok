@@ -59,6 +59,8 @@ export default async function NewRoomPage({
           maxStay: undefined,
           instantBooking: true,
           amenityIds: [],
+          minPrice: undefined,
+          maxPrice: undefined,
         }}
       />
     </div>

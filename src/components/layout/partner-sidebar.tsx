@@ -61,6 +61,7 @@ export function PartnerSidebar({
                 { href: "/dashboard/pms/maintenance", label: t("pmsMaintenance"), icon: Wrench },
                 { href: "/dashboard/pms/reports", label: t("pmsReports"), icon: BarChart3 },
                 { href: "/dashboard/channels", label: t("channels"), icon: Radio },
+                { href: "/dashboard/pricing", label: t("pricing"), icon: BarChart3 },
               ]
             : []),
           ...(organizationType === "CAR_RENTAL"

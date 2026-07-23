@@ -332,6 +332,7 @@
     "pmsMaintenance": "الصيانة",
     "pmsReports": "تقارير نظام إدارة الفندق",
     "channels": "مدير القنوات",
+    "pricing": "التسعير الديناميكي",
     "affiliateOverview": "نظرة عامة على الشراكة",
     "affiliateCampaigns": "روابط الحملات",
     "affiliateWithdrawals": "عمليات السحب",
@@ -386,6 +387,7 @@
     "subscriptions": "الاشتراكات",
     "affiliates": "الشركاء بالعمولة",
     "channelManager": "مدير القنوات",
+    "dynamicPricing": "التسعير الديناميكي",
     "auditLogs": "سجلات التدقيق",
     "settings": "الإعدادات"
   },

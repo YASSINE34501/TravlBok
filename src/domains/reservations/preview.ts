@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/db";
 import { calculateHotelPriceBreakdown, calculateCarPriceBreakdown } from "./pricing";
 import { resolveCoupon, getCommissionRate } from "./coupons";
+import { getStayDynamicPricing, toNightlyPriceOverrideMap } from "@/domains/dynamic-pricing/resolver";
 import type { CurrencyCode } from "@/generated/prisma/client";
 
 type PreviewResult =
@@ -56,6 +57,14 @@ export async function previewHotelPriceAction(params: {
     closedForBooking: o.closedForBooking,
   }));
 
+  const dynamicPricing = await getStayDynamicPricing(
+    roomType.hotel.organizationId,
+    roomType,
+    checkIn,
+    checkOut
+  );
+  const nightlyPriceOverrides = toNightlyPriceOverrideMap(dynamicPricing);
+
   const preDiscount = calculateHotelPriceBreakdown({
     checkIn,
     checkOut,
@@ -68,6 +77,7 @@ export async function previewHotelPriceAction(params: {
     overrides,
     commissionRate,
     discountAmount: 0,
+    nightlyPriceOverrides,
   });
 
   const coupon = await resolveCoupon(
@@ -89,6 +99,7 @@ export async function previewHotelPriceAction(params: {
     overrides,
     commissionRate,
     discountAmount: coupon.discountAmount,
+    nightlyPriceOverrides,
   });
 
   return {

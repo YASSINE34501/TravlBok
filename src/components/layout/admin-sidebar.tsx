@@ -48,6 +48,7 @@ export function AdminSidebar() {
     { href: "/admin/affiliates/settings", label: "Affiliate settings", icon: Settings },
     { href: "/admin/withdrawals", label: "Withdrawals", icon: Banknote },
     { href: "/admin/channels", label: t("channelManager"), icon: Radio },
+    { href: "/admin/pricing", label: t("dynamicPricing"), icon: Percent },
     { href: "/admin/exchange-rates", label: t("exchangeRates"), icon: Globe },
     { href: "/admin/countries", label: t("countries"), icon: Globe },
     { href: "/admin/cities", label: t("cities"), icon: MapPin },

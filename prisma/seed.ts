@@ -250,6 +250,7 @@ async function main() {
     featureApiAccess: boolean;
     featurePrioritySupport: boolean;
     featureChannelManager: boolean;
+    featureDynamicPricing: boolean;
     sortOrder: number;
   }> = [
     {
@@ -270,6 +271,7 @@ async function main() {
       featureApiAccess: false,
       featurePrioritySupport: false,
       featureChannelManager: false,
+      featureDynamicPricing: false,
       sortOrder: 0,
     },
     {
@@ -290,6 +292,7 @@ async function main() {
       featureApiAccess: false,
       featurePrioritySupport: false,
       featureChannelManager: false,
+      featureDynamicPricing: false,
       sortOrder: 1,
     },
     {
@@ -310,6 +313,7 @@ async function main() {
       featureApiAccess: false,
       featurePrioritySupport: false,
       featureChannelManager: true,
+      featureDynamicPricing: true,
       sortOrder: 2,
     },
     {
@@ -330,6 +334,7 @@ async function main() {
       featureApiAccess: true,
       featurePrioritySupport: true,
       featureChannelManager: true,
+      featureDynamicPricing: true,
       sortOrder: 3,
     },
     {
@@ -350,6 +355,7 @@ async function main() {
       featureApiAccess: true,
       featurePrioritySupport: true,
       featureChannelManager: true,
+      featureDynamicPricing: true,
       sortOrder: 4,
     },
   ];
@@ -367,6 +373,7 @@ async function main() {
             featureApiAccess: plan.featureApiAccess,
             featurePrioritySupport: plan.featurePrioritySupport,
             featureChannelManager: plan.featureChannelManager,
+            featureDynamicPricing: plan.featureDynamicPricing,
           },
         })
       : await prisma.subscriptionPlan.create({ data: plan });

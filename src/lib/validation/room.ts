@@ -37,7 +37,14 @@ export const roomSchema = z.object({
   maxStay: z.number().int().min(1).max(365).optional(),
   instantBooking: z.boolean(),
   amenityIds: z.array(z.string()),
-});
+  // Dynamic Pricing bounds — MASTER-PLAN's "never breach min/max prices".
+  minPrice: z.number().min(0).optional(),
+  maxPrice: z.number().min(0).optional(),
+})
+  .refine((data) => data.minPrice == null || data.maxPrice == null || data.maxPrice >= data.minPrice, {
+    path: ["maxPrice"],
+    error: "maxPriceBelowMin",
+  });
 
 export type RoomInput = z.infer<typeof roomSchema>;
 
