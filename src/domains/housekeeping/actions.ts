@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireOrganizationAccess, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { notifyUser, notifyOrganizationOwners } from "@/domains/notifications/service";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -21,7 +22,7 @@ export async function assignHousekeepingTaskAction(
   input: { assignedToUserId?: string; priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT" }
 ): Promise<ActionResult> {
   const user = await requireOrganizationAccess(locale, organizationId, [...SUPERVISOR_ROLES]);
-  await prisma.housekeepingTask.update({
+  const task = await prisma.housekeepingTask.update({
     where: { id: taskId },
     data: {
       assignedToUserId: input.assignedToUserId,
@@ -35,6 +36,16 @@ export async function assignHousekeepingTaskAction(
     entityType: "HousekeepingTask",
     entityId: taskId,
   });
+  if (input.assignedToUserId) {
+    await notifyUser({
+      userId: input.assignedToUserId,
+      type: "housekeeping_task_assigned",
+      title: "New housekeeping task assigned",
+      message: `You've been assigned a ${task.type.toLowerCase()} task${input.priority ? ` (${input.priority} priority)` : ""}.`,
+      metadata: { taskId },
+      channels: ["IN_APP"],
+    });
+  }
   revalidatePath(`/${locale}/dashboard/pms/housekeeping`);
   return { success: true };
 }
@@ -205,6 +216,12 @@ export async function reportMaintenanceIssueAction(
     organizationId,
     action: "maintenance.task.report",
     entityType: "MaintenanceTask",
+  });
+  await notifyOrganizationOwners(organizationId, {
+    type: "maintenance_issue_reported",
+    title: "Maintenance issue reported",
+    message: `${input.title}${input.priority === "URGENT" ? " (URGENT)" : ""}`,
+    channels: ["IN_APP"],
   });
   revalidatePath(`/${locale}/dashboard/pms/maintenance`);
   return { success: true };

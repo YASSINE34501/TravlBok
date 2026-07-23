@@ -63,3 +63,24 @@ export async function sendPasswordResetEmail(params: {
     `,
   });
 }
+
+/** Generic transactional email for the platform's in-app Notification events (bookings, cancellations, payments, subscriptions, approvals, etc.) — one shared template rather than a bespoke one per event type. */
+export async function sendNotificationEmail(params: {
+  to: string;
+  firstName: string;
+  title: string;
+  message: string;
+}) {
+  await sendEmail({
+    to: params.to,
+    subject: params.title,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h1 style="color:#1e3a5f; font-size: 20px;">${params.title}</h1>
+        <p>Hi ${params.firstName},</p>
+        <p>${params.message}</p>
+        <p style="color:#888; font-size: 12px;">You're receiving this because of activity on your TravlBok account.</p>
+      </div>
+    `,
+  });
+}

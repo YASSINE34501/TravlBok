@@ -1,10 +1,11 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Menu } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { CurrencySwitcher } from "@/components/currency-switcher";
 import { UserMenu } from "@/components/layout/user-menu";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import {
   Sheet,
   SheetContent,
@@ -27,6 +28,7 @@ export async function Navbar() {
   const t = await getTranslations("Nav");
   const tCommon = await getTranslations("Common");
   const session = await auth();
+  const locale = await getLocale();
 
   const role = session?.user?.role as Role | undefined;
   const isPartnerOrStaff = Boolean(
@@ -67,13 +69,16 @@ export async function Navbar() {
           </div>
 
           {session?.user ? (
-            <UserMenu
-              name={session.user.name ?? session.user.email ?? ""}
-              email={session.user.email ?? ""}
-              image={session.user.image}
-              isPartnerOrStaff={isPartnerOrStaff}
-              dashboardHref={dashboardHref}
-            />
+            <>
+              <NotificationBell locale={locale} />
+              <UserMenu
+                name={session.user.name ?? session.user.email ?? ""}
+                email={session.user.email ?? ""}
+                image={session.user.image}
+                isPartnerOrStaff={isPartnerOrStaff}
+                dashboardHref={dashboardHref}
+              />
+            </>
           ) : (
             <div className="hidden items-center gap-2 md:flex">
               <Button variant="ghost" render={<Link href="/login" />}>

@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { requireRole, ROLE_GROUPS } from "@/lib/rbac";
 import { AdminSidebar } from "@/components/layout/admin-sidebar";
+import { NotificationBell } from "@/components/layout/notification-bell";
 
 export default async function AdminLayout({
   children,
@@ -19,6 +20,7 @@ export default async function AdminLayout({
           <Link href="/" className="text-lg font-semibold text-primary">
             TravlBok Admin
           </Link>
+          <NotificationBell locale={locale} />
         </div>
       </header>
       <div className="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4 py-8">

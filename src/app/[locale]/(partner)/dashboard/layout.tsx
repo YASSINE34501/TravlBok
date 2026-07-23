@@ -1,6 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { getPartnerContext } from "@/lib/partner-context";
 import { PartnerSidebar } from "@/components/layout/partner-sidebar";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { Badge } from "@/components/ui/badge";
 
 export default async function PartnerDashboardLayout({
@@ -23,6 +24,7 @@ export default async function PartnerDashboardLayout({
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">{organization.displayName}</span>
             <Badge variant="secondary">{organization.verificationStatus}</Badge>
+            <NotificationBell locale={locale} />
           </div>
         </div>
       </header>

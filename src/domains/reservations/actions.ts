@@ -19,6 +19,37 @@ import { handleReservationStatusChangeForCommission } from "@/domains/affiliates
 import { notifyChannelsOfCancellation } from "@/domains/channel-manager/sync";
 import { getStayDynamicPricing, toNightlyPriceOverrideMap } from "@/domains/dynamic-pricing/resolver";
 import { logDynamicPricesForBooking } from "@/domains/dynamic-pricing/log";
+import { getStayOccupancy } from "@/domains/dynamic-pricing/occupancy";
+import { notifyUser, notifyOrganizationOwners } from "@/domains/notifications/service";
+
+/** "Low inventory" — notifies the partner whenever a booking leaves 20% or less of a room type's stock remaining for that stay window. */
+const LOW_INVENTORY_THRESHOLD_RATIO = 0.2;
+
+async function notifyLowInventoryIfNeeded(
+  organizationId: string,
+  roomTypeId: string,
+  checkIn: Date,
+  checkOut: Date,
+  availableQuantity: number
+): Promise<void> {
+  if (availableQuantity <= 0) return;
+  const { remainingInventory } = await getStayOccupancy(roomTypeId, checkIn, checkOut, availableQuantity);
+  if (remainingInventory / availableQuantity > LOW_INVENTORY_THRESHOLD_RATIO) return;
+
+  const roomType = await prisma.roomType.findUnique({
+    where: { id: roomTypeId },
+    select: { name: true, hotel: { select: { name: true } } },
+  });
+  if (!roomType) return;
+
+  await notifyOrganizationOwners(organizationId, {
+    type: "low_inventory",
+    title: "Low room inventory",
+    message: `${roomType.name} at ${roomType.hotel.name} has only ${remainingInventory} unit(s) left for the requested dates.`,
+    metadata: { roomTypeId, remainingInventory },
+    channels: ["IN_APP", "EMAIL"],
+  });
+}
 
 type BookingResult =
   | { success: true; reservationId: string; bookingReference: string }
@@ -227,12 +258,17 @@ export async function createHotelReservationAction(
 
         await recordAffiliateConversion(tx, reservation);
 
-        return { reservation, roomTypeId: roomType.id, dynamicPricing };
+        return {
+          reservation,
+          roomTypeId: roomType.id,
+          availableQuantity: roomType.availableQuantity,
+          dynamicPricing,
+        };
       },
       { isolationLevel: "Serializable" }
     );
 
-    const { reservation, roomTypeId, dynamicPricing } = result;
+    const { reservation, roomTypeId, availableQuantity, dynamicPricing } = result;
 
     await logAudit({
       actorUserId: user.id,
@@ -244,6 +280,7 @@ export async function createHotelReservationAction(
 
     await createBookingPaymentAndInvoice(reservation, data.paymentProvider);
     await logDynamicPricesForBooking(roomTypeId, enumerateNights(checkIn, checkOut), dynamicPricing);
+    await notifyLowInventoryIfNeeded(reservation.organizationId, roomTypeId, checkIn, checkOut, availableQuantity);
 
     return {
       success: true,
@@ -454,6 +491,13 @@ export async function cancelReservationAction(
 
   await handleReservationStatusChangeForCommission(reservationId, "CANCELLED");
   await notifyChannelsOfCancellation(reservationId);
+  await notifyOrganizationOwners(reservation.organizationId, {
+    type: "booking_cancelled_by_customer",
+    title: "Booking cancelled",
+    message: `Booking ${reservation.bookingReference} was cancelled by the customer.`,
+    metadata: { reservationId },
+    channels: ["IN_APP", "EMAIL"],
+  });
 
   return { success: true };
 }
@@ -497,6 +541,14 @@ export async function updatePartnerReservationStatusAction(
   await handleReservationStatusChangeForCommission(reservationId, status);
   if (status === "CANCELLED") {
     await notifyChannelsOfCancellation(reservationId);
+    await notifyUser({
+      userId: reservation.customerUserId,
+      type: "booking_cancelled_by_partner",
+      title: "Booking cancelled",
+      message: `Your booking ${reservation.bookingReference} was cancelled by the property.`,
+      metadata: { reservationId },
+      channels: ["IN_APP", "EMAIL"],
+    });
   }
 
   return { success: true };

@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { logAudit } from "@/lib/audit";
 import { syncReservationPaymentSnapshot } from "./sync";
+import { notifyUser, notifyOrganizationOwners } from "@/domains/notifications/service";
 import type { WebhookEvent } from "./providers/types";
 import type { PaymentTransactionStatus } from "@/generated/prisma/client";
 
@@ -35,18 +36,50 @@ export async function handlePaymentProviderEvent(event: WebhookEvent): Promise<v
 
   if (updated.reservationId) {
     await syncReservationPaymentSnapshot(updated);
+    const reservation = await prisma.reservation.findUnique({ where: { id: updated.reservationId } });
+    if (reservation && (newStatus === "PAID" || newStatus === "FAILED")) {
+      await notifyUser({
+        userId: reservation.customerUserId,
+        type: newStatus === "PAID" ? "payment_confirmed" : "payment_failed",
+        title: newStatus === "PAID" ? "Payment confirmed" : "Payment failed",
+        message:
+          newStatus === "PAID"
+            ? `Your payment for booking ${reservation.bookingReference} was confirmed.`
+            : `Your payment for booking ${reservation.bookingReference} failed. Please try again.`,
+        metadata: { paymentId: updated.id, reservationId: reservation.id },
+        channels: ["IN_APP", "EMAIL"],
+      });
+    }
   }
   if (newStatus === "PAID" && updated.subscriptionId) {
     await prisma.subscription.update({
       where: { id: updated.subscriptionId },
       data: { status: "ACTIVE" },
     });
+    if (updated.organizationId) {
+      await notifyOrganizationOwners(updated.organizationId, {
+        type: "subscription_payment_confirmed",
+        title: "Subscription payment confirmed",
+        message: "Your subscription payment was confirmed and your plan is active.",
+        metadata: { subscriptionId: updated.subscriptionId },
+        channels: ["IN_APP", "EMAIL"],
+      });
+    }
   }
   if (newStatus === "FAILED" && updated.subscriptionId) {
     await prisma.subscription.update({
       where: { id: updated.subscriptionId },
       data: { status: "PAST_DUE" },
     });
+    if (updated.organizationId) {
+      await notifyOrganizationOwners(updated.organizationId, {
+        type: "subscription_payment_failed",
+        title: "Subscription payment failed",
+        message: "Your subscription payment failed. Your account is now past due — please update your payment method.",
+        metadata: { subscriptionId: updated.subscriptionId },
+        channels: ["IN_APP", "EMAIL"],
+      });
+    }
   }
   const invoice = await prisma.invoice.findUnique({ where: { paymentId: updated.id } });
   if (invoice) {

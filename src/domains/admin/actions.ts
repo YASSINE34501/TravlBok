@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireRole, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { notifyUser, notifyOrganizationOwners } from "@/domains/notifications/service";
 
 const PLATFORM_STAFF = ROLE_GROUPS.platformStaff;
 
@@ -27,6 +28,12 @@ export async function approveOrganizationAction(locale: string, organizationId: 
     action: "admin.organization.approve",
     entityType: "Organization",
     entityId: organizationId,
+  });
+  await notifyOrganizationOwners(organizationId, {
+    type: "organization_approved",
+    title: "Organization approved",
+    message: "Your organization has been approved by TravlBok.",
+    channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/organizations`);
 }
@@ -53,6 +60,12 @@ export async function rejectOrganizationAction(
     entityType: "Organization",
     entityId: organizationId,
     metadata: { reason },
+  });
+  await notifyOrganizationOwners(organizationId, {
+    type: "organization_rejected",
+    title: "Organization rejected",
+    message: `Your organization application was rejected: ${reason}`,
+    channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/organizations`);
 }
@@ -103,7 +116,7 @@ export async function suspendOrganizationAction(locale: string, organizationId: 
 
 export async function approveHotelAction(locale: string, hotelId: string) {
   const admin = await requireRole(locale, PLATFORM_STAFF);
-  await prisma.hotel.update({
+  const hotel = await prisma.hotel.update({
     where: { id: hotelId },
     data: {
       status: "APPROVED",
@@ -119,12 +132,19 @@ export async function approveHotelAction(locale: string, hotelId: string) {
     entityType: "Hotel",
     entityId: hotelId,
   });
+  await notifyOrganizationOwners(hotel.organizationId, {
+    type: "property_approved",
+    title: "Property approved",
+    message: `${hotel.name} has been approved and can now be published.`,
+    metadata: { hotelId },
+    channels: ["IN_APP", "EMAIL"],
+  });
   revalidatePath(`/${locale}/admin/hotels`);
 }
 
 export async function rejectHotelAction(locale: string, hotelId: string, reason: string) {
   const admin = await requireRole(locale, PLATFORM_STAFF);
-  await prisma.hotel.update({
+  const hotel = await prisma.hotel.update({
     where: { id: hotelId },
     data: { status: "REJECTED", reviewedByUserId: admin.id, reviewedAt: new Date(), rejectionReason: reason },
   });
@@ -134,6 +154,13 @@ export async function rejectHotelAction(locale: string, hotelId: string, reason:
     entityType: "Hotel",
     entityId: hotelId,
     metadata: { reason },
+  });
+  await notifyOrganizationOwners(hotel.organizationId, {
+    type: "property_rejected",
+    title: "Property rejected",
+    message: `${hotel.name} was rejected: ${reason}`,
+    metadata: { hotelId },
+    channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/hotels`);
 }
@@ -202,7 +229,7 @@ export async function suspendHotelAction(locale: string, hotelId: string) {
 
 export async function approveVehicleAction(locale: string, vehicleId: string) {
   const admin = await requireRole(locale, PLATFORM_STAFF);
-  await prisma.vehicle.update({
+  const vehicle = await prisma.vehicle.update({
     where: { id: vehicleId },
     data: {
       approvalStatus: "APPROVED",
@@ -218,12 +245,19 @@ export async function approveVehicleAction(locale: string, vehicleId: string) {
     entityType: "Vehicle",
     entityId: vehicleId,
   });
+  await notifyOrganizationOwners(vehicle.organizationId, {
+    type: "vehicle_approved",
+    title: "Vehicle approved",
+    message: `${vehicle.brand} ${vehicle.model} has been approved and can now be published.`,
+    metadata: { vehicleId },
+    channels: ["IN_APP", "EMAIL"],
+  });
   revalidatePath(`/${locale}/admin/vehicles`);
 }
 
 export async function rejectVehicleAction(locale: string, vehicleId: string, reason: string) {
   const admin = await requireRole(locale, PLATFORM_STAFF);
-  await prisma.vehicle.update({
+  const vehicle = await prisma.vehicle.update({
     where: { id: vehicleId },
     data: {
       approvalStatus: "REJECTED",
@@ -238,6 +272,13 @@ export async function rejectVehicleAction(locale: string, vehicleId: string, rea
     entityType: "Vehicle",
     entityId: vehicleId,
     metadata: { reason },
+  });
+  await notifyOrganizationOwners(vehicle.organizationId, {
+    type: "vehicle_rejected",
+    title: "Vehicle rejected",
+    message: `${vehicle.brand} ${vehicle.model} was rejected: ${reason}`,
+    metadata: { vehicleId },
+    channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/vehicles`);
 }
@@ -468,13 +509,24 @@ export async function moderateReviewAction(
   status: "APPROVED" | "REJECTED"
 ) {
   const admin = await requireRole(locale, PLATFORM_STAFF);
-  await prisma.review.update({ where: { id: reviewId }, data: { status } });
+  const review = await prisma.review.update({ where: { id: reviewId }, data: { status } });
   await logAudit({
     actorUserId: admin.id,
     action: "admin.review.moderate",
     entityType: "Review",
     entityId: reviewId,
     metadata: { status },
+  });
+  await notifyUser({
+    userId: review.userId,
+    type: status === "APPROVED" ? "review_approved" : "review_rejected",
+    title: status === "APPROVED" ? "Your review was published" : "Your review was not published",
+    message:
+      status === "APPROVED"
+        ? "Your review has been approved and is now visible on TravlBok."
+        : "Your review did not meet TravlBok's guidelines and was not published.",
+    metadata: { reviewId },
+    channels: ["IN_APP"],
   });
   revalidatePath(`/${locale}/admin/reviews`);
 }

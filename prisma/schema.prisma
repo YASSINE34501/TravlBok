@@ -1502,6 +1502,11 @@ model Notification {
   title    String
   message  String
   metadata Json?
+  // Which channels this event targeted: IN_APP, EMAIL, and the "-ready"
+  // scaffolds SMS_READY/WHATSAPP_READY/PUSH_READY (recorded but not actually
+  // delivered — no SMS/WhatsApp/push provider is connected, same honest-
+  // scaffold approach Channel Manager took for unconnectable OTA APIs).
+  channels String[]  @default(["IN_APP"])
   readAt   DateTime?
 
   createdAt DateTime @default(now())

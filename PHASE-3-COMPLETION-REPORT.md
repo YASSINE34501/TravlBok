@@ -1,7 +1,7 @@
 # TravlBok — Phase 3 Completion Report
 
 **Scope:** Channel Manager, Dynamic Pricing, Multi-Property Management, Advanced Analytics, Notifications, Security, Performance/Scale, and Testing, per `MASTER-PLAN.md`.
-**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine), Milestone 3 (Multi-Property & Multi-Branch Management), Milestone 4 (Advanced Analytics).
+**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine), Milestone 3 (Multi-Property & Multi-Branch Management), Milestone 4 (Advanced Analytics), Milestone 5 (Notifications).
 
 ---
 
@@ -180,3 +180,42 @@ The existing Super Admin dashboard (`admin/page.tsx`) only showed simple lifetim
 - "Acquisition source" is limited to what the schema actually tracks: affiliate-attributed vs. direct, and online vs. walk-in booking source. There's no UTM/referrer/campaign-medium field anywhere in the schema for a richer channel breakdown (e.g. organic search vs. paid vs. social) — adding one would be a separate, larger tracking initiative, not fabricated here.
 - Top-destinations/partners/affiliates rankings are computed by fetching matching rows and reducing in JS rather than a single SQL `GROUP BY`, matching the current dataset's scale (same precedent as `pms/reports.ts`'s `getRevenueByRoomType`, which only reaches for `$queryRaw` for the one case — a date-series LEFT JOIN — that Prisma's typed API genuinely can't express). Revisit with raw SQL if/when data volume makes the in-memory reduction a real bottleneck.
 - Churn-rate/subscription-growth's "active at period start" is an approximation (`createdAt < dateFrom`, not accounting for subscriptions that both started and cancelled entirely within the window) — reasonable for a rate metric over month-plus windows, less precise for very short custom ranges.
+
+---
+
+## Milestone 5 — Notifications
+
+### What was audited first
+Only "Bookings" had any notification coverage before this milestone — exactly 2 `tx.notification.create` calls, both inside the booking-creation transaction in `reservations/actions.ts`. The other 9 MASTER-PLAN event categories (Cancellations, Payments, Subscriptions, Reviews, Property approvals, Sync errors, Low inventory, Tasks, Reminders) had zero notification calls anywhere. No in-app bell/dropdown/list UI existed at all. Email infrastructure already existed and was real (`src/lib/email.ts`, Resend-backed, with a dev no-op fallback when `RESEND_API_KEY` is unset) but only had verification/password-reset templates — no transactional templates for any of the above events. No SMS/WhatsApp/push package or scaffolding existed anywhere (confirmed via `package.json` and repo-wide search) — pure greenfield for those three channels.
+
+### What was built
+
+**Central notification service** (`src/domains/notifications/service.ts`): `notifyUser(...)` is now the single write path for every Notification (bookings' pre-existing bare `tx.notification.create` calls were left untouched — they run inside a Serializable transaction, and this service's optional email send is an outbound network call that must never extend that transaction's critical section). It always writes the in-app row; if `channels` includes `EMAIL` it sends via a new generic `sendNotificationEmail` template in `src/lib/email.ts` (one shared HTML template for every event type, not a bespoke one per event) and swallows send failures so a flaky email provider can never fail the triggering action; for the `SMS_READY`/`WHATSAPP_READY`/`PUSH_READY` channels it logs the intent and records it on the `Notification.channels` array **without calling any provider** — the same honest-scaffold approach Channel Manager took for OTA APIs it can't actually connect to, applied here because no SMS/WhatsApp/push provider exists in this codebase at all (MASTER-PLAN's own wording is "-ready", not "connected"). `notifyOrganizationOwners(organizationId, ...)` fans out to every active `HOTEL_OWNER`/`CAR_RENTAL_OWNER`/`TRAVEL_AGENCY`/`TOUR_PROVIDER` member for org-level events.
+
+**Schema**: `Notification.channels String[] @default(["IN_APP"])` — purely additive.
+
+**Events wired** (the 9 previously-uncovered categories):
+- **Cancellations** — `cancelReservationAction` (customer-initiated) notifies the org owners; `updatePartnerReservationStatusAction`'s CANCELLED path (partner-initiated) notifies the customer.
+- **Payments** — `payments/webhook-handler.ts`'s PAID/FAILED transitions notify the reservation's customer (`payment_confirmed`/`payment_failed`) and, for subscription payments, the org owners (`subscription_payment_confirmed`/`subscription_payment_failed`).
+- **Subscriptions** — the same webhook-driven PAST_DUE/ACTIVE transitions above, plus admin-initiated `suspendSubscriptionAction` and `assignSubscriptionAction` in `subscriptions/actions.ts` (self-service actions like `changePlanAction`/`cancelSubscriptionAction` were deliberately left unnotified — the acting owner already knows what they just did).
+- **Reviews** — `moderateReviewAction` notifies the review's author on approve/reject.
+- **Property/vehicle approvals** — all four of `approveHotelAction`/`rejectHotelAction`/`approveVehicleAction`/`rejectVehicleAction` plus `approveOrganizationAction`/`rejectOrganizationAction` in `admin/actions.ts` now notify the organization's owners.
+- **Sync errors** — both `runPushSync` and `runPullSync`'s outer catch blocks in `channel-manager/sync.ts` now notify the connection's organization owners via a shared `notifySyncFailure` helper.
+- **Low inventory** — new logic in `createHotelReservationAction`: after a booking commits, `notifyLowInventoryIfNeeded` reuses `dynamic-pricing/occupancy.ts`'s `getStayOccupancy` to check whether the room type's remaining stock for that stay window is now ≤20%, notifying the org owners if so.
+- **Tasks** — `assignHousekeepingTaskAction` notifies the assigned staff member; `reportMaintenanceIssueAction` notifies the org owners.
+- **Reminders** — new `POST /api/cron/booking-reminders` (same `CRON_SECRET`-guarded, external-scheduler pattern as the existing payment-retry and channel-auto-sync crons): finds hotel check-ins and car pickups happening tomorrow and notifies each customer, with an idempotency check against existing `Notification` rows (by type + `metadata.reservationId`) so a more-frequent cron invocation can't double-notify.
+
+**In-app UI** (net-new, none existed): `NotificationBell` (client component, self-contained — fetches via `getMyNotificationsAction` on mount and every 60s, no props beyond `locale`) dropped into all three header contexts — the public `Navbar`, the partner `dashboard/layout.tsx`, and the admin `layout.tsx` — showing an unread-count badge, a recent-notifications dropdown with click-to-mark-read, and a full paginated list at `account/notifications` (same `requireUser`-only, no-role-restriction pattern as the existing `account/bookings` page, so it works for customers, partners, and admins alike).
+
+### Verification
+- `npx tsc --noEmit`, `npx eslint .` — zero errors, zero warnings (one `react-hooks/set-state-in-effect` violation in the initial `NotificationBell` draft was fixed by moving the mount-time fetch to a `.then()`-based `load()` closure with a `cancelled` guard, matching the existing `campaign-qr-code.tsx` component's async-effect pattern in this codebase).
+- `npx prisma migrate dev` against the live Supabase database (new migration `20260723214302_phase3_notifications`, additive only).
+- `npm run build` — exit 0, `account/notifications` and `api/cron/booking-reminders` routes generated.
+- **Full logic verification against the real database**: created a notification with `channels: ["IN_APP","EMAIL"]` and confirmed both flags persist and it starts unread; confirmed the owner-resolution query correctly includes a `HOTEL_OWNER` member and excludes a `HOTEL_MANAGER` member (so "notify the owners" never over-notifies plain staff); confirmed mark-as-read reduces the unread count by exactly 1; confirmed the low-inventory 20%-threshold boundary math (1/5 remaining triggers, 2/5 doesn't). All test data cleaned up and confirmed gone.
+- Live HTTP checks against a running dev server with a real login session: `account/notifications` → 200 (empty-state renders correctly for a user with no notifications); `dashboard` → 200; the booking-reminders cron correctly returns 401 without the shared secret (same untestable-without-a-real-secret characteristic the existing payment-retry/channel-auto-sync crons already have — `CRON_SECRET` isn't set in this dev `.env`, matching prior milestones). **Regression check**: re-verified `admin`, `admin/analytics`, and `admin/pricing` (Milestones 1/2/4's pages, sharing the now-modified admin layout) all still return 200 with the new bell present — confirming the shared-layout change didn't break any earlier milestone.
+
+### Known limitations
+- SMS/WhatsApp/Push are recorded-intent-only ("-ready" per MASTER-PLAN's own wording) — no Twilio/web-push/FCM integration exists; wiring a real provider is a separate, later task once one is actually contracted, same reasoning Channel Manager applied to unconnectable OTA APIs.
+- The notification bell polls every 60 seconds rather than using a websocket/SSE push channel — consistent with this codebase having no real-time infrastructure anywhere else.
+- Booking-reminder timing is "tomorrow" (a fixed 24–48h lookahead window), not a configurable per-partner reminder schedule.
+- There is still no customer-facing "submit a review" flow anywhere in the app (confirmed during this milestone's audit) — the Reviews notification therefore only covers admin moderation of reviews that already exist, not a submission-confirmation event, since there's nothing to hook that onto yet.

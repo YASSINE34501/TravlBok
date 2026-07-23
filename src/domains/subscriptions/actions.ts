@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireOrganizationAccess, requireRole, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { notifyOrganizationOwners } from "@/domains/notifications/service";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -259,6 +260,14 @@ export async function assignSubscriptionAction(
     metadata: { planId },
   });
 
+  await notifyOrganizationOwners(organizationId, {
+    type: "subscription_plan_assigned",
+    title: "Subscription plan updated",
+    message: "TravlBok has assigned a new subscription plan to your organization.",
+    metadata: { planId },
+    channels: ["IN_APP", "EMAIL"],
+  });
+
   revalidatePath(`/${locale}/admin/subscriptions`);
   return { success: true };
 }
@@ -277,6 +286,12 @@ export async function suspendSubscriptionAction(
     organizationId,
     action: "admin.subscription.suspend",
     entityType: "Subscription",
+  });
+  await notifyOrganizationOwners(organizationId, {
+    type: "subscription_suspended",
+    title: "Subscription suspended",
+    message: "Your subscription has been suspended by TravlBok. Contact support for details.",
+    channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/subscriptions`);
   return { success: true };

@@ -6,6 +6,7 @@ import { getChannelProvider } from "./providers/registry";
 import { decryptChannelCredentials } from "./credentials";
 import { computeDailyAvailability } from "./inventory";
 import { createAdHocPaymentAndInvoice } from "@/domains/payments/booking-payment";
+import { notifyOrganizationOwners } from "@/domains/notifications/service";
 import type { ExternalReservation, ChannelOperationResult } from "./providers/types";
 import type {
   SyncJobType,
@@ -18,6 +19,15 @@ const DEFAULT_SYNC_HORIZON_DAYS = 60;
 
 function generateBookingReference(): string {
   return `TB${randomBytes(4).toString("hex").toUpperCase()}`;
+}
+
+async function notifySyncFailure(organizationId: string, provider: string, message: string): Promise<void> {
+  await notifyOrganizationOwners(organizationId, {
+    type: "channel_sync_error",
+    title: "Channel sync failed",
+    message: `Syncing with ${provider} failed: ${message}`,
+    channels: ["IN_APP", "EMAIL"],
+  });
 }
 
 async function createSyncJob(
@@ -166,6 +176,7 @@ export async function runPushSync(
       where: { id: channelConnectionId },
       data: { lastErrorMessage: message, status: "ERROR" },
     });
+    await notifySyncFailure(connection.organizationId, connection.provider, message);
   }
 
   return prisma.syncJob.findUniqueOrThrow({ where: { id: syncJob.id } });
@@ -402,6 +413,7 @@ export async function runPullSync(channelConnectionId: string, triggeredByUserId
       where: { id: channelConnectionId },
       data: { lastErrorMessage: message, status: "ERROR" },
     });
+    await notifySyncFailure(connection.organizationId, connection.provider, message);
   }
 
   return prisma.syncJob.findUniqueOrThrow({ where: { id: syncJob.id } });
