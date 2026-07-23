@@ -24,6 +24,7 @@ import {
   Receipt,
   Handshake,
   Banknote,
+  Radio,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ export function AdminSidebar() {
     { href: "/admin/affiliates/commission-rules", label: "Affiliate commissions", icon: Percent },
     { href: "/admin/affiliates/settings", label: "Affiliate settings", icon: Settings },
     { href: "/admin/withdrawals", label: "Withdrawals", icon: Banknote },
+    { href: "/admin/channels", label: t("channelManager"), icon: Radio },
     { href: "/admin/exchange-rates", label: t("exchangeRates"), icon: Globe },
     { href: "/admin/countries", label: t("countries"), icon: Globe },
     { href: "/admin/cities", label: t("cities"), icon: MapPin },

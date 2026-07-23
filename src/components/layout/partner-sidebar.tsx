@@ -18,6 +18,7 @@ import {
   ClipboardList,
   Wrench,
   BarChart3,
+  Radio,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,7 @@ export function PartnerSidebar({
                 { href: "/dashboard/pms/housekeeping", label: t("pmsHousekeeping"), icon: ClipboardList },
                 { href: "/dashboard/pms/maintenance", label: t("pmsMaintenance"), icon: Wrench },
                 { href: "/dashboard/pms/reports", label: t("pmsReports"), icon: BarChart3 },
+                { href: "/dashboard/channels", label: t("channels"), icon: Radio },
               ]
             : []),
           ...(organizationType === "CAR_RENTAL"

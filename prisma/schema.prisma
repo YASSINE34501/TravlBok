@@ -351,6 +351,7 @@ model Organization {
   payments        Payment[]
   invoices        Invoice[]
   affiliate       Affiliate?
+  channelConnections ChannelConnection[]
 
   @@index([type])
   @@index([verificationStatus])
@@ -1063,6 +1064,7 @@ model Hotel {
   guestRequests     GuestRequest[]
   lostFoundItems    LostFoundItem[]
   nightAudits       NightAudit[]
+  channelConnections ChannelConnection[]
 
   @@index([organizationId])
   @@index([status])
@@ -1127,6 +1129,7 @@ model RoomType {
   availabilityOverrides RoomAvailabilityOverride[]
   reservationItems      ReservationRoomItem[]
   roomInventory         RoomInventory[]
+  channelMappings       ChannelRoomMapping[]
 
   @@index([hotelId])
   @@index([isActive])
@@ -1354,6 +1357,7 @@ model Reservation {
   commission Commission?
   checkIn    CheckIn?
   notes      ReservationNote[]
+  channelImport ChannelReservationImport?
 
   @@index([customerUserId])
   @@index([organizationId])
@@ -1753,4 +1757,167 @@ model NightAudit {
   hotel Hotel @relation(fields: [hotelId], references: [id], onDelete: Cascade)
 
   @@unique([hotelId, businessDate])
+}
+
+// =========================================================================
+// CHANNEL MANAGER
+// =========================================================================
+
+enum ChannelProviderCode {
+  BOOKING_COM
+  EXPEDIA
+  AIRBNB
+  AGODA
+  HOTELS_COM
+  VRBO
+  MOCK_SANDBOX
+}
+
+enum ChannelConnectionStatus {
+  DISCONNECTED
+  CONNECTED
+  ERROR
+}
+
+enum SyncJobType {
+  AVAILABILITY
+  RATES
+  RESTRICTIONS
+  RESERVATION_IMPORT
+  FULL
+}
+
+enum SyncJobDirection {
+  PUSH
+  PULL
+}
+
+enum SyncJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIAL
+  CONFLICT
+}
+
+enum SyncLogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+// One connection per (hotel, provider). Credentials are never stored in
+// plain text — see src/lib/crypto/secrets.ts (AES-256-GCM). No real
+// production API calls are made for any named channel (Booking.com/Expedia/
+// Airbnb/Agoda/Hotels.com/Vrbo have no public self-serve API — connecting
+// one for real requires a signed partner agreement) — every provider,
+// including the always-available MOCK_SANDBOX, runs through a simulated
+// adapter until real partner credentials AND an official SDK/API contract
+// exist. See src/domains/channel-manager/providers/.
+model ChannelConnection {
+  id                    String                  @id @default(uuid())
+  organizationId        String
+  hotelId               String
+  provider              ChannelProviderCode
+  status                ChannelConnectionStatus @default(DISCONNECTED)
+  externalHotelId       String?
+  credentialsCiphertext String?
+  credentialsIv         String?
+  webhookSecret         String                  @default(uuid())
+  autoSyncEnabled       Boolean                 @default(false)
+  lastSyncedAt          DateTime?
+  lastErrorMessage      String?
+  connectedAt           DateTime?
+  disconnectedAt        DateTime?
+  createdByUserId       String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  hotel        Hotel        @relation(fields: [hotelId], references: [id], onDelete: Cascade)
+
+  roomMappings       ChannelRoomMapping[]
+  syncJobs           SyncJob[]
+  reservationImports ChannelReservationImport[]
+
+  @@unique([hotelId, provider])
+  @@index([organizationId])
+}
+
+model ChannelRoomMapping {
+  id                  String  @id @default(uuid())
+  channelConnectionId String
+  roomTypeId          String
+  externalRoomId      String
+  externalRatePlanId  String?
+  isActive            Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  channelConnection ChannelConnection @relation(fields: [channelConnectionId], references: [id], onDelete: Cascade)
+  roomType          RoomType          @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([channelConnectionId, roomTypeId])
+  @@index([channelConnectionId])
+}
+
+model SyncJob {
+  id                  String           @id @default(uuid())
+  channelConnectionId String
+  type                SyncJobType
+  direction           SyncJobDirection
+  status              SyncJobStatus    @default(PENDING)
+  triggeredByUserId   String?
+  itemsProcessed      Int              @default(0)
+  itemsFailed         Int              @default(0)
+  summary             Json?
+  errorMessage        String?
+
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  channelConnection ChannelConnection @relation(fields: [channelConnectionId], references: [id], onDelete: Cascade)
+  logEntries        SyncLogEntry[]
+
+  @@index([channelConnectionId, status])
+  @@index([startedAt])
+}
+
+model SyncLogEntry {
+  id        String       @id @default(uuid())
+  syncJobId String
+  level     SyncLogLevel
+  message   String
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+
+  syncJob SyncJob @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+
+  @@index([syncJobId])
+}
+
+// The idempotency/duplicate-booking-prevention mechanism: unique on
+// (channelConnectionId, externalReservationId), so re-processing the same
+// external booking (retry, duplicate webhook delivery) can never create a
+// second Reservation.
+model ChannelReservationImport {
+  id                    String   @id @default(uuid())
+  channelConnectionId   String
+  externalReservationId String
+  reservationId         String?  @unique
+  rawPayload            Json
+  hasConflict           Boolean  @default(false)
+  conflictNotes         String?
+
+  importedAt DateTime @default(now())
+
+  channelConnection ChannelConnection @relation(fields: [channelConnectionId], references: [id], onDelete: Cascade)
+  reservation       Reservation?      @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+
+  @@unique([channelConnectionId, externalReservationId])
+  @@index([channelConnectionId])
 }

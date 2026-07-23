@@ -16,6 +16,7 @@ import { checkOrganizationLimit } from "@/domains/subscriptions/limits";
 import { createBookingPaymentAndInvoice } from "@/domains/payments/booking-payment";
 import { recordAffiliateConversion } from "@/domains/affiliates/conversion";
 import { handleReservationStatusChangeForCommission } from "@/domains/affiliates/commission-lifecycle";
+import { notifyChannelsOfCancellation } from "@/domains/channel-manager/sync";
 
 type BookingResult =
   | { success: true; reservationId: string; bookingReference: string }
@@ -437,6 +438,7 @@ export async function cancelReservationAction(
   });
 
   await handleReservationStatusChangeForCommission(reservationId, "CANCELLED");
+  await notifyChannelsOfCancellation(reservationId);
 
   return { success: true };
 }
@@ -478,6 +480,9 @@ export async function updatePartnerReservationStatusAction(
   });
 
   await handleReservationStatusChangeForCommission(reservationId, status);
+  if (status === "CANCELLED") {
+    await notifyChannelsOfCancellation(reservationId);
+  }
 
   return { success: true };
 }

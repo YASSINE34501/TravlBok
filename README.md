@@ -2,7 +2,17 @@
 
 A travel marketplace and partner management SaaS platform — hotels, car rentals, travel agencies, affiliates, and a Super Admin platform, in Arabic (RTL), French, and English, with MAD/EUR/USD currency support.
 
-This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (core marketplace + partner onboarding, plus a post-completion remediation pass) and **Phase 2** (subscriptions, payments, affiliates, hotel PMS) are implemented — see `PHASE-1-COMPLETION-REPORT.md`, `PHASE-1-REMEDIATION-REPORT.md`, and `PHASE-2-COMPLETION-REPORT.md` for full details.
+This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (core marketplace + partner onboarding, plus a post-completion remediation pass) and **Phase 2** (subscriptions, payments, affiliates, hotel PMS) are complete. **Phase 3** is in progress — its first milestone, the Channel Manager, is implemented. See `PHASE-1-COMPLETION-REPORT.md`, `PHASE-1-REMEDIATION-REPORT.md`, `PHASE-2-COMPLETION-REPORT.md`, and `PHASE-3-COMPLETION-REPORT.md` for full details.
+
+## Running locally (Windows)
+
+```powershell
+# If a previous dev server is still holding the port/lock, free it first:
+Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force
+
+npm run dev
+```
+Open **http://localhost:3000** (redirects to `/en`, `/fr`, or `/ar`).
 
 ## Stack
 

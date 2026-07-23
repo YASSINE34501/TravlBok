@@ -249,6 +249,7 @@ async function main() {
     featureAffiliateTools: boolean;
     featureApiAccess: boolean;
     featurePrioritySupport: boolean;
+    featureChannelManager: boolean;
     sortOrder: number;
   }> = [
     {
@@ -268,6 +269,7 @@ async function main() {
       featureAffiliateTools: false,
       featureApiAccess: false,
       featurePrioritySupport: false,
+      featureChannelManager: false,
       sortOrder: 0,
     },
     {
@@ -287,6 +289,7 @@ async function main() {
       featureAffiliateTools: false,
       featureApiAccess: false,
       featurePrioritySupport: false,
+      featureChannelManager: false,
       sortOrder: 1,
     },
     {
@@ -306,6 +309,7 @@ async function main() {
       featureAffiliateTools: true,
       featureApiAccess: false,
       featurePrioritySupport: false,
+      featureChannelManager: true,
       sortOrder: 2,
     },
     {
@@ -325,6 +329,7 @@ async function main() {
       featureAffiliateTools: true,
       featureApiAccess: true,
       featurePrioritySupport: true,
+      featureChannelManager: true,
       sortOrder: 3,
     },
     {
@@ -344,6 +349,7 @@ async function main() {
       featureAffiliateTools: true,
       featureApiAccess: true,
       featurePrioritySupport: true,
+      featureChannelManager: true,
       sortOrder: 4,
     },
   ];
@@ -352,7 +358,17 @@ async function main() {
   for (const plan of planData) {
     const existing = await prisma.subscriptionPlan.findFirst({ where: { tier: plan.tier } });
     plans[plan.tier] = existing
-      ? existing
+      ? await prisma.subscriptionPlan.update({
+          where: { id: existing.id },
+          data: {
+            featurePms: plan.featurePms,
+            featureAnalytics: plan.featureAnalytics,
+            featureAffiliateTools: plan.featureAffiliateTools,
+            featureApiAccess: plan.featureApiAccess,
+            featurePrioritySupport: plan.featurePrioritySupport,
+            featureChannelManager: plan.featureChannelManager,
+          },
+        })
       : await prisma.subscriptionPlan.create({ data: plan });
   }
   console.log("Subscription plans seeded: Free, Starter, Professional, Business, Enterprise.");

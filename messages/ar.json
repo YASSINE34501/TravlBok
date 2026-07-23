@@ -331,6 +331,7 @@
     "pmsHousekeeping": "التدبير المنزلي",
     "pmsMaintenance": "الصيانة",
     "pmsReports": "تقارير نظام إدارة الفندق",
+    "channels": "مدير القنوات",
     "affiliateOverview": "نظرة عامة على الشراكة",
     "affiliateCampaigns": "روابط الحملات",
     "affiliateWithdrawals": "عمليات السحب",
@@ -384,6 +385,7 @@
     "subscriptionPlans": "خطط الاشتراك",
     "subscriptions": "الاشتراكات",
     "affiliates": "الشركاء بالعمولة",
+    "channelManager": "مدير القنوات",
     "auditLogs": "سجلات التدقيق",
     "settings": "الإعدادات"
   },

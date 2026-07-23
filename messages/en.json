@@ -331,6 +331,7 @@
     "pmsHousekeeping": "Housekeeping",
     "pmsMaintenance": "Maintenance",
     "pmsReports": "PMS reports",
+    "channels": "Channel Manager",
     "affiliateOverview": "Affiliate overview",
     "affiliateCampaigns": "Campaign links",
     "affiliateWithdrawals": "Withdrawals",
@@ -384,6 +385,7 @@
     "subscriptionPlans": "Subscription plans",
     "subscriptions": "Subscriptions",
     "affiliates": "Affiliates",
+    "channelManager": "Channel Manager",
     "auditLogs": "Audit logs",
     "settings": "Settings"
   },
