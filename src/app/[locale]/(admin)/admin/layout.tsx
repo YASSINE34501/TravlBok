@@ -1,6 +1,8 @@
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireRole, ROLE_GROUPS } from "@/lib/rbac";
-import { AdminSidebar } from "@/components/layout/admin-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
+import { getAdminNavGroups } from "@/components/layout/admin-nav";
 import { NotificationBell } from "@/components/layout/notification-bell";
 
 export default async function AdminLayout({
@@ -12,23 +14,20 @@ export default async function AdminLayout({
 }) {
   const { locale } = await params;
   await requireRole(locale, ROLE_GROUPS.platformStaff);
+  const t = await getTranslations("Admin");
+  const navGroups = getAdminNavGroups(t);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-semibold text-primary">
-            TravlBok Admin
-          </Link>
-          <NotificationBell locale={locale} />
-        </div>
-      </header>
-      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4 py-8">
-        <aside className="w-60 shrink-0">
-          <AdminSidebar />
-        </aside>
-        <main className="flex-1 overflow-x-auto">{children}</main>
-      </div>
-    </div>
+    <AppShell
+      brand={
+        <Link href="/" className="text-lg font-semibold text-primary">
+          TravlBok Admin
+        </Link>
+      }
+      navGroups={navGroups}
+      topbarActions={<NotificationBell locale={locale} />}
+    >
+      {children}
+    </AppShell>
   );
 }

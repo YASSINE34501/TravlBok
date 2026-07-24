@@ -1,6 +1,8 @@
+import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getPartnerContext } from "@/lib/partner-context";
-import { PartnerSidebar } from "@/components/layout/partner-sidebar";
+import { AppShell } from "@/components/layout/app-shell";
+import { getPartnerNavGroups } from "@/components/layout/partner-nav";
 import { NotificationBell } from "@/components/layout/notification-bell";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,27 +15,28 @@ export default async function PartnerDashboardLayout({
 }) {
   const { locale } = await params;
   const { organization } = await getPartnerContext(locale);
+  const t = await getTranslations("Partner");
+  const navGroups = getPartnerNavGroups(organization.type, t);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-background">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
-          <Link href="/" className="text-lg font-semibold text-primary">
-            TravlBok
-          </Link>
-          <div className="flex items-center gap-2">
+    <AppShell
+      brand={
+        <Link href="/" className="text-lg font-semibold text-primary">
+          TravlBok
+        </Link>
+      }
+      navGroups={navGroups}
+      topbarActions={
+        <>
+          <div className="hidden items-center gap-2 sm:flex">
             <span className="text-sm font-medium">{organization.displayName}</span>
             <Badge variant="secondary">{organization.verificationStatus}</Badge>
-            <NotificationBell locale={locale} />
           </div>
-        </div>
-      </header>
-      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-8 px-4 py-8">
-        <aside className="w-56 shrink-0">
-          <PartnerSidebar organizationType={organization.type} />
-        </aside>
-        <main className="flex-1">{children}</main>
-      </div>
-    </div>
+          <NotificationBell locale={locale} />
+        </>
+      }
+    >
+      {children}
+    </AppShell>
   );
 }
