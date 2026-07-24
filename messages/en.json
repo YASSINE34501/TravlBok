@@ -86,6 +86,7 @@
     "register": "Sign up",
     "myAccount": "My account",
     "myBookings": "My bookings",
+    "security": "Security",
     "dashboard": "Dashboard",
     "logout": "Log out"
   },
@@ -195,6 +196,9 @@
     "roleAffiliatePartner": "Affiliate partner",
     "agreeToTerms": "I agree to the Terms and Conditions and Privacy Policy",
     "invalidCredentials": "Invalid email or password.",
+    "twoFactorCode": "Two-factor authentication code",
+    "invalidTwoFactorCode": "Invalid two-factor authentication code.",
+    "tooManyAttempts": "Too many attempts. Please try again later.",
     "emailAlreadyUsed": "An account with this email already exists."
   },
   "Validation": {
@@ -327,6 +331,7 @@
     "payments": "Payments",
     "invoices": "Invoices",
     "subscription": "Subscription",
+    "apiKeys": "API Keys",
     "pmsFrontDesk": "Front desk",
     "pmsHousekeeping": "Housekeeping",
     "pmsMaintenance": "Maintenance",

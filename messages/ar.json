@@ -86,6 +86,7 @@
     "register": "إنشاء حساب",
     "myAccount": "حسابي",
     "myBookings": "حجوزاتي",
+    "security": "الأمان",
     "dashboard": "لوحة التحكم",
     "logout": "تسجيل الخروج"
   },
@@ -195,6 +196,9 @@
     "roleAffiliatePartner": "مسوّق بالعمولة",
     "agreeToTerms": "أوافق على الشروط والأحكام وسياسة الخصوصية",
     "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+    "twoFactorCode": "رمز المصادقة الثنائية",
+    "invalidTwoFactorCode": "رمز المصادقة الثنائية غير صحيح.",
+    "tooManyAttempts": "محاولات كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.",
     "emailAlreadyUsed": "يوجد حساب بهذا البريد الإلكتروني بالفعل."
   },
   "Validation": {
@@ -327,6 +331,7 @@
     "payments": "المدفوعات",
     "invoices": "الفواتير",
     "subscription": "الاشتراك",
+    "apiKeys": "مفاتيح API",
     "pmsFrontDesk": "الاستقبال",
     "pmsHousekeeping": "التدبير المنزلي",
     "pmsMaintenance": "الصيانة",

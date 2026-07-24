@@ -75,7 +75,9 @@ export function RegisterForm({ locale }: { locale: string }) {
         if (result.fieldErrors?.email === "emailAlreadyUsed") {
           form.setError("email", { message: t("emailAlreadyUsed") });
         }
-        toast.error(t("emailAlreadyUsed"));
+        toast.error(
+          result.error === "tooManyAttempts" ? t("tooManyAttempts") : t("emailAlreadyUsed")
+        );
         return;
       }
       toast.success(tCommon("success"));

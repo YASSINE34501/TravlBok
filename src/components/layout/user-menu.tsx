@@ -62,6 +62,9 @@ export function UserMenu({
         <DropdownMenuItem render={<Link href="/account/bookings" />}>
           {t("myBookings")}
         </DropdownMenuItem>
+        <DropdownMenuItem render={<Link href="/account/security" />}>
+          {t("security")}
+        </DropdownMenuItem>
         {isPartnerOrStaff && (
           <DropdownMenuItem render={<Link href={dashboardHref} />}>
             <LayoutDashboard />

@@ -1,9 +1,11 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 import {
   registerSchema,
   forgotPasswordSchema,
@@ -19,6 +21,13 @@ type ActionResult =
   | { success: false; error: string; fieldErrors?: Record<string, string> };
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+
+async function getRequestIp(): Promise<string> {
+  const headerList = await headers();
+  const forwarded = headerList.get("x-forwarded-for");
+  if (forwarded) return forwarded.split(",")[0].trim();
+  return headerList.get("x-real-ip") ?? "unknown";
+}
 
 const ORG_ROLE_TO_TYPE: Partial<Record<Role, OrganizationType>> = {
   HOTEL_OWNER: "HOTEL",
@@ -39,6 +48,12 @@ export async function registerAction(
   locale: string,
   input: RegisterInput
 ): Promise<ActionResult> {
+  const ip = await getRequestIp();
+  const limit = await checkRateLimit(`register:ip:${ip}`, 10, 60 * 60 * 1000);
+  if (!limit.allowed) {
+    return { success: false, error: "tooManyAttempts" };
+  }
+
   const parsed = registerSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: "invalidInput" };
@@ -178,6 +193,12 @@ export async function requestPasswordResetAction(
   locale: string,
   input: ForgotPasswordInput
 ): Promise<ActionResult> {
+  const ip = await getRequestIp();
+  const limit = await checkRateLimit(`password-reset:ip:${ip}`, 5, 15 * 60 * 1000);
+  if (!limit.allowed) {
+    return { success: false, error: "tooManyAttempts" };
+  }
+
   const parsed = forgotPasswordSchema.safeParse(input);
   if (!parsed.success) {
     return { success: false, error: "invalidInput" };
@@ -246,6 +267,12 @@ export async function resendVerificationAction(
   locale: string,
   email: string
 ): Promise<ActionResult> {
+  const ip = await getRequestIp();
+  const limit = await checkRateLimit(`resend-verification:ip:${ip}`, 5, 15 * 60 * 1000);
+  if (!limit.allowed) {
+    return { success: false, error: "tooManyAttempts" };
+  }
+
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.emailVerified) {
     return { success: true };

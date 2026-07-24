@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/rbac";
 import { saveUploadedFile } from "@/lib/storage";
-import { validateUploadedFile, getUploadRules } from "@/lib/upload/validation";
+import { validateUploadedFile, validateFileSignature, getUploadRules } from "@/lib/upload/validation";
 import type { UploadPurpose } from "@/generated/prisma/client";
 
 type UploadResult =
@@ -26,6 +26,11 @@ export async function uploadFileAction(
   const validation = validateUploadedFile(file, purpose);
   if (!validation.valid) {
     return { success: false, error: validation.error };
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  if (!validateFileSignature(buffer, file.type)) {
+    return { success: false, error: "invalidFileType" };
   }
 
   const rules = getUploadRules(purpose);

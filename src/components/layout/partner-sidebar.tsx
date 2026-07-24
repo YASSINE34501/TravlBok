@@ -19,6 +19,7 @@ import {
   Wrench,
   BarChart3,
   Radio,
+  KeyRound,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -76,6 +77,7 @@ export function PartnerSidebar({
           { href: "/dashboard/invoices", label: t("invoices"), icon: Receipt },
           { href: "/dashboard/staff", label: t("staff"), icon: Users },
           { href: "/dashboard/subscription", label: t("subscription"), icon: CreditCard },
+          { href: "/dashboard/api-keys", label: t("apiKeys"), icon: KeyRound },
         ];
 
   return (

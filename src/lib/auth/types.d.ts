@@ -14,6 +14,8 @@ declare module "next-auth" {
       role: string;
       locale: string;
       status: string;
+      /** Epoch ms this JWT was minted — compared against `User.sessionsInvalidatedAt` for "sign out everywhere". */
+      loginAt: number;
     } & DefaultSession["user"];
   }
 }
@@ -24,5 +26,6 @@ declare module "next-auth/jwt" {
     role?: string;
     locale?: string;
     status?: string;
+    loginAt?: number;
   }
 }

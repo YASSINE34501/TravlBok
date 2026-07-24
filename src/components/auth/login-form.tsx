@@ -33,6 +33,8 @@ export function LoginForm() {
   const tCommon = useTranslations("Common");
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsTwoFactor, setNeedsTwoFactor] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -45,10 +47,20 @@ export function LoginForm() {
       const result = await signIn("credentials", {
         email: values.email,
         password: values.password,
+        totpCode: needsTwoFactor ? totpCode : undefined,
         redirect: false,
       });
 
       if (!result || result.error) {
+        if (result?.code === "two_factor_required") {
+          setNeedsTwoFactor(true);
+          if (totpCode) toast.error(t("invalidTwoFactorCode"));
+          return;
+        }
+        if (result?.code === "rate_limited") {
+          toast.error(t("tooManyAttempts"));
+          return;
+        }
         toast.error(t("invalidCredentials"));
         return;
       }
@@ -109,6 +121,20 @@ export function LoginForm() {
                 </FormItem>
               )}
             />
+            {needsTwoFactor && (
+              <FormItem>
+                <FormLabel>{t("twoFactorCode")}</FormLabel>
+                <FormControl>
+                  <Input
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    placeholder="123456"
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value)}
+                  />
+                </FormControl>
+              </FormItem>
+            )}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? tCommon("loading") : t("signIn")}
             </Button>

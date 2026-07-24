@@ -32,9 +32,25 @@ export type SessionUser = {
   status: string;
 };
 
+/**
+ * Sessions here are JWT-strategy, not DB-backed — "sign out everywhere"
+ * (Security: Session revocation) works by comparing the token's mint time
+ * (`session.user.loginAt`, set once at sign-in) against
+ * `User.sessionsInvalidatedAt`. A token minted before the user's last
+ * "sign out of all devices" is treated as logged out, without needing a
+ * server-side session store to delete rows from.
+ */
 export async function getCurrentUser(): Promise<SessionUser | null> {
   const session = await auth();
   if (!session?.user) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { sessionsInvalidatedAt: true },
+  });
+  if (user?.sessionsInvalidatedAt && session.user.loginAt < user.sessionsInvalidatedAt.getTime()) {
+    return null;
+  }
 
   return {
     id: session.user.id,

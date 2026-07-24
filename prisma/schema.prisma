@@ -225,6 +225,15 @@ model User {
   status        UserStatus @default(PENDING_VERIFICATION)
   lastLoginAt   DateTime?
 
+  // Security (Phase 3): TOTP 2FA, and a JWT-revocation timestamp — since
+  // sessions here are JWT-strategy (not DB-backed), "sign out everywhere"
+  // works by comparing each token's issued-at against this field rather than
+  // deleting Session rows (see src/lib/rbac.ts's getCurrentUser).
+  twoFactorEnabled      Boolean   @default(false)
+  twoFactorSecret       String?
+  twoFactorBackupCodes  String[]  @default([])
+  sessionsInvalidatedAt DateTime?
+
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
@@ -241,6 +250,7 @@ model User {
   notifications           Notification[]
   createdPricingRules     PricingRule[]            @relation("PricingRuleCreatedBy")
   approvedPricingRules    PricingRule[]            @relation("PricingRuleApprovedBy")
+  createdApiKeys          ApiKey[]
 
   @@index([role])
   @@index([status])
@@ -340,20 +350,21 @@ model Organization {
   country Country? @relation(fields: [countryId], references: [id])
   city    City?    @relation(fields: [cityId], references: [id])
 
-  members         OrganizationMember[]
-  hotels          Hotel[]
-  carBranches     CarBranch[]
-  vehicles        Vehicle[]
-  reservations    Reservation[]
-  uploadedFiles   UploadedFile[]
-  auditLogs       AuditLog[]
-  coupons         Coupon[]
-  commissionRules CommissionRule[]
-  subscription    Subscription?
-  payments        Payment[]
-  invoices        Invoice[]
-  affiliate       Affiliate?
+  members            OrganizationMember[]
+  hotels             Hotel[]
+  carBranches        CarBranch[]
+  vehicles           Vehicle[]
+  reservations       Reservation[]
+  uploadedFiles      UploadedFile[]
+  auditLogs          AuditLog[]
+  coupons            Coupon[]
+  commissionRules    CommissionRule[]
+  subscription       Subscription?
+  payments           Payment[]
+  invoices           Invoice[]
+  affiliate          Affiliate?
   channelConnections ChannelConnection[]
+  apiKeys            ApiKey[]
 
   @@index([type])
   @@index([verificationStatus])
@@ -846,12 +857,12 @@ model InvoiceLineItem {
 }
 
 model CreditNote {
-  id               String  @id @default(uuid())
-  invoiceId        String
-  creditNumber     String  @unique
-  amount           Decimal @db.Decimal(12, 2)
-  reason           String
-  issuedByUserId   String?
+  id             String  @id @default(uuid())
+  invoiceId      String
+  creditNumber   String  @unique
+  amount         Decimal @db.Decimal(12, 2)
+  reason         String
+  issuedByUserId String?
 
   createdAt DateTime @default(now())
 
@@ -907,7 +918,7 @@ model Affiliate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   campaigns    Campaign[]
   clicks       AffiliateClick[]
   commissions  Commission[]
@@ -917,11 +928,11 @@ model Affiliate {
 }
 
 model Campaign {
-  id         String   @id @default(uuid())
+  id          String  @id @default(uuid())
   affiliateId String
-  name       String
-  slug       String
-  isActive   Boolean  @default(true)
+  name        String
+  slug        String
+  isActive    Boolean @default(true)
 
   createdAt DateTime @default(now())
 
@@ -932,14 +943,14 @@ model Campaign {
 }
 
 model AffiliateClick {
-  id                     String   @id @default(uuid())
+  id                     String  @id @default(uuid())
   affiliateId            String
   campaignId             String?
   visitorId              String
   ipAddressHash          String
   userAgent              String?
   landingPath            String
-  convertedReservationId String?  @unique
+  convertedReservationId String? @unique
 
   createdAt DateTime @default(now())
 
@@ -965,25 +976,25 @@ model AffiliateCommissionRule {
 }
 
 model Commission {
-  id            String           @id @default(uuid())
-  affiliateId   String
-  reservationId String           @unique
-  clickId       String?
-  amount        Decimal          @db.Decimal(12, 2)
-  currency      CurrencyCode
-  rateSnapshot  Decimal          @db.Decimal(12, 4)
-  status        CommissionStatus @default(PENDING)
-  holdReleaseAt DateTime?
+  id              String           @id @default(uuid())
+  affiliateId     String
+  reservationId   String           @unique
+  clickId         String?
+  amount          Decimal          @db.Decimal(12, 2)
+  currency        CurrencyCode
+  rateSnapshot    Decimal          @db.Decimal(12, 4)
+  status          CommissionStatus @default(PENDING)
+  holdReleaseAt   DateTime?
   rejectionReason String?
-  withdrawalId  String?
+  withdrawalId    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  affiliate   Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
-  reservation Reservation      @relation(fields: [reservationId], references: [id], onDelete: Cascade)
-  click       AffiliateClick?  @relation(fields: [clickId], references: [id], onDelete: SetNull)
-  withdrawal  Withdrawal?      @relation(fields: [withdrawalId], references: [id], onDelete: SetNull)
+  affiliate   Affiliate       @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  reservation Reservation     @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  click       AffiliateClick? @relation(fields: [clickId], references: [id], onDelete: SetNull)
+  withdrawal  Withdrawal?     @relation(fields: [withdrawalId], references: [id], onDelete: SetNull)
 
   @@index([affiliateId, status])
 }
@@ -1059,19 +1070,19 @@ model Hotel {
   country      Country?     @relation(fields: [countryId], references: [id])
   city         City?        @relation(fields: [cityId], references: [id])
 
-  amenities      Amenity[]              @relation("HotelAmenities")
-  media          HotelMedia[]
-  roomTypes      RoomType[]
-  reviews        Review[]
-  reservations   HotelReservationLink[]
-  roomInventory  RoomInventory[]
-  guestProfiles  GuestProfile[]
-  housekeepingTasks HousekeepingTask[]
-  maintenanceTasks  MaintenanceTask[]
-  staffShifts       StaffShift[]
-  guestRequests     GuestRequest[]
-  lostFoundItems    LostFoundItem[]
-  nightAudits       NightAudit[]
+  amenities          Amenity[]              @relation("HotelAmenities")
+  media              HotelMedia[]
+  roomTypes          RoomType[]
+  reviews            Review[]
+  reservations       HotelReservationLink[]
+  roomInventory      RoomInventory[]
+  guestProfiles      GuestProfile[]
+  housekeepingTasks  HousekeepingTask[]
+  maintenanceTasks   MaintenanceTask[]
+  staffShifts        StaffShift[]
+  guestRequests      GuestRequest[]
+  lostFoundItems     LostFoundItem[]
+  nightAudits        NightAudit[]
   channelConnections ChannelConnection[]
   pricingRules       PricingRule[]
 
@@ -1217,9 +1228,9 @@ model CarBranch {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  country      Country?     @relation(fields: [countryId], references: [id])
-  city         City?        @relation(fields: [cityId], references: [id])
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  country      Country?             @relation(fields: [countryId], references: [id])
+  city         City?                @relation(fields: [cityId], references: [id])
   vehicles     Vehicle[]
   staff        OrganizationMember[]
 
@@ -1364,16 +1375,16 @@ model Reservation {
   organization Organization @relation(fields: [organizationId], references: [id])
   coupon       Coupon?      @relation(fields: [couponId], references: [id])
 
-  hotelLink HotelReservationLink?
-  carLink   CarReservationLink?
-  roomItems ReservationRoomItem[]
-  guests    ReservationGuest[]
-  review    Review?
-  payments   Payment[]
-  invoice    Invoice?
-  commission Commission?
-  checkIn    CheckIn?
-  notes      ReservationNote[]
+  hotelLink     HotelReservationLink?
+  carLink       CarReservationLink?
+  roomItems     ReservationRoomItem[]
+  guests        ReservationGuest[]
+  review        Review?
+  payments      Payment[]
+  invoice       Invoice?
+  commission    Commission?
+  checkIn       CheckIn?
+  notes         ReservationNote[]
   channelImport ChannelReservationImport?
 
   @@index([customerUserId])
@@ -1610,12 +1621,12 @@ model GuestProfile {
 }
 
 model CheckIn {
-  id                String   @id @default(uuid())
-  reservationId     String   @unique
+  id                String        @id @default(uuid())
+  reservationId     String        @unique
   roomInventoryId   String
   guestProfileId    String?
   idDocumentRef     String?
-  depositAmount     Decimal? @db.Decimal(12, 2)
+  depositAmount     Decimal?      @db.Decimal(12, 2)
   depositCurrency   CurrencyCode?
   notes             String?
   checkedInByUserId String
@@ -1631,14 +1642,14 @@ model CheckIn {
 }
 
 model CheckOut {
-  id                  String   @id @default(uuid())
-  checkInId           String   @unique
-  extraChargesAmount  Decimal  @default(0) @db.Decimal(12, 2)
-  discountAmount      Decimal  @default(0) @db.Decimal(12, 2)
-  paymentId           String?
-  invoiceId           String?
-  roomConditionNotes  String?
-  checkedOutByUserId  String
+  id                 String  @id @default(uuid())
+  checkInId          String  @unique
+  extraChargesAmount Decimal @default(0) @db.Decimal(12, 2)
+  discountAmount     Decimal @default(0) @db.Decimal(12, 2)
+  paymentId          String?
+  invoiceId          String?
+  roomConditionNotes String?
+  checkedOutByUserId String
 
   checkedOutAt DateTime @default(now())
 
@@ -1646,21 +1657,21 @@ model CheckOut {
 }
 
 model HousekeepingTask {
-  id               String               @id @default(uuid())
-  roomInventoryId  String
-  hotelId          String
-  type             HousekeepingTaskType @default(CLEANING)
-  status           TaskStatus           @default(PENDING)
-  priority         TaskPriority         @default(NORMAL)
-  assignedToUserId String?
-  createdByUserId  String
-  notes            String?
-  photoUrls        String[]
-  startedAt        DateTime?
-  completedAt      DateTime?
+  id                String               @id @default(uuid())
+  roomInventoryId   String
+  hotelId           String
+  type              HousekeepingTaskType @default(CLEANING)
+  status            TaskStatus           @default(PENDING)
+  priority          TaskPriority         @default(NORMAL)
+  assignedToUserId  String?
+  createdByUserId   String
+  notes             String?
+  photoUrls         String[]
+  startedAt         DateTime?
+  completedAt       DateTime?
   inspectedByUserId String?
-  inspectedAt      DateTime?
-  dueBy            DateTime?
+  inspectedAt       DateTime?
+  dueBy             DateTime?
 
   createdAt DateTime @default(now())
 
@@ -1694,17 +1705,17 @@ model MaintenanceTask {
 }
 
 model StaffShift {
-  id           String   @id @default(uuid())
+  id             String    @id @default(uuid())
   organizationId String
-  hotelId      String?
-  userId       String
-  roleSnapshot Role
-  shiftStart   DateTime
-  shiftEnd     DateTime
-  actualStart  DateTime?
-  actualEnd    DateTime?
-  status       String   @default("SCHEDULED")
-  notes        String?
+  hotelId        String?
+  userId         String
+  roleSnapshot   Role
+  shiftStart     DateTime
+  shiftEnd       DateTime
+  actualStart    DateTime?
+  actualEnd      DateTime?
+  status         String    @default("SCHEDULED")
+  notes          String?
 
   createdAt DateTime @default(now())
 
@@ -1715,10 +1726,10 @@ model StaffShift {
 }
 
 model ReservationNote {
-  id             String   @id @default(uuid())
-  reservationId  String
-  authorUserId   String
-  note           String
+  id            String @id @default(uuid())
+  reservationId String
+  authorUserId  String
+  note          String
 
   createdAt DateTime @default(now())
 
@@ -1746,16 +1757,16 @@ model GuestRequest {
 }
 
 model LostFoundItem {
-  id                     String    @id @default(uuid())
-  hotelId                String
-  roomInventoryId        String?
-  description            String
-  foundByUserId          String
-  storageLocation        String?
-  photoUrls              String[]
-  status                 String    @default("STORED")
+  id                      String    @id @default(uuid())
+  hotelId                 String
+  roomInventoryId         String?
+  description             String
+  foundByUserId           String
+  storageLocation         String?
+  photoUrls               String[]
+  status                  String    @default("STORED")
   claimedByGuestProfileId String?
-  claimedAt              DateTime?
+  claimedAt               DateTime?
 
   foundAt DateTime @default(now())
 
@@ -1927,12 +1938,12 @@ model SyncLogEntry {
 // external booking (retry, duplicate webhook delivery) can never create a
 // second Reservation.
 model ChannelReservationImport {
-  id                    String   @id @default(uuid())
+  id                    String  @id @default(uuid())
   channelConnectionId   String
   externalReservationId String
-  reservationId         String?  @unique
+  reservationId         String? @unique
   rawPayload            Json
-  hasConflict           Boolean  @default(false)
+  hasConflict           Boolean @default(false)
   conflictNotes         String?
 
   importedAt DateTime @default(now())
@@ -2004,10 +2015,10 @@ model PricingRule {
 
   factor             PricingRuleFactor
   comparisonOperator PricingComparisonOperator?
-  thresholdValue     Decimal?                    @db.Decimal(8, 2)
-  daysOfWeek         Int[]                        @default([])
-  dateRangeStart     DateTime?                    @db.Date
-  dateRangeEnd       DateTime?                    @db.Date
+  thresholdValue     Decimal?                   @db.Decimal(8, 2)
+  daysOfWeek         Int[]                      @default([])
+  dateRangeStart     DateTime?                  @db.Date
+  dateRangeEnd       DateTime?                  @db.Date
   demandLevel        DemandLevel?
 
   adjustmentType  PricingAdjustmentType
@@ -2061,4 +2072,43 @@ model DynamicPriceLog {
 
   @@unique([roomTypeId, date])
   @@index([roomTypeId, date])
+}
+
+// =========================================================================
+// SECURITY (Phase 3)
+// =========================================================================
+
+// Generic, DB-backed fixed-window rate limiter (see src/lib/rate-limit.ts).
+// Deliberately not Redis-backed yet — matches this app's existing
+// "Redis-ready architecture" placeholder pattern (Phase 3 Performance/Scale);
+// swapping to Redis later means replacing this model's single call site,
+// not every caller.
+model RateLimitBucket {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+
+  @@index([windowStart])
+}
+
+// Partner-facing API key management ("API key management" per MASTER-PLAN).
+// No public REST surface is built against these yet (same honest-scaffold
+// reasoning as Channel Manager's providers/webhook route) — issuing and
+// revoking keys is real; a caller only needs to check this table.
+model ApiKey {
+  id              String    @id @default(uuid())
+  organizationId  String
+  name            String
+  keyPrefix       String
+  hashedKey       String    @unique
+  lastUsedAt      DateTime?
+  createdByUserId String
+  revokedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdByUserId], references: [id])
+
+  @@index([organizationId])
 }
