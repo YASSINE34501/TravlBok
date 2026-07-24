@@ -325,7 +325,7 @@ export async function importExternalReservation(
 
       return { reservation, hasConflict };
     },
-    { isolationLevel: "Serializable" }
+    { isolationLevel: "Serializable", timeout: 15_000 }
   );
 
   await createAdHocPaymentAndInvoice(

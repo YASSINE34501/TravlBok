@@ -329,3 +329,48 @@ No test framework, config, or test file existed anywhere in the repo before this
 - Prisma 7's generated client (`prisma-client` generator, ESM output using `import.meta`) does not transform cleanly under Playwright's own TypeScript loader (confirmed via a real `SyntaxError: Cannot use 'import.meta' outside a module` when a `.spec.ts` file imported it directly) — Vitest's transform handles it fine, but Playwright's does not. Worked around by writing E2E specs to assert purely against page state (URLs, visible text) rather than querying the database directly from within a spec, and running a separate cleanup script afterward. This is a real tooling gap worth revisiting (e.g. a dedicated E2E global-setup/teardown script invoked via `tsx` rather than Playwright's own transform) if the E2E suite grows.
 - Coverage is deep on the explicitly MASTER-PLAN-named categories (booking conflict, subscription limits, affiliate commissions, PMS workflows, dynamic pricing, channel sync, authorization, currency) but not exhaustive across every domain in the codebase — Notifications, Security's rate-limiter/TOTP internals beyond the RFC vectors, Multi-Property/Branch scoping, and Advanced Analytics' rollup math were all already verified manually in their own milestones (see those sections above) but don't yet have dedicated automated tests; a natural next increment would be converting those manual verification scripts into permanent Vitest suites using the same real-function-import pattern established here.
 - No code-coverage threshold/reporting is configured (no `--coverage` flag wired into CI) — the test count (59 unit/integration + 3 E2E) is a real, meaningful floor, not a percentage-based gate.
+
+### Post-milestone hardening: a real transaction-timeout bug found by running the suite repeatedly
+Running the full Vitest suite multiple times during final wrap-up (not just once) surfaced a genuine, intermittent production issue: `createHotelReservationAction`'s (and `importExternalReservation`'s) `$transaction(..., { isolationLevel: "Serializable" })` calls do many sequential awaited round-trips to the remote Supabase database inside one interactive transaction (room-type fetch, organization-limit check, commission-rate lookup, dynamic-pricing resolution, coupon resolution, the reservation write itself, notification/affiliate hooks) — under real network latency this occasionally exceeded Prisma's **default 5-second interactive-transaction timeout**, failing with `P2028` even though nothing was actually wrong with the booking logic. This is a real latency/timeout risk in production against a remote database, not a test artifact. Fixed by adding an explicit `timeout: 15_000` alongside the existing `isolationLevel: "Serializable"` option on all three affected `$transaction` calls (`reservations/actions.ts` ×2, `channel-manager/sync.ts` ×1) — a one-line, low-risk change. Re-ran the full suite three times after the fix with zero flakes.
+
+---
+
+## Phase 3 — Final Wrap-Up
+
+### Acceptance criteria (MASTER-PLAN's Phase 3 checklist)
+- [x] **Channel adapters/queues and mock integrations work.** `src/domains/channel-manager/providers/` (Milestone 1) — idempotent import, conflict detection, and centralized inventory locking verified against the live database.
+- [x] **Overbooking protection works.** Verified twice independently: Milestone 1's channel-import conflict test, and Milestone 8's `booking-conflict.test.ts`, which calls the real `createHotelReservationAction` three times against a 1-unit room type and confirms accept/reject/accept exactly as expected.
+- [x] **Dynamic pricing rules calculate correctly.** Milestone 2's engine, unit-tested (`dynamic-pricing-engine.test.ts`) and integration-tested (`dynamic-pricing-resolver.test.ts`) against the real rule-resolution pipeline, plus Milestone 2's own live-database verification (occupancy rule firing, min/max clamp, manual-override precedence).
+- [x] **Multi-property/branch dashboards work.** Milestone 3 — property comparison, branch performance/utilization, fleet transfer, branch-scoped staff permissions, all verified live.
+- [x] **Advanced analytics and notifications work.** Milestone 4 (16 metrics, 9 filters, formulas verified against hand-computed expectations) and Milestone 5 (central notification service wired into 9 previously-uncovered event categories, in-app bell + full list UI).
+- [x] **Security controls are implemented.** Milestone 6 — 2FA (TOTP verified against the official RFC 4226 vectors), rate limiting, session revocation, login audit/device history/alerts, CSP/security headers, file-upload signature checking, API key management.
+- [x] **Critical workflows have automated tests.** Milestone 8 — 59 unit/integration tests (real production functions, real database) + 3 Playwright E2E tests (real browser), covering every MASTER-PLAN-named testing category.
+- [x] **Docker deployment works and documentation is complete.** Milestone 7 — `Dockerfile`/`docker-compose.yml` written correctly against Next 16's standalone-output contract and this project's real dependencies; **not build-tested end-to-end** (no `docker` binary in this development sandbox, confirmed before writing anything) — stated plainly here and in `DEPLOYMENT.md`, not glossed over. `DEPLOYMENT.md` itself is complete: Docker, health check, backup/restore, cron inventory, CI, and an honest scale-readiness assessment.
+- [x] **Production build succeeds.** `npm run build` — exit 0, confirmed repeatedly across all 8 milestones and again in this final pass, including standalone-output verification.
+
+### Completed features (this phase)
+Channel Manager (provider abstraction, encrypted credentials, sync engine, conflict detection); Dynamic Pricing (rule engine, staff approval workflow, simulation mode, pricing calendar); Multi-Property/Multi-Branch (property comparison, fleet transfer, branch-scoped staff); Advanced Analytics (16 metrics, 9 filters); Notifications (central service, 10 event categories total including Bookings, in-app bell); Security (2FA, rate limiting, session revocation, audit/device history, CSP, API keys); Performance/Docker (Dockerfile, Compose, health check, CI, DB indexing); Testing (Vitest + Playwright, 62 total tests).
+
+### Remaining/future work (named honestly throughout, not hidden)
+Real SMS/WhatsApp/push provider integration (currently recorded-intent-only); a public partner REST API surface authenticated against the real `ApiKey` infrastructure; `next/image` retrofit across the app (currently zero usages); a dedicated search index; read replicas; a real APM/monitoring service; Docker build verification in an environment that actually has a Docker daemon; converting Milestones 3–6's manual verification scripts into permanent automated tests the way Milestone 8 did for the others.
+
+### Database changes
+See each milestone's section above for the exact models/fields added. Summary: `PricingRule`, `DynamicPriceLog`, `RoomType.minPrice`/`maxPrice` (Dynamic Pricing); `Vehicle.insuranceExpiryAt`/`lastMaintenanceAt`/`nextMaintenanceDueAt`, `OrganizationMember.branchId` (Multi-Property); composite analytics indexes (Advanced Analytics); `Notification.channels` (Notifications); `User.twoFactorEnabled`/`twoFactorSecret`/`twoFactorBackupCodes`/`sessionsInvalidatedAt`, `RateLimitBucket`, `ApiKey` (Security); targeted performance indexes (Performance milestone). Every migration was applied against the live Supabase database via `npx prisma migrate dev` and is additive (new tables/columns, no destructive changes to existing data).
+
+### API changes
+New routes: `GET /api/health`, `POST /api/cron/booking-reminders` (alongside the existing `/api/cron/channel-auto-sync` and `/api/cron/retry-failed-payments`). No breaking changes to any existing route or Server Action signature — all Phase 3 additions are new files/functions or additive parameters (e.g. `calculateHotelPriceBreakdown`'s optional `nightlyPriceOverrides`).
+
+### Security notes
+See Milestone 6 in full above. Summary: TOTP 2FA (RFC-verified), Postgres-backed rate limiting on auth endpoints, JWT session revocation, login audit trail with IP/device history and new-login alerts, CSP + standard security headers, file-upload magic-byte verification, and API key management — layered on top of the RBAC/tenant-isolation/encrypted-credentials/audit-logging foundation already in place from Phases 1–2.
+
+### Test results
+59/59 Vitest tests passing (unit + real-database integration), 3/3 Playwright E2E tests passing (real browser, real dev server) — see Milestone 8 for full detail, and the transaction-timeout fix above for what changed after the initial pass.
+
+### Required environment variables
+See `.env.example` (kept up to date across every milestone this phase) and `DEPLOYMENT.md`'s "Environment variables" section for which are required vs. have safe development fallbacks.
+
+### Instructions to run locally
+See `README.md` ("Getting started") — unchanged in substance this phase, with `npm run test`/`npm run test:e2e` added to the Scripts section.
+
+### Instructions to deploy
+See `DEPLOYMENT.md` in full — Docker build/run, Docker Compose, environment variables, health check contract, database backup/restore, the cron-route inventory, CI, and the scale-readiness assessment.

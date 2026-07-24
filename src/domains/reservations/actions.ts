@@ -265,7 +265,7 @@ export async function createHotelReservationAction(
           dynamicPricing,
         };
       },
-      { isolationLevel: "Serializable" }
+      { isolationLevel: "Serializable", timeout: 15_000 }
     );
 
     const { reservation, roomTypeId, availableQuantity, dynamicPricing } = result;
@@ -426,7 +426,7 @@ export async function createCarReservationAction(
 
         return reservation;
       },
-      { isolationLevel: "Serializable" }
+      { isolationLevel: "Serializable", timeout: 15_000 }
     );
 
     await logAudit({
