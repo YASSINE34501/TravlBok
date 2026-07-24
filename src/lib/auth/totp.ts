@@ -72,7 +72,13 @@ export function verifyTotpCode(secret: string, code: string): boolean {
   const secretBuffer = base32Decode(secret);
   const counter = Math.floor(Date.now() / 1000 / STEP_SECONDS);
   for (const drift of [0, -1, 1]) {
-    if (hotp(secretBuffer, counter + drift) === code) return true;
+    const driftedCounter = counter + drift;
+    // Guards a real edge case, not just a defensive no-op: writeBigUInt64BE
+    // throws on a negative value, so a system clock within one step of the
+    // Unix epoch (counter 0) would otherwise crash verification instead of
+    // just failing the -1 drift check.
+    if (driftedCounter < 0) continue;
+    if (hotp(secretBuffer, driftedCounter) === code) return true;
   }
   return false;
 }

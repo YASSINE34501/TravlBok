@@ -68,8 +68,10 @@ Open **http://localhost:3000** (redirects to `/en`, `/fr`, or `/ar`).
 - `npx prisma migrate dev` — create/apply migrations (dev)
 - `npm run db:migrate` — apply migrations without prompting (`prisma migrate deploy`, for CI/production)
 - `npm run db:seed` / `npx prisma db seed` — re-run the seed script
+- `npm run test` — unit + integration tests (Vitest; integration tests run against the real database in `DATABASE_URL`)
+- `npm run test:e2e` — Playwright E2E tests for critical flows (starts the dev server automatically; run `npx playwright install chromium` once first)
 
-See `DEPLOYMENT.md` for Docker, health checks, backups, and CI.
+See `DEPLOYMENT.md` for Docker, health checks, backups, and CI. See `PHASE-3-COMPLETION-REPORT.md`'s Testing milestone for what's covered and the testing approach (why integration tests hit the real database rather than a mock).
 
 ## Project structure
 

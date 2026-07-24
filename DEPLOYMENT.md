@@ -148,11 +148,14 @@ items below describe what's actually in place today versus what remains future w
 
 ## CI
 
-`.github/workflows/ci.yml` runs on every push/PR to `main`: a `lint-and-typecheck` job (ESLint +
-`tsc --noEmit`, no external dependencies needed) always runs; a `build` job depends on it and needs
-`DATABASE_URL`/`DIRECT_URL` configured as GitHub repository secrets (several pages read reference data
-at build time for static generation) — until those secrets are added to the repository, the build job
-will fail in CI even though `npm run build` succeeds locally against the real `.env`. This is intentional
-"CI-ready" scaffolding per MASTER-PLAN's phrasing: the workflow is correct and will go green as soon as
-the secrets exist, the same way the cron routes are real, ready infrastructure waiting on an external
-scheduler to actually call them.
+`.github/workflows/ci.yml` runs on every push/PR to `main`:
+- `lint-and-typecheck` — ESLint + `tsc --noEmit`, no external dependencies needed, always runs.
+- `build` — needs `DATABASE_URL`/`DIRECT_URL` as repository secrets (several pages read reference data at build time for static generation).
+- `test` — runs the Vitest unit + integration suite; the integration tests hit the real database in `DATABASE_URL`, same as `build`.
+- `e2e` — Playwright critical-flow tests, `workflow_dispatch`-only (not on every push): it needs a running app server plus Playwright's Chromium binary, and shares the same registration rate limiter (Security milestone) as real users, so running it on every push would eventually trip that limiter in CI.
+
+Until `DATABASE_URL`/`DIRECT_URL`/`AUTH_SECRET` are added as GitHub repository secrets, the `build`,
+`test`, and `e2e` jobs will fail in CI even though they all succeed locally against the real `.env`.
+This is intentional "CI-ready" scaffolding per MASTER-PLAN's phrasing: the workflows are correct and
+will go green as soon as the secrets exist, the same way the cron routes are real, ready infrastructure
+waiting on an external scheduler to actually call them.
