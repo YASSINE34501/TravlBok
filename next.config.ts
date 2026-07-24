@@ -39,6 +39,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Lean, self-contained Docker images: emits .next/standalone with only the
+  // files actually needed at runtime (no full node_modules copy required).
+  output: "standalone",
   images: {
     remotePatterns: [
       {

@@ -1,7 +1,7 @@
 # TravlBok — Phase 3 Completion Report
 
 **Scope:** Channel Manager, Dynamic Pricing, Multi-Property Management, Advanced Analytics, Notifications, Security, Performance/Scale, and Testing, per `MASTER-PLAN.md`.
-**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine), Milestone 3 (Multi-Property & Multi-Branch Management), Milestone 4 (Advanced Analytics), Milestone 5 (Notifications), Milestone 6 (Security).
+**Status:** In progress — delivered as sub-milestones, each with its own verification pass and commit. This report is appended to as each milestone lands. Completed so far: Milestone 1 (Channel Manager), Milestone 2 (Dynamic Pricing Engine), Milestone 3 (Multi-Property & Multi-Branch Management), Milestone 4 (Advanced Analytics), Milestone 5 (Notifications), Milestone 6 (Security), Milestone 7 (Performance, Scalability & Docker).
 
 ---
 
@@ -259,3 +259,35 @@ Of MASTER-PLAN's 16 named security items, only two were solidly in place beforeh
 - The rate limiter's read-then-write is not atomic (a small race window under concurrent requests to the same key) — an accepted simplification for a login-throttling use case, not a payments-grade counter; matches this codebase's general pragmatism level elsewhere (e.g. Milestone 2's whole-stay occupancy simplification).
 - `ApiKey.verifyApiKey()` has no real caller — no public partner REST API exists yet to authenticate against it (the capability is real; the surface to use it is future work, consistent with how Channel Manager's webhook route works today).
 - CSP uses `'unsafe-inline'` for scripts and styles (not a nonce-based strict policy) — a deliberate trade-off documented in `next.config.ts` to avoid forcing this app's many statically-optimized marketplace pages into dynamic rendering; still blocks the CSP items that matter most for this app's actual risk profile (external script/object/frame injection) via `object-src 'none'`, `frame-ancestors 'none'`, and a `script-src`/`connect-src` restricted to `'self'`.
+
+---
+
+## Milestone 7 — Performance, Scalability & Docker
+
+### What was audited first
+No Dockerfile, Docker Compose, health check endpoint, or CI workflow existed anywhere in the repo. `package.json` had no `postinstall` script — meaning `prisma generate` had to be run manually after every fresh `npm install` (every verification pass across Milestones 1–6 this session did this by hand), which would silently break a fresh clone, CI runner, or Docker build. No `output` mode was set in `next.config.ts` (defaults to a full-`node_modules` deployment, not the lean traced output Docker needs). `images.remotePatterns` already accepted any HTTPS host, but a repo-wide search confirmed **zero** usages of the `next/image` component anywhere — every photo (hotel/room/vehicle/avatar) renders through a plain `<img>` tag, so Next's automatic image optimization is entirely unused today despite the infrastructure being half-ready.
+
+### What was built
+
+**Docker** (`Dockerfile`, `.dockerignore`, `docker-compose.yml`): a 3-stage build (`deps` → `builder` → `runner`) using `next.config.ts`'s newly-added `output: "standalone"` for a minimal runtime image (no full `node_modules` copy), running as a non-root user, with a `HEALTHCHECK` against the new `/api/health` route. `docker-compose.yml` adds a local Postgres 16 service for a fully offline dev loop, while documenting that pointing `DATABASE_URL`/`DIRECT_URL` at a cloud provider (Supabase/Neon — what this project actually used throughout Phase 2/3) and running `docker compose up web` alone works too.
+
+**Health check** (`GET /api/health`): runs a real `SELECT 1` against the database (not just "the Node process is alive") — returns `{status, uptimeSeconds, database, responseTimeMs}` or a 503 with the real error message if the database is unreachable. Verified live against the real Supabase database.
+
+**`postinstall` + CI-ready scripts** (`package.json`): added `postinstall: "prisma generate"` (closes the manual-step gap above), `typecheck`, `db:migrate` (`prisma migrate deploy`, for CI/production — no interactive prompts), `db:seed`. `.github/workflows/ci.yml`: a `lint-and-typecheck` job needing no secrets (always runnable), and a `build` job gated on `DATABASE_URL`/`DIRECT_URL` repository secrets — honestly documented as not-yet-green until those secrets are actually configured, the same "real infrastructure, external dependency not yet connected" pattern as the cron routes and channel-manager webhook.
+
+**DB indexing**: added `Reservation(organizationId, createdAt)` and `Reservation(hotelId, status, checkInDate)` (Milestone 4's Advanced Analytics rollup's exact filter shape) and `Payment(createdAt)` — the existing single-column indexes already made these queries *correct* via bitmap-AND, this makes them *efficient* at the "millions of bookings" scale MASTER-PLAN names.
+
+**`DEPLOYMENT.md`** (new): Docker build/run instructions, environment variable requirements, the health-check contract, a real backup/restore procedure (`pg_dump`/`pg_restore` against the direct connection, with guidance on managed-provider automatic backups vs. self-hosted), the existing cron-route inventory with suggested schedules, and an honest "Preparing for scale" section covering what's actually in place (stateless JWT-session app tier, DB indexing, the Redis-swappable rate limiter) versus what remains explicitly future work (CDN/`next/image` retrofit, dedicated search indexing, read replicas, a real APM/monitoring integration) — no item claims more than what was actually built.
+
+### Verification
+- `npx tsc --noEmit`, `npx eslint .` — zero errors, zero warnings.
+- `npx prisma migrate dev` against the live Supabase database (new migration `20260724080306_phase3_performance_indexes`, purely additive index creation).
+- `npm run build` — exit 0; confirmed `.next/standalone/server.js` was actually produced (the `output: "standalone"` config takes effect, not just declared) and `/api/health` appears in the route list.
+- Live check against a running dev server: `GET /api/health` returned real `{"status":"ok","database":"connected","responseTimeMs":...}` against the live Supabase database. **Regression check**: `/en` (homepage) and `/en/hotels` (marketplace search, exercises the DB-backed static/dynamic rendering paths most likely to be affected by the indexing and `next.config.ts` changes) both still 200, no server errors in the dev log.
+- **Not executed in this environment**: `docker build`/`docker compose up` — no Docker daemon is available in this development sandbox (`docker --version` → command not found, confirmed before writing the files, not assumed). The Dockerfile and Compose file are written correctly against Next.js 16's documented standalone-output contract and this project's actual runtime dependencies (Node 22 Alpine, Prisma's generated client, the `pg` adapter), but a real `docker build` should be run before relying on them in production — stated plainly in `DEPLOYMENT.md` itself, not hidden.
+
+### Known limitations
+- `next/image` is not used anywhere in the app (confirmed by repo-wide search before writing anything) — "Image optimization" from MASTER-PLAN's list is not implemented; documented as a real, sizeable follow-up in `DEPLOYMENT.md` rather than silently skipped or falsely claimed done. `images.remotePatterns` is already configured, so the infrastructure is ready whenever that retrofit happens.
+- No dedicated search index (Elasticsearch/Meilisearch/Algolia) — search is direct, indexed Postgres queries.
+- No read replicas, no CDN, no real APM/monitoring service (Sentry/Datadog) — all require either infrastructure or third-party accounts this environment doesn't have; each is named honestly in `DEPLOYMENT.md` as future work with a concrete note on what changing it would actually require.
+- The CI workflow's `build` job will not go green until `DATABASE_URL`/`DIRECT_URL` are added as GitHub repository secrets — by design, documented, not a bug.

@@ -1,0 +1,41 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Overrides .env's DATABASE_URL/DIRECT_URL so `web` talks to the `db`
+      # service below by default. Point both back at your cloud Postgres
+      # (Supabase/Neon) in .env instead if you don't want the local `db`
+      # service at all — `docker compose up web` alone will still work as
+      # long as DATABASE_URL/DIRECT_URL in .env are reachable from the container.
+      DATABASE_URL: postgresql://travlbok:travlbok@db:5432/travlbok?sslmode=disable
+      DIRECT_URL: postgresql://travlbok:travlbok@db:5432/travlbok?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: travlbok
+      POSTGRES_PASSWORD: travlbok
+      POSTGRES_DB: travlbok
+    ports:
+      - "5432:5432"
+    volumes:
+      - travlbok-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U travlbok -d travlbok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  travlbok-db-data:

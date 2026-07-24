@@ -2,7 +2,7 @@
 
 A travel marketplace and partner management SaaS platform — hotels, car rentals, travel agencies, affiliates, and a Super Admin platform, in Arabic (RTL), French, and English, with MAD/EUR/USD currency support.
 
-This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (core marketplace + partner onboarding, plus a post-completion remediation pass) and **Phase 2** (subscriptions, payments, affiliates, hotel PMS) are complete. **Phase 3** is in progress — its first milestone, the Channel Manager, is implemented. See `PHASE-1-COMPLETION-REPORT.md`, `PHASE-1-REMEDIATION-REPORT.md`, `PHASE-2-COMPLETION-REPORT.md`, and `PHASE-3-COMPLETION-REPORT.md` for full details.
+This repository is being built in 3 phases per `MASTER-PLAN.md`. **Phase 1** (core marketplace + partner onboarding, plus a post-completion remediation pass) and **Phase 2** (subscriptions, payments, affiliates, hotel PMS) are complete. **Phase 3** is in progress — Channel Manager, Dynamic Pricing, Multi-Property/Multi-Branch Management, Advanced Analytics, Notifications, and Security are complete. See `PHASE-1-COMPLETION-REPORT.md`, `PHASE-1-REMEDIATION-REPORT.md`, `PHASE-2-COMPLETION-REPORT.md`, and `PHASE-3-COMPLETION-REPORT.md` for full details, and `DEPLOYMENT.md` for Docker/production/backup/CI documentation.
 
 ## Running locally (Windows)
 
@@ -63,10 +63,13 @@ Open **http://localhost:3000** (redirects to `/en`, `/fr`, or `/ar`).
 - `npm run build` — production build
 - `npm run start` — run the production build
 - `npm run lint` — ESLint
-- `npx tsc --noEmit` — type-check
+- `npm run typecheck` — type-check (`tsc --noEmit`)
 - `npx prisma studio` — browse the database
-- `npx prisma migrate dev` — create/apply migrations
-- `npx prisma db seed` — re-run the seed script
+- `npx prisma migrate dev` — create/apply migrations (dev)
+- `npm run db:migrate` — apply migrations without prompting (`prisma migrate deploy`, for CI/production)
+- `npm run db:seed` / `npx prisma db seed` — re-run the seed script
+
+See `DEPLOYMENT.md` for Docker, health checks, backups, and CI.
 
 ## Project structure
 
