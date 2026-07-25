@@ -1,10 +1,14 @@
 import { getTranslations } from "next-intl/server";
+import { CreditCard } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { SubscriptionPlanSelector } from "@/components/partner/subscription-plan-selector";
+import { SUBSCRIPTION_STATUS_TONE } from "@/lib/status-tones";
 
 export default async function SubscriptionPage({
   params,
@@ -25,21 +29,21 @@ export default async function SubscriptionPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("subscription")}</h1>
+      <PageHeader title={t("subscription")} />
 
       {subscription ? (
         <>
-          <Card>
+          <Card className="rounded-2xl">
             <CardHeader>
               <CardTitle>{t("currentPlan")}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-1 text-sm">
-              <p className="text-lg font-semibold">
+            <CardContent className="space-y-2 text-sm">
+              <p className="text-lg font-semibold text-foreground">
                 {pickLocaleText(subscription.plan.name as Record<string, unknown>, locale)}
               </p>
-              <Badge variant={subscription.status === "ACTIVE" ? "default" : "secondary"}>
+              <StatusBadge tone={SUBSCRIPTION_STATUS_TONE[subscription.status]}>
                 {subscription.status}
-              </Badge>
+              </StatusBadge>
               <p className="text-muted-foreground">
                 Billing: {subscription.billingInterval} · Renews{" "}
                 {subscription.currentPeriodEnd.toDateString()}
@@ -62,7 +66,7 @@ export default async function SubscriptionPage({
           />
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">No subscription found.</p>
+        <EmptyState icon={CreditCard} title="No subscription found" />
       )}
     </div>
   );

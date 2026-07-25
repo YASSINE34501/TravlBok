@@ -3,6 +3,7 @@ import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { VehicleForm } from "@/components/partner/vehicle-form";
+import { PageHeader } from "@/components/ui/page-header";
 import { getScopedBranchId } from "@/domains/branches/access";
 
 export default async function NewVehiclePage({
@@ -24,7 +25,7 @@ export default async function NewVehiclePage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("addVehicle")}</h1>
+      <PageHeader title={t("addVehicle")} />
       <VehicleForm
         locale={locale}
         organizationId={organization.id}

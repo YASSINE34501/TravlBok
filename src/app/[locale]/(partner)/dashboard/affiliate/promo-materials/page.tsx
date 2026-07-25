@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
+import { PageHeader } from "@/components/ui/page-header";
 import { PromoMaterialsManager } from "@/components/partner/promo-materials-manager";
 
 export default async function AffiliatePromoMaterialsPage({
@@ -19,7 +20,7 @@ export default async function AffiliatePromoMaterialsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("affiliatePromoMaterials")}</h1>
+      <PageHeader title={t("affiliatePromoMaterials")} />
       <PromoMaterialsManager
         locale={locale}
         organizationId={organization.id}

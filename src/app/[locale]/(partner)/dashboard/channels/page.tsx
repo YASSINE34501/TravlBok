@@ -3,7 +3,9 @@ import { prisma } from "@/lib/db";
 import { hasFeature } from "@/domains/subscriptions/limits";
 import { getChannelConnectionsForOrganization } from "@/domains/channel-manager/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ConnectChannelForm } from "@/components/partner/connect-channel-form";
 import { ChannelConnectionActions } from "@/components/partner/channel-connection-actions";
 import { RoomMappingForm } from "@/components/partner/room-mapping-form";
@@ -12,6 +14,8 @@ import { SimulateReservationForm } from "@/components/partner/simulate-reservati
 import { ResolveChannelConflictButton } from "@/components/partner/resolve-channel-conflict-button";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { CHANNEL_CONNECTION_STATUS_TONE } from "@/lib/status-tones";
+import { Radio } from "lucide-react";
 
 export default async function ChannelsPage({
   params,
@@ -25,7 +29,7 @@ export default async function ChannelsPage({
   if (!enabled) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold">Channel Manager</h1>
+        <PageHeader title="Channel Manager" />
         <p className="text-sm text-muted-foreground">
           The Channel Manager is not included in your current subscription plan. Upgrade your plan
           to connect Booking.com, Expedia, Airbnb, and other channels.
@@ -50,10 +54,10 @@ export default async function ChannelsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Channel Manager</h1>
+      <PageHeader title="Channel Manager" />
 
       {conflicts.length > 0 && (
-        <Card className="border-destructive">
+        <Card className="rounded-2xl border-destructive/40 bg-destructive/5">
           <CardHeader>
             <CardTitle className="text-base text-destructive">
               Conflicts needing review ({conflicts.length})
@@ -80,7 +84,7 @@ export default async function ChannelsPage({
         </Card>
       )}
 
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base">Connect a channel</CardTitle>
         </CardHeader>
@@ -97,22 +101,14 @@ export default async function ChannelsPage({
         {connections.map((connection) => {
           const hotel = hotels.find((h) => h.id === connection.hotelId);
           return (
-            <Card key={connection.id}>
+            <Card key={connection.id} className="rounded-2xl">
               <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <CardTitle className="text-base">
                   {connection.hotel.name} · {connection.provider}
                 </CardTitle>
-                <Badge
-                  variant={
-                    connection.status === "CONNECTED"
-                      ? "default"
-                      : connection.status === "ERROR"
-                        ? "destructive"
-                        : "secondary"
-                  }
-                >
+                <StatusBadge tone={CHANNEL_CONNECTION_STATUS_TONE[connection.status]}>
                   {connection.status}
-                </Badge>
+                </StatusBadge>
               </CardHeader>
               <CardContent className="space-y-4">
                 {connection.lastErrorMessage && (
@@ -187,7 +183,7 @@ export default async function ChannelsPage({
           );
         })}
         {connections.length === 0 && (
-          <p className="text-sm text-muted-foreground">No channels connected yet.</p>
+          <EmptyState icon={Radio} title="No channels connected yet" />
         )}
       </div>
     </div>

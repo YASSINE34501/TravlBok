@@ -1,10 +1,15 @@
 import { getTranslations } from "next-intl/server";
+import { Wallet } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { formatMoney } from "@/lib/currency/format";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { DataTableShell } from "@/components/ui/data-table";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmPaymentButton } from "@/components/partner/confirm-payment-button";
 import { RequestRefundButton } from "@/components/partner/request-refund-button";
+import { PAYMENT_TRANSACTION_STATUS_TONE } from "@/lib/status-tones";
 
 export default async function PartnerPaymentsPage({
   params,
@@ -24,42 +29,49 @@ export default async function PartnerPaymentsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("paymentMethod")}</h1>
+      <PageHeader title={t("paymentMethod")} />
 
-      <div className="space-y-2">
-        {payments.map((payment) => (
-          <div
-            key={payment.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
-          >
-            <span>
-              {payment.reservation?.bookingReference ?? payment.id.slice(0, 8)} ·{" "}
-              {payment.provider} · {formatMoney(payment.amount.toString(), payment.currency, locale)}
-            </span>
-            <div className="flex items-center gap-2">
-              <Badge variant={payment.status === "PAID" ? "default" : "secondary"}>
-                {payment.status}
-              </Badge>
-              {payment.status === "PENDING" &&
-                ["BANK_TRANSFER", "MANUAL", "CASH_AT_PROPERTY"].includes(payment.provider) && (
-                  <ConfirmPaymentButton
-                    locale={locale}
-                    organizationId={organization.id}
-                    paymentId={payment.id}
-                  />
-                )}
-              {payment.status === "PAID" && (
-                <RequestRefundButton
-                  locale={locale}
-                  organizationId={organization.id}
-                  paymentId={payment.id}
-                  maxAmount={Number(payment.amount)}
-                />
-              )}
-            </div>
+      <DataTableShell>
+        {payments.length === 0 ? (
+          <EmptyState icon={Wallet} title={t("status")} className="border-0 py-12" />
+        ) : (
+          <div className="divide-y">
+            {payments.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-sm sm:px-5"
+              >
+                <span className="text-foreground">
+                  {payment.reservation?.bookingReference ?? payment.id.slice(0, 8)} ·{" "}
+                  <span className="text-muted-foreground">{payment.provider}</span> ·{" "}
+                  {formatMoney(payment.amount.toString(), payment.currency, locale)}
+                </span>
+                <div className="flex items-center gap-2">
+                  <StatusBadge tone={PAYMENT_TRANSACTION_STATUS_TONE[payment.status]}>
+                    {payment.status}
+                  </StatusBadge>
+                  {payment.status === "PENDING" &&
+                    ["BANK_TRANSFER", "MANUAL", "CASH_AT_PROPERTY"].includes(payment.provider) && (
+                      <ConfirmPaymentButton
+                        locale={locale}
+                        organizationId={organization.id}
+                        paymentId={payment.id}
+                      />
+                    )}
+                  {payment.status === "PAID" && (
+                    <RequestRefundButton
+                      locale={locale}
+                      organizationId={organization.id}
+                      paymentId={payment.id}
+                      maxAmount={Number(payment.amount)}
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </DataTableShell>
     </div>
   );
 }

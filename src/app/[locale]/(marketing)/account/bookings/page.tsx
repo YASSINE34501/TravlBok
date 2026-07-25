@@ -5,20 +5,9 @@ import { prisma } from "@/lib/db";
 import { formatMoney } from "@/lib/currency/format";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { EmptyState } from "@/components/ui/empty-state";
-import type { BookingStatus } from "@/generated/prisma/client";
-
-const STATUS_TONE: Record<BookingStatus, StatusTone> = {
-  DRAFT: "neutral",
-  PENDING: "warning",
-  CONFIRMED: "success",
-  CANCELLED: "destructive",
-  COMPLETED: "success",
-  NO_SHOW: "destructive",
-  REFUNDED: "neutral",
-  PARTIALLY_REFUNDED: "neutral",
-};
+import { RESERVATION_STATUS_TONE } from "@/lib/status-tones";
 
 export default async function AccountBookingsPage({
   params,
@@ -62,7 +51,7 @@ export default async function AccountBookingsPage({
                     </p>
                   </div>
                   <div className="text-end">
-                    <StatusBadge tone={STATUS_TONE[reservation.status]}>
+                    <StatusBadge tone={RESERVATION_STATUS_TONE[reservation.status]}>
                       {tStatus(reservation.status)}
                     </StatusBadge>
                     <p className="mt-1.5 text-sm font-medium text-foreground">

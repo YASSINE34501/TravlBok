@@ -1,11 +1,16 @@
 import { getTranslations } from "next-intl/server";
+import { Users } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card } from "@/components/ui/card";
+import { DataTableShell } from "@/components/ui/data-table";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { InviteStaffForm } from "@/components/partner/invite-staff-form";
 import { RemoveStaffButton } from "@/components/partner/remove-staff-button";
 import { StaffBranchSelect } from "@/components/partner/staff-branch-select";
-import type { Role } from "@/generated/prisma/client";
+import type { OrgMemberStatus, Role } from "@/generated/prisma/client";
 
 const HOTEL_STAFF_ROLES: Role[] = [
   "HOTEL_MANAGER",
@@ -14,6 +19,12 @@ const HOTEL_STAFF_ROLES: Role[] = [
   "HOTEL_ACCOUNTANT",
 ];
 const CAR_STAFF_ROLES: Role[] = ["CAR_RENTAL_STAFF"];
+
+const MEMBER_STATUS_TONE: Record<OrgMemberStatus, StatusTone> = {
+  INVITED: "warning",
+  ACTIVE: "success",
+  SUSPENDED: "destructive",
+};
 
 export default async function StaffPage({
   params,
@@ -44,46 +55,59 @@ export default async function StaffPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("staff")}</h1>
-      <InviteStaffForm
-        locale={locale}
-        organizationId={organization.id}
-        availableRoles={availableRoles}
-        branches={isCarRental ? branchOptions : undefined}
-      />
+      <PageHeader title={t("staff")} />
 
-      <div className="space-y-2">
-        {members.map((member) => (
-          <div
-            key={member.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
-          >
-            <span>
-              {member.user.firstName} {member.user.lastName} ({member.user.email}) ·{" "}
-              {tRoles(member.role)}
-            </span>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{member.status}</Badge>
-              {isCarRental && member.role === "CAR_RENTAL_STAFF" && (
-                <StaffBranchSelect
-                  locale={locale}
-                  organizationId={organization.id}
-                  memberId={member.id}
-                  currentBranchId={member.branchId}
-                  branches={branchOptions}
-                />
-              )}
-              {!availableRoles.includes(member.role) ? null : (
-                <RemoveStaffButton
-                  locale={locale}
-                  organizationId={organization.id}
-                  memberId={member.id}
-                />
-              )}
-            </div>
+      <Card className="rounded-2xl p-5">
+        <InviteStaffForm
+          locale={locale}
+          organizationId={organization.id}
+          availableRoles={availableRoles}
+          branches={isCarRental ? branchOptions : undefined}
+        />
+      </Card>
+
+      <DataTableShell>
+        {members.length === 0 ? (
+          <EmptyState icon={Users} title={t("noBookingsYet")} className="border-0 py-12" />
+        ) : (
+          <div className="divide-y">
+            {members.map((member) => (
+              <div
+                key={member.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-sm sm:px-5"
+              >
+                <span className="text-foreground">
+                  {member.user.firstName} {member.user.lastName}{" "}
+                  <span className="text-muted-foreground">
+                    ({member.user.email}) · {tRoles(member.role)}
+                  </span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <StatusBadge tone={MEMBER_STATUS_TONE[member.status]}>
+                    {member.status}
+                  </StatusBadge>
+                  {isCarRental && member.role === "CAR_RENTAL_STAFF" && (
+                    <StaffBranchSelect
+                      locale={locale}
+                      organizationId={organization.id}
+                      memberId={member.id}
+                      currentBranchId={member.branchId}
+                      branches={branchOptions}
+                    />
+                  )}
+                  {!availableRoles.includes(member.role) ? null : (
+                    <RemoveStaffButton
+                      locale={locale}
+                      organizationId={organization.id}
+                      memberId={member.id}
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </DataTableShell>
     </div>
   );
 }

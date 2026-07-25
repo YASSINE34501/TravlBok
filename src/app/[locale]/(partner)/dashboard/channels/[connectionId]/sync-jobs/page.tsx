@@ -1,8 +1,12 @@
 import { notFound } from "next/navigation";
+import { RefreshCw } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { getChannelConnectionDetail } from "@/domains/channel-manager/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { EmptyState } from "@/components/ui/empty-state";
+import { SYNC_JOB_STATUS_TONE } from "@/lib/status-tones";
 
 export default async function ChannelSyncJobsPage({
   params,
@@ -17,39 +21,28 @@ export default async function ChannelSyncJobsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">
-        Sync history — {connection.hotel.name} ({connection.provider})
-      </h1>
+      <PageHeader title={`Sync history — ${connection.hotel.name} (${connection.provider})`} />
 
-      <div className="space-y-3">
-        {connection.syncJobs.map((job) => (
-          <Card key={job.id}>
-            <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-sm font-medium">
-                {job.type} · {job.direction} · {job.startedAt.toLocaleString()}
-              </CardTitle>
-              <Badge
-                variant={
-                  job.status === "COMPLETED"
-                    ? "default"
-                    : job.status === "FAILED" || job.status === "CONFLICT"
-                      ? "destructive"
-                      : "secondary"
-                }
-              >
-                {job.status}
-              </Badge>
-            </CardHeader>
-            <CardContent className="text-sm text-muted-foreground">
-              {job.itemsProcessed} processed, {job.itemsFailed} failed
-              {job.errorMessage ? ` — ${job.errorMessage}` : ""}
-            </CardContent>
-          </Card>
-        ))}
-        {connection.syncJobs.length === 0 && (
-          <p className="text-sm text-muted-foreground">No sync jobs yet.</p>
-        )}
-      </div>
+      {connection.syncJobs.length === 0 ? (
+        <EmptyState icon={RefreshCw} title="No sync jobs yet" />
+      ) : (
+        <div className="space-y-3">
+          {connection.syncJobs.map((job) => (
+            <Card key={job.id} className="rounded-2xl">
+              <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-sm font-medium">
+                  {job.type} · {job.direction} · {job.startedAt.toLocaleString()}
+                </CardTitle>
+                <StatusBadge tone={SYNC_JOB_STATUS_TONE[job.status]}>{job.status}</StatusBadge>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                {job.itemsProcessed} processed, {job.itemsFailed} failed
+                {job.errorMessage ? ` — ${job.errorMessage}` : ""}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

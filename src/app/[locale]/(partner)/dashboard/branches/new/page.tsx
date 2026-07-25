@@ -3,6 +3,7 @@ import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { BranchForm } from "@/components/partner/branch-form";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function NewBranchPage({
   params,
@@ -20,7 +21,7 @@ export default async function NewBranchPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("addBranch")}</h1>
+      <PageHeader title={t("addBranch")} />
       <BranchForm
         locale={locale}
         organizationId={organization.id}

@@ -3,6 +3,7 @@ import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { HotelForm } from "@/components/partner/hotel-form";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function NewPropertyPage({
   params,
@@ -22,7 +23,7 @@ export default async function NewPropertyPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("addProperty")}</h1>
+      <PageHeader title={t("addProperty")} />
       <HotelForm
         locale={locale}
         organizationId={organization.id}

@@ -54,6 +54,7 @@
     "success": "Succès",
     "error": "Erreur",
     "somethingWentWrong": "Une erreur est survenue. Veuillez réessayer.",
+    "tryAgain": "Réessayer",
     "noResults": "Aucun résultat trouvé.",
     "comingSoon": "Bientôt disponible",
     "learnMore": "En savoir plus",
@@ -366,7 +367,19 @@
     "currentPlan": "Forfait actuel",
     "changePlan": "Changer de forfait",
     "cancelSubscription": "Annuler l'abonnement",
-    "cancelSubscriptionScheduled": "Votre abonnement prendra fin à la fin de la période de facturation en cours."
+    "cancelSubscriptionScheduled": "Votre abonnement prendra fin à la fin de la période de facturation en cours.",
+    "revenue": "Revenus",
+    "occupancy": "Taux d'occupation",
+    "arrivalsToday": "Arrivées aujourd'hui",
+    "departuresToday": "Départs aujourd'hui",
+    "pickupsToday": "Prises en charge aujourd'hui",
+    "returnsToday": "Retours aujourd'hui",
+    "activeRentals": "Locations actives",
+    "fleetSize": "Taille de la flotte",
+    "recentReservations": "Réservations récentes",
+    "revenueTrend": "Évolution des revenus",
+    "paymentStatusBreakdown": "Statut des paiements",
+    "averageRating": "Note moyenne"
   },
   "Admin": {
     "dashboard": "Tableau de bord",
@@ -446,7 +459,10 @@
     "issuedAt": "Émise le",
     "confirmPayment": "Confirmer le paiement",
     "refund": "Rembourser",
-    "refundIssued": "Remboursement émis"
+    "refundIssued": "Remboursement émis",
+    "statusPending": "En attente",
+    "statusPaid": "Payé",
+    "statusFailed": "Échoué"
   },
   "Marketing": {
     "affiliateStep1Title": "Obtenez votre lien de parrainage",

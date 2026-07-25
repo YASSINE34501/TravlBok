@@ -54,6 +54,7 @@
     "success": "تم بنجاح",
     "error": "خطأ",
     "somethingWentWrong": "حدث خطأ ما. حاول مرة أخرى.",
+    "tryAgain": "أعد المحاولة",
     "noResults": "لم يتم العثور على نتائج.",
     "comingSoon": "قريباً",
     "learnMore": "اعرف المزيد",
@@ -366,7 +367,19 @@
     "currentPlan": "الخطة الحالية",
     "changePlan": "تغيير الخطة",
     "cancelSubscription": "إلغاء الاشتراك",
-    "cancelSubscriptionScheduled": "سينتهي اشتراكك في نهاية فترة الفوترة الحالية."
+    "cancelSubscriptionScheduled": "سينتهي اشتراكك في نهاية فترة الفوترة الحالية.",
+    "revenue": "الإيرادات",
+    "occupancy": "نسبة الإشغال",
+    "arrivalsToday": "الوصول اليوم",
+    "departuresToday": "المغادرة اليوم",
+    "pickupsToday": "الاستلام اليوم",
+    "returnsToday": "الإرجاع اليوم",
+    "activeRentals": "الإيجارات النشطة",
+    "fleetSize": "حجم الأسطول",
+    "recentReservations": "الحجوزات الأخيرة",
+    "revenueTrend": "اتجاه الإيرادات",
+    "paymentStatusBreakdown": "حالة الدفع",
+    "averageRating": "متوسط التقييم"
   },
   "Admin": {
     "dashboard": "لوحة التحكم",
@@ -446,7 +459,10 @@
     "issuedAt": "تاريخ الإصدار",
     "confirmPayment": "تأكيد الدفع",
     "refund": "استرداد",
-    "refundIssued": "تم إصدار الاسترداد"
+    "refundIssued": "تم إصدار الاسترداد",
+    "statusPending": "قيد الانتظار",
+    "statusPaid": "مدفوع",
+    "statusFailed": "فشل"
   },
   "Marketing": {
     "affiliateStep1Title": "احصل على رابط الإحالة الخاص بك",

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getPartnerContext } from "@/lib/partner-context";
 import { OrganizationForm } from "@/components/partner/organization-form";
+import { PageHeader } from "@/components/ui/page-header";
 
 export default async function OrganizationSettingsPage({
   params,
@@ -13,7 +14,7 @@ export default async function OrganizationSettingsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("settings")}</h1>
+      <PageHeader title={t("settings")} />
       <OrganizationForm
         locale={locale}
         organizationId={organization.id}

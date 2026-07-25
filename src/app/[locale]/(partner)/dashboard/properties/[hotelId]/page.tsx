@@ -8,9 +8,11 @@ import { HotelForm } from "@/components/partner/hotel-form";
 import { HotelMediaManager } from "@/components/partner/hotel-media-manager";
 import { SubmitHotelButton } from "@/components/partner/submit-hotel-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { PROPERTY_STATUS_TONE } from "@/lib/status-tones";
 
 export default async function EditPropertyPage({
   params,
@@ -43,23 +45,27 @@ export default async function EditPropertyPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">{hotel.name}</h1>
-          <Badge variant="secondary" className="mt-1">
-            {tStatus(hotel.status)}
-          </Badge>
-        </div>
-        <Button
-          variant="outline"
-          render={<Link href={`/dashboard/properties/${hotel.id}/rooms`} />}
-        >
-          <BedDouble className="size-4" />
-          {t("roomsFor")} ({hotel.roomTypes.length})
-        </Button>
-      </div>
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
+            {hotel.name}
+            <StatusBadge tone={PROPERTY_STATUS_TONE[hotel.status]}>
+              {tStatus(hotel.status)}
+            </StatusBadge>
+          </span>
+        }
+        actions={
+          <Button
+            variant="outline"
+            render={<Link href={`/dashboard/properties/${hotel.id}/rooms`} />}
+          >
+            <BedDouble className="size-4" />
+            {t("roomsFor")} ({hotel.roomTypes.length})
+          </Button>
+        }
+      />
 
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle>{t("photos")}</CardTitle>
         </CardHeader>

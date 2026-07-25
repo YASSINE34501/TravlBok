@@ -54,6 +54,7 @@
     "success": "Success",
     "error": "Error",
     "somethingWentWrong": "Something went wrong. Please try again.",
+    "tryAgain": "Try again",
     "noResults": "No results found.",
     "comingSoon": "Coming soon",
     "learnMore": "Learn more",
@@ -366,7 +367,19 @@
     "currentPlan": "Current plan",
     "changePlan": "Change plan",
     "cancelSubscription": "Cancel subscription",
-    "cancelSubscriptionScheduled": "Your subscription will end at the close of the current billing period."
+    "cancelSubscriptionScheduled": "Your subscription will end at the close of the current billing period.",
+    "revenue": "Revenue",
+    "occupancy": "Occupancy",
+    "arrivalsToday": "Arrivals today",
+    "departuresToday": "Departures today",
+    "pickupsToday": "Pickups today",
+    "returnsToday": "Returns today",
+    "activeRentals": "Active rentals",
+    "fleetSize": "Fleet size",
+    "recentReservations": "Recent reservations",
+    "revenueTrend": "Revenue trend",
+    "paymentStatusBreakdown": "Payment status",
+    "averageRating": "Average rating"
   },
   "Admin": {
     "dashboard": "Dashboard",
@@ -446,7 +459,10 @@
     "issuedAt": "Issued",
     "confirmPayment": "Confirm payment",
     "refund": "Refund",
-    "refundIssued": "Refund issued"
+    "refundIssued": "Refund issued",
+    "statusPending": "Pending",
+    "statusPaid": "Paid",
+    "statusFailed": "Failed"
   },
   "Marketing": {
     "affiliateStep1Title": "Get your referral link",

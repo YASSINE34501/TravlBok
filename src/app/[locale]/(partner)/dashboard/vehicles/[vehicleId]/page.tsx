@@ -8,8 +8,10 @@ import { VehicleMediaManager } from "@/components/partner/vehicle-media-manager"
 import { SubmitVehicleButton } from "@/components/partner/submit-vehicle-button";
 import { VehicleTransferForm } from "@/components/partner/vehicle-transfer-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { PageHeader } from "@/components/ui/page-header";
 import { getScopedBranchId } from "@/domains/branches/access";
+import { PROPERTY_STATUS_TONE } from "@/lib/status-tones";
 
 export default async function EditVehiclePage({
   params,
@@ -48,19 +50,23 @@ export default async function EditVehiclePage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">
-          {vehicle.brand} {vehicle.model}
-        </h1>
-        <div className="flex items-center gap-2">
-          {insuranceExpiringSoon && <Badge variant="destructive">Insurance expiring soon</Badge>}
-          {maintenanceOverdue && <Badge variant="destructive">Maintenance overdue</Badge>}
-          <Badge variant="secondary">{tStatus(vehicle.approvalStatus)}</Badge>
-        </div>
-      </div>
+      <PageHeader
+        title={`${vehicle.brand} ${vehicle.model}`}
+        actions={
+          <>
+            {insuranceExpiringSoon && (
+              <StatusBadge tone="destructive">Insurance expiring soon</StatusBadge>
+            )}
+            {maintenanceOverdue && <StatusBadge tone="destructive">Maintenance overdue</StatusBadge>}
+            <StatusBadge tone={PROPERTY_STATUS_TONE[vehicle.approvalStatus]}>
+              {tStatus(vehicle.approvalStatus)}
+            </StatusBadge>
+          </>
+        }
+      />
 
       {!scopedBranchId && (
-        <Card>
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle>Fleet location</CardTitle>
           </CardHeader>
@@ -76,7 +82,7 @@ export default async function EditVehiclePage({
         </Card>
       )}
 
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle>{t("photos")}</CardTitle>
         </CardHeader>

@@ -1,13 +1,18 @@
 import { getTranslations } from "next-intl/server";
 import NextLink from "next/link";
-import { Download } from "lucide-react";
+import { Download, CalendarX } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { formatMoney } from "@/lib/currency/format";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { DataTableShell } from "@/components/ui/data-table";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ReservationStatusSelect } from "@/components/partner/reservation-status-select";
+import { RESERVATION_STATUS_TONE } from "@/lib/status-tones";
+import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import type { BookingStatus } from "@/generated/prisma/client";
 
 export default async function PartnerBookingsPage({
@@ -21,6 +26,7 @@ export default async function PartnerBookingsPage({
   const { status } = await searchParams;
   const t = await getTranslations("Partner");
   const tStatus = await getTranslations("BookingStatus");
+  const tCommon = await getTranslations("Common");
   const { organization } = await getPartnerContext(locale);
 
   const reservations = await prisma.reservation.findMany({
@@ -47,35 +53,47 @@ export default async function PartnerBookingsPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{t("bookings")}</h1>
-        <Button variant="outline" render={<NextLink href="/api/partner/bookings/export" />}>
-          <Download className="size-4" />
-          Export CSV
-        </Button>
-      </div>
+      <PageHeader
+        title={t("bookings")}
+        actions={
+          <Button variant="outline" render={<NextLink href="/api/partner/bookings/export" />}>
+            <Download className="size-4" />
+            Export CSV
+          </Button>
+        }
+      />
 
-      <div className="flex flex-wrap gap-2">
-        {statusOptions.map((option) => (
-          <a
-            key={option}
-            href={option === "ALL" ? "?" : `?status=${option}`}
-            className="rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted"
-          >
-            {option === "ALL" ? "All" : tStatus(option)}
-          </a>
-        ))}
-      </div>
-
-      {reservations.length === 0 ? (
-        <p className="text-muted-foreground">{t("noBookingsYet")}</p>
-      ) : (
-        <div className="space-y-3">
-          {reservations.map((reservation) => (
-            <Card key={reservation.id}>
-              <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
+      <DataTableShell
+        toolbar={
+          <div className="flex flex-wrap gap-2">
+            {statusOptions.map((option) => (
+              <Link
+                key={option}
+                href={option === "ALL" ? "/dashboard/bookings" : `/dashboard/bookings?status=${option}`}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                  (option === "ALL" && !status) || status === option
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted"
+                )}
+              >
+                {option === "ALL" ? tCommon("viewAll") : tStatus(option)}
+              </Link>
+            ))}
+          </div>
+        }
+      >
+        {reservations.length === 0 ? (
+          <EmptyState icon={CalendarX} title={t("noBookingsYet")} className="border-0 py-12" />
+        ) : (
+          <div className="divide-y">
+            {reservations.map((reservation) => (
+              <div
+                key={reservation.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5"
+              >
                 <div>
-                  <p className="font-medium">
+                  <p className="font-medium text-foreground">
                     {reservation.type === "HOTEL"
                       ? reservation.hotelLink?.hotel.name
                       : `${reservation.carLink?.vehicle.brand} ${reservation.carLink?.vehicle.model}`}
@@ -86,10 +104,12 @@ export default async function PartnerBookingsPage({
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <p className="text-sm font-medium">
+                  <p className="text-sm font-medium text-foreground">
                     {formatMoney(reservation.totalAmount.toString(), reservation.currency, locale)}
                   </p>
-                  <Badge variant="secondary">{tStatus(reservation.status)}</Badge>
+                  <StatusBadge tone={RESERVATION_STATUS_TONE[reservation.status]}>
+                    {tStatus(reservation.status)}
+                  </StatusBadge>
                   <ReservationStatusSelect
                     locale={locale}
                     organizationId={organization.id}
@@ -97,11 +117,11 @@ export default async function PartnerBookingsPage({
                     currentStatus={reservation.status}
                   />
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </div>
+            ))}
+          </div>
+        )}
+      </DataTableShell>
     </div>
   );
 }

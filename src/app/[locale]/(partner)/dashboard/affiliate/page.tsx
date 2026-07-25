@@ -1,8 +1,11 @@
 import { getTranslations } from "next-intl/server";
+import { MousePointerClick, TrendingUp, Wallet, CircleCheck } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { formatMoney } from "@/lib/currency/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetricCard } from "@/components/ui/metric-card";
+import { PageHeader } from "@/components/ui/page-header";
 import { PayoutMethodForm } from "@/components/partner/payout-method-form";
 
 export default async function AffiliateOverviewPage({
@@ -36,55 +39,33 @@ export default async function AffiliateOverviewPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{t("affiliateOverview")}</h1>
+      <PageHeader title={t("affiliateOverview")} />
 
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base">{t("referralLink")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <code className="block rounded bg-muted p-2 text-sm">{referralLink}</code>
+          <code className="block rounded-lg bg-muted p-2 text-sm">{referralLink}</code>
         </CardContent>
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">{t("totalClicks")}</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{clickCount}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">
-              {t("totalConversions")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{commissions.length}</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">
-              {t("pendingCommission")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {formatMoney(sum("PENDING").toString(), currency, locale)}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">
-              {t("approvedCommission")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {formatMoney(sum("APPROVED").toString(), currency, locale)}
-          </CardContent>
-        </Card>
+        <MetricCard label={t("totalClicks")} value={clickCount} icon={MousePointerClick} />
+        <MetricCard label={t("totalConversions")} value={commissions.length} icon={TrendingUp} />
+        <MetricCard
+          label={t("pendingCommission")}
+          value={formatMoney(sum("PENDING").toString(), currency, locale)}
+          icon={Wallet}
+        />
+        <MetricCard
+          label={t("approvedCommission")}
+          value={formatMoney(sum("APPROVED").toString(), currency, locale)}
+          icon={CircleCheck}
+        />
       </div>
 
-      <Card>
+      <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base">{t("payoutMethod")}</CardTitle>
         </CardHeader>
