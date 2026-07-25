@@ -17,8 +17,8 @@ export default async function CarBookingPage({
   if (!vehicle) notFound();
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+      <h1 className="text-2xl font-semibold tracking-tight">
         {vehicle.brand} {vehicle.model}
       </h1>
       <div className="mt-6">

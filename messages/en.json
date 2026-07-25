@@ -1,7 +1,17 @@
 {
   "Metadata": {
     "title": "TravlBok — Book Hotels & Cars Across Morocco and Beyond",
-    "description": "TravlBok is a travel marketplace for hotels and car rentals with partner tools for hotels, car rental companies, travel agencies and affiliates."
+    "description": "TravlBok is a travel marketplace for hotels and car rentals with partner tools for hotels, car rental companies, travel agencies and affiliates.",
+    "hotelsTitle": "Hotels",
+    "hotelsDescription": "Search and book hotels across Morocco and beyond, with real-time availability and secure payments.",
+    "carsTitle": "Car Rentals",
+    "carsDescription": "Compare and book rental cars from trusted local partners, with flexible pickup and drop-off options.",
+    "destinationsTitle": "Popular Destinations",
+    "destinationsDescription": "Discover the most popular cities and destinations on TravlBok.",
+    "dealsTitle": "Deals & Special Offers",
+    "dealsDescription": "The best hotel deals and last-minute offers on TravlBok.",
+    "contactTitle": "Contact Us",
+    "contactDescription": "Get in touch with the TravlBok team for support or partnership inquiries."
   },
   "Common": {
     "brand": "TravlBok",
@@ -413,7 +423,14 @@
     "bookingReference": "Booking reference",
     "downloadInvoice": "Download invoice",
     "cancelBooking": "Cancel booking",
-    "bookingHistory": "Booking history"
+    "bookingHistory": "Booking history",
+    "specialRequests": "Special requests",
+    "driverOption": "Driver",
+    "gpsOption": "GPS",
+    "childSeatOption": "Child seat",
+    "selectDatesPrompt": "Select dates and click \"{action}\" to see pricing.",
+    "minimumStayNights": "Minimum stay: {count, plural, one {# night} other {# nights}}",
+    "deposit": "Deposit"
   },
   "Payments": {
     "paymentMethod": "Payment method",
@@ -452,6 +469,10 @@
     "partnerBenefit3": "Manage your listings, prices and bookings in real time",
     "contactSubtitle": "We usually reply within one business day.",
     "contactMessageLabel": "Message"
+  },
+  "Account": {
+    "notifications": "Notifications",
+    "newLabel": "New"
   },
   "Errors": {
     "notFoundTitle": "Page not found",

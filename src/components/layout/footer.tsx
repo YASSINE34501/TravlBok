@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { Compass, Mail } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 
 export async function Footer() {
   const t = await getTranslations("Footer");
@@ -35,18 +36,28 @@ export async function Footer() {
 
   return (
     <footer className="border-t bg-muted/30">
-      <div className="mx-auto max-w-7xl px-4 py-12">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-5">
           <div className="md:col-span-2">
-            <p className="text-xl font-semibold text-primary">
-              {tCommon("brand")}
-            </p>
-            <p className="mt-3 max-w-sm text-sm text-muted-foreground">
+            <Link href="/" className="flex items-center gap-2 text-primary">
+              <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Compass className="size-4.5" />
+              </span>
+              <span className="text-lg font-semibold tracking-tight text-foreground">
+                {tCommon("brand")}
+              </span>
+            </Link>
+            <p className="mt-4 max-w-sm text-sm text-muted-foreground">
               {t("newsletterDescription")}
             </p>
-            <form className="mt-4 flex max-w-sm gap-2">
-              <Input type="email" placeholder={t("newsletterPlaceholder")} />
-              <Button type="submit" variant="secondary">
+            <form className="mt-5 max-w-sm">
+              <InputGroup>
+                <InputGroupAddon>
+                  <Mail className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput type="email" placeholder={t("newsletterPlaceholder")} />
+              </InputGroup>
+              <Button type="submit" className="mt-2 w-full">
                 {t("newsletterSubscribe")}
               </Button>
             </form>
@@ -54,13 +65,13 @@ export async function Footer() {
 
           {columns.map((column) => (
             <div key={column.title}>
-              <h3 className="text-sm font-semibold">{column.title}</h3>
-              <ul className="mt-3 space-y-2">
+              <h3 className="text-sm font-semibold text-foreground">{column.title}</h3>
+              <ul className="mt-4 space-y-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-muted-foreground hover:text-foreground"
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {link.label}
                     </Link>
@@ -71,7 +82,7 @@ export async function Footer() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t pt-6 sm:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 sm:flex-row">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} {tCommon("brand")}. {t("rights")}
           </p>

@@ -2,12 +2,16 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Search } from "lucide-react";
+import { BedDouble, Car, MapPin, CalendarDays, Users, Search } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 export function HeroSearch() {
   const t = useTranslations("Search");
@@ -48,11 +52,17 @@ export function HeroSearch() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl rounded-xl border bg-card p-4 text-start shadow-lg sm:p-6">
+    <div className="mx-auto max-w-4xl rounded-2xl border bg-card p-4 text-start shadow-xl ring-1 ring-black/5 sm:p-6">
       <Tabs defaultValue="hotels">
-        <TabsList>
-          <TabsTrigger value="hotels">{tHome("searchHotels")}</TabsTrigger>
-          <TabsTrigger value="cars">{tHome("searchCars")}</TabsTrigger>
+        <TabsList className="h-10 p-1">
+          <TabsTrigger value="hotels" className="gap-1.5 px-3 text-muted-foreground">
+            <BedDouble className="size-4" />
+            {tHome("searchHotels")}
+          </TabsTrigger>
+          <TabsTrigger value="cars" className="gap-1.5 px-3 text-muted-foreground">
+            <Car className="size-4" />
+            {tHome("searchCars")}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="hotels">
@@ -62,60 +72,78 @@ export function HeroSearch() {
           >
             <div className="sm:col-span-2">
               <Label htmlFor="hotel-destination">{t("destination")}</Label>
-              <Input
-                id="hotel-destination"
-                placeholder={t("destinationPlaceholder")}
-                value={hotelDestination}
-                onChange={(e) => setHotelDestination(e.target.value)}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <MapPin className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="hotel-destination"
+                  placeholder={t("destinationPlaceholder")}
+                  value={hotelDestination}
+                  onChange={(e) => setHotelDestination(e.target.value)}
+                />
+              </InputGroup>
             </div>
             <div>
               <Label htmlFor="check-in">{t("checkIn")}</Label>
-              <Input
-                id="check-in"
-                type="date"
-                value={checkIn}
-                onChange={(e) => setCheckIn(e.target.value)}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <CalendarDays className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="check-in"
+                  type="date"
+                  value={checkIn}
+                  onChange={(e) => setCheckIn(e.target.value)}
+                />
+              </InputGroup>
             </div>
             <div>
               <Label htmlFor="check-out">{t("checkOut")}</Label>
-              <Input
-                id="check-out"
-                type="date"
-                value={checkOut}
-                onChange={(e) => setCheckOut(e.target.value)}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <CalendarDays className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="check-out"
+                  type="date"
+                  value={checkOut}
+                  onChange={(e) => setCheckOut(e.target.value)}
+                />
+              </InputGroup>
             </div>
             <div className="sm:col-span-2">
               <Label htmlFor="guests">{tCommon("guests")}</Label>
-              <Input
-                id="guests"
-                type="number"
-                min={1}
-                max={20}
-                value={guests}
-                onChange={(e) => setGuests(Number(e.target.value))}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <Users className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="guests"
+                  type="number"
+                  min={1}
+                  max={20}
+                  value={guests}
+                  onChange={(e) => setGuests(Number(e.target.value))}
+                />
+              </InputGroup>
             </div>
             <div>
               <Label htmlFor="rooms">{tCommon("rooms")}</Label>
-              <Input
-                id="rooms"
-                type="number"
-                min={1}
-                max={10}
-                value={rooms}
-                onChange={(e) => setRooms(Number(e.target.value))}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupInput
+                  id="rooms"
+                  type="number"
+                  min={1}
+                  max={10}
+                  value={rooms}
+                  onChange={(e) => setRooms(Number(e.target.value))}
+                />
+              </InputGroup>
             </div>
             <Button type="submit" size="lg" className="gap-2 sm:col-span-1 sm:self-end">
               <Search className="size-4" />
+              {tCommon("search")}
             </Button>
           </form>
         </TabsContent>
@@ -127,46 +155,63 @@ export function HeroSearch() {
           >
             <div>
               <Label htmlFor="car-location">{t("pickupLocation")}</Label>
-              <Input
-                id="car-location"
-                placeholder={t("destinationPlaceholder")}
-                value={carLocation}
-                onChange={(e) => setCarLocation(e.target.value)}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <MapPin className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="car-location"
+                  placeholder={t("destinationPlaceholder")}
+                  value={carLocation}
+                  onChange={(e) => setCarLocation(e.target.value)}
+                />
+              </InputGroup>
             </div>
             <div>
               <Label htmlFor="car-dropoff-location">{t("dropoffLocation")}</Label>
-              <Input
-                id="car-dropoff-location"
-                placeholder={t("destinationPlaceholder")}
-                value={carDropoffLocation}
-                onChange={(e) => setCarDropoffLocation(e.target.value)}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <MapPin className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="car-dropoff-location"
+                  placeholder={t("destinationPlaceholder")}
+                  value={carDropoffLocation}
+                  onChange={(e) => setCarDropoffLocation(e.target.value)}
+                />
+              </InputGroup>
             </div>
             <div>
               <Label htmlFor="pickup-date">{t("pickupDate")}</Label>
-              <Input
-                id="pickup-date"
-                type="date"
-                value={pickupDate}
-                onChange={(e) => setPickupDate(e.target.value)}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <CalendarDays className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="pickup-date"
+                  type="date"
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                />
+              </InputGroup>
             </div>
             <div>
               <Label htmlFor="return-date">{t("returnDate")}</Label>
-              <Input
-                id="return-date"
-                type="date"
-                value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
-                className="mt-1"
-              />
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <CalendarDays className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="return-date"
+                  type="date"
+                  value={returnDate}
+                  onChange={(e) => setReturnDate(e.target.value)}
+                />
+              </InputGroup>
             </div>
             <Button type="submit" size="lg" className="gap-2 sm:col-span-1 sm:self-end">
               <Search className="size-4" />
+              {tCommon("search")}
             </Button>
           </form>
         </TabsContent>

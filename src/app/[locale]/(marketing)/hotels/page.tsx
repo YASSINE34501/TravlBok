@@ -1,4 +1,6 @@
+import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
+import { SearchX } from "lucide-react";
 import { searchHotels } from "@/domains/hotels/queries";
 import { prisma } from "@/lib/db";
 import { getDisplayCurrencyContext } from "@/lib/currency/display";
@@ -7,9 +9,19 @@ import { HotelCard } from "@/components/hotels/hotel-card";
 import { HotelFilters } from "@/components/hotels/hotel-filters";
 import { SearchSort } from "@/components/search/search-sort";
 import { Pagination } from "@/components/search/pagination";
-import { EmptyState } from "@/components/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "Metadata" });
+  return { title: t("hotelsTitle"), description: t("hotelsDescription") };
+}
 
 export default async function HotelsSearchPage({
   params,
@@ -22,6 +34,7 @@ export default async function HotelsSearchPage({
   setRequestLocale(locale);
   const query = await searchParams;
   const t = await getTranslations("Search");
+  const tCommon = await getTranslations("Common");
 
   const { currency, rates } = await getDisplayCurrencyContext();
 
@@ -65,22 +78,22 @@ export default async function HotelsSearchPage({
   }));
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-        <h1 className="text-2xl font-semibold">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {t("resultsCount", { count: total })}
         </h1>
         <SearchSort basePath="/hotels" />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[260px_1fr]">
-        <aside>
+        <aside className="rounded-2xl border bg-card p-5 shadow-sm md:h-fit">
           <HotelFilters amenities={amenityOptions} propertyTypes={propertyTypeOptions} />
         </aside>
 
         <div>
           {hotels.length === 0 ? (
-            <EmptyState />
+            <EmptyState icon={SearchX} title={tCommon("noResults")} />
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {hotels.map((hotel) => (

@@ -1,7 +1,17 @@
 {
   "Metadata": {
     "title": "TravlBok — Réservez hôtels et voitures au Maroc et ailleurs",
-    "description": "TravlBok est une marketplace de voyage pour hôtels et locations de voitures, avec des outils partenaires pour hôtels, loueurs de voitures, agences de voyage et affiliés."
+    "description": "TravlBok est une marketplace de voyage pour hôtels et locations de voitures, avec des outils partenaires pour hôtels, loueurs de voitures, agences de voyage et affiliés.",
+    "hotelsTitle": "Hôtels",
+    "hotelsDescription": "Recherchez et réservez des hôtels au Maroc et ailleurs, avec disponibilité en temps réel et paiement sécurisé.",
+    "carsTitle": "Location de voitures",
+    "carsDescription": "Comparez et réservez des voitures de location auprès de partenaires locaux de confiance, avec des options flexibles de prise en charge et de restitution.",
+    "destinationsTitle": "Destinations populaires",
+    "destinationsDescription": "Découvrez les villes et destinations les plus populaires sur TravlBok.",
+    "dealsTitle": "Offres spéciales",
+    "dealsDescription": "Les meilleures offres d'hôtels et promotions de dernière minute sur TravlBok.",
+    "contactTitle": "Contactez-nous",
+    "contactDescription": "Contactez l'équipe TravlBok pour toute demande d'assistance ou de partenariat."
   },
   "Common": {
     "brand": "TravlBok",
@@ -413,7 +423,14 @@
     "bookingReference": "Référence de réservation",
     "downloadInvoice": "Télécharger la facture",
     "cancelBooking": "Annuler la réservation",
-    "bookingHistory": "Historique des réservations"
+    "bookingHistory": "Historique des réservations",
+    "specialRequests": "Demandes spéciales",
+    "driverOption": "Chauffeur",
+    "gpsOption": "GPS",
+    "childSeatOption": "Siège enfant",
+    "selectDatesPrompt": "Sélectionnez les dates et cliquez sur « {action} » pour voir le prix.",
+    "minimumStayNights": "Séjour minimum : {count, plural, one {# nuit} other {# nuits}}",
+    "deposit": "Caution"
   },
   "Payments": {
     "paymentMethod": "Mode de paiement",
@@ -452,6 +469,10 @@
     "partnerBenefit3": "Gérez vos annonces, tarifs et réservations en temps réel",
     "contactSubtitle": "Nous répondons généralement sous un jour ouvré.",
     "contactMessageLabel": "Message"
+  },
+  "Account": {
+    "notifications": "Notifications",
+    "newLabel": "Nouveau"
   },
   "Errors": {
     "notFoundTitle": "Page introuvable",

@@ -1,11 +1,24 @@
 import { getTranslations } from "next-intl/server";
+import { CalendarX } from "lucide-react";
 import { requireUser } from "@/lib/rbac";
 import { prisma } from "@/lib/db";
 import { formatMoney } from "@/lib/currency/format";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/empty-state";
+import { StatusBadge, type StatusTone } from "@/components/ui/status-badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import type { BookingStatus } from "@/generated/prisma/client";
+
+const STATUS_TONE: Record<BookingStatus, StatusTone> = {
+  DRAFT: "neutral",
+  PENDING: "warning",
+  CONFIRMED: "success",
+  CANCELLED: "destructive",
+  COMPLETED: "success",
+  NO_SHOW: "destructive",
+  REFUNDED: "neutral",
+  PARTIALLY_REFUNDED: "neutral",
+};
 
 export default async function AccountBookingsPage({
   params,
@@ -16,6 +29,7 @@ export default async function AccountBookingsPage({
   const user = await requireUser(locale);
   const t = await getTranslations("Booking");
   const tStatus = await getTranslations("BookingStatus");
+  const tCommon = await getTranslations("Common");
 
   const reservations = await prisma.reservation.findMany({
     where: { customerUserId: user.id },
@@ -24,21 +38,21 @@ export default async function AccountBookingsPage({
   });
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">{t("bookingHistory")}</h1>
+    <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+      <h1 className="text-2xl font-semibold tracking-tight">{t("bookingHistory")}</h1>
 
       {reservations.length === 0 ? (
         <div className="mt-8">
-          <EmptyState />
+          <EmptyState icon={CalendarX} title={tCommon("noResults")} />
         </div>
       ) : (
         <div className="mt-6 space-y-3">
           {reservations.map((reservation) => (
             <Link key={reservation.id} href={`/bookings/${reservation.id}`}>
-              <Card className="transition-shadow hover:shadow-md">
+              <Card className="rounded-2xl transition-all hover:-translate-y-0.5 hover:shadow-md">
                 <CardContent className="flex items-center justify-between py-4">
                   <div>
-                    <p className="font-medium">
+                    <p className="font-medium text-foreground">
                       {reservation.type === "HOTEL"
                         ? reservation.hotelLink?.hotel.name
                         : `${reservation.carLink?.vehicle.brand} ${reservation.carLink?.vehicle.model}`}
@@ -48,8 +62,10 @@ export default async function AccountBookingsPage({
                     </p>
                   </div>
                   <div className="text-end">
-                    <Badge variant="secondary">{tStatus(reservation.status)}</Badge>
-                    <p className="mt-1 text-sm font-medium">
+                    <StatusBadge tone={STATUS_TONE[reservation.status]}>
+                      {tStatus(reservation.status)}
+                    </StatusBadge>
+                    <p className="mt-1.5 text-sm font-medium text-foreground">
                       {formatMoney(
                         reservation.totalAmount.toString(),
                         reservation.currency,

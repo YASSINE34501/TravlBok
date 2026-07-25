@@ -1,4 +1,6 @@
-import { Star, MapPin } from "lucide-react";
+import Image from "next/image";
+import { getTranslations } from "next-intl/server";
+import { Star, MapPin, BedDouble } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +19,7 @@ type HotelCardData = {
   avgRating?: number | null;
 };
 
-export function HotelCard({
+export async function HotelCard({
   hotel,
   locale,
   displayCurrency,
@@ -28,35 +30,37 @@ export function HotelCard({
   displayCurrency: CurrencyCode;
   rates: Record<CurrencyCode, number>;
 }) {
+  const t = await getTranslations({ locale, namespace: "Common" });
   const cityName = hotel.city
     ? pickLocaleText(hotel.city.name as Record<string, unknown>, locale)
     : null;
 
   return (
-    <Link href={`/hotels/${hotel.id}`}>
-      <Card className="overflow-hidden py-0 transition-shadow hover:shadow-md">
-        <div className="relative aspect-[4/3] w-full bg-muted">
+    <Link href={`/hotels/${hotel.id}`} className="group block">
+      <Card className="overflow-hidden rounded-2xl py-0 ring-1 ring-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/20">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
           {hotel.mainImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={hotel.mainImageUrl}
               alt={hotel.name}
-              className="h-full w-full object-cover"
+              fill
+              sizes="(min-width: 1024px) 320px, (min-width: 640px) 45vw, 90vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-              <MapPin className="size-8" />
+              <BedDouble className="size-8" />
             </div>
           )}
           {hotel.starRating ? (
-            <Badge className="absolute start-2 top-2 gap-1 bg-background/90 text-foreground">
+            <Badge className="absolute start-2.5 top-2.5 gap-1 bg-background/90 text-foreground shadow-sm backdrop-blur-sm">
               <Star className="size-3 fill-accent text-accent" />
               {hotel.starRating}
             </Badge>
           ) : null}
         </div>
         <CardContent className="space-y-1.5 pb-4">
-          <p className="line-clamp-1 font-medium">{hotel.name}</p>
+          <p className="line-clamp-1 font-medium text-foreground">{hotel.name}</p>
           {cityName && (
             <p className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="size-3.5" />
@@ -64,14 +68,15 @@ export function HotelCard({
             </p>
           )}
           {hotel.avgRating ? (
-            <p className="text-sm text-muted-foreground">
-              ★ {hotel.avgRating.toFixed(1)}
+            <p className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Star className="size-3.5 fill-accent text-accent" />
+              {hotel.avgRating.toFixed(1)}
             </p>
           ) : null}
           {hotel.fromPrice ? (
             <p className="pt-1 text-sm">
-              <span className="text-muted-foreground">from </span>
-              <span className="font-semibold">
+              <span className="text-muted-foreground">{t("from")} </span>
+              <span className="font-semibold text-foreground">
                 {formatFromBase(
                   hotel.fromPrice as string,
                   hotel.fromPriceCurrency,
@@ -80,7 +85,7 @@ export function HotelCard({
                   locale
                 )}
               </span>
-              <span className="text-muted-foreground"> / night</span>
+              <span className="text-muted-foreground"> {t("perNight")}</span>
             </p>
           ) : null}
         </CardContent>

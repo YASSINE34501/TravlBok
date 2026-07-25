@@ -1,7 +1,17 @@
 {
   "Metadata": {
     "title": "TravlBok — احجز الفنادق وسيارات الأجرة في المغرب وخارجه",
-    "description": "TravlBok هي سوق سفر للفنادق وتأجير السيارات، مع أدوات شراكة للفنادق وشركات تأجير السيارات ووكالات السفر والمسوقين بالعمولة."
+    "description": "TravlBok هي سوق سفر للفنادق وتأجير السيارات، مع أدوات شراكة للفنادق وشركات تأجير السيارات ووكالات السفر والمسوقين بالعمولة.",
+    "hotelsTitle": "الفنادق",
+    "hotelsDescription": "ابحث واحجز الفنادق في المغرب وخارجه، مع توفر فوري ودفع آمن.",
+    "carsTitle": "تأجير السيارات",
+    "carsDescription": "قارن واحجز سيارات الإيجار من شركاء محليين موثوقين، مع خيارات مرنة للاستلام والتسليم.",
+    "destinationsTitle": "الوجهات الشائعة",
+    "destinationsDescription": "اكتشف أكثر المدن والوجهات شعبية على TravlBok.",
+    "dealsTitle": "العروض الخاصة",
+    "dealsDescription": "أفضل عروض الفنادق وعروض اللحظة الأخيرة على TravlBok.",
+    "contactTitle": "اتصل بنا",
+    "contactDescription": "تواصل مع فريق TravlBok للدعم أو الاستفسارات الخاصة بالشراكة."
   },
   "Common": {
     "brand": "TravlBok",
@@ -413,7 +423,14 @@
     "bookingReference": "رقم مرجع الحجز",
     "downloadInvoice": "تنزيل الفاتورة",
     "cancelBooking": "إلغاء الحجز",
-    "bookingHistory": "سجل الحجوزات"
+    "bookingHistory": "سجل الحجوزات",
+    "specialRequests": "طلبات خاصة",
+    "driverOption": "سائق",
+    "gpsOption": "نظام تحديد المواقع (GPS)",
+    "childSeatOption": "مقعد طفل",
+    "selectDatesPrompt": "اختر التواريخ واضغط على \"{action}\" لعرض السعر.",
+    "minimumStayNights": "الحد الأدنى للإقامة: {count, plural, one {# ليلة} other {# ليالٍ}}",
+    "deposit": "التأمين"
   },
   "Payments": {
     "paymentMethod": "طريقة الدفع",
@@ -452,6 +469,10 @@
     "partnerBenefit3": "أدر إعلاناتك وأسعارك وحجوزاتك في الوقت الفعلي",
     "contactSubtitle": "نرد عادة خلال يوم عمل واحد.",
     "contactMessageLabel": "الرسالة"
+  },
+  "Account": {
+    "notifications": "الإشعارات",
+    "newLabel": "جديد"
   },
   "Errors": {
     "notFoundTitle": "الصفحة غير موجودة",

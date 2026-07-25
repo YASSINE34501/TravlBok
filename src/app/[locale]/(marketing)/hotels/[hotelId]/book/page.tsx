@@ -23,8 +23,8 @@ export default async function HotelBookingPage({
   if (!roomType || roomType.hotel.status !== "PUBLISHED") notFound();
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="text-2xl font-semibold">{roomType.hotel.name}</h1>
+    <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+      <h1 className="text-2xl font-semibold tracking-tight">{roomType.hotel.name}</h1>
       <p className="text-muted-foreground">{roomType.name}</p>
       <div className="mt-6">
         <HotelBookingForm locale={locale} roomTypeId={roomType.id} minStay={roomType.minStay} />

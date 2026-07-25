@@ -168,18 +168,18 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
                 checked={driverOptionRequested}
                 onCheckedChange={(c) => setDriverOptionRequested(c === true)}
               />
-              Driver
+              {t("driverOption")}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <Checkbox checked={gpsRequested} onCheckedChange={(c) => setGpsRequested(c === true)} />
-              GPS
+              {t("gpsOption")}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <Checkbox
                 checked={childSeatRequested}
                 onCheckedChange={(c) => setChildSeatRequested(c === true)}
               />
-              Child seat
+              {t("childSeatOption")}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <Checkbox
@@ -233,7 +233,7 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
             </div>
           </div>
           <div>
-            <Label htmlFor="requests">Special requests</Label>
+            <Label htmlFor="requests">{t("specialRequests")}</Label>
             <Textarea
               id="requests"
               rows={3}
@@ -294,7 +294,7 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Select dates and click {tCommon("viewDetails")} to see pricing.
+              {t("selectDatesPrompt", { action: tCommon("viewDetails") })}
             </p>
           )}
         </CardContent>

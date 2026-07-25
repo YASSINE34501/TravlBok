@@ -197,7 +197,7 @@ export function HotelBookingForm({
             </div>
           </div>
           <div>
-            <Label htmlFor="requests">Special requests</Label>
+            <Label htmlFor="requests">{t("specialRequests")}</Label>
             <Textarea
               id="requests"
               rows={3}
@@ -261,10 +261,12 @@ export function HotelBookingForm({
             </>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Select dates and click {tCommon("viewDetails")} to see pricing.
+              {t("selectDatesPrompt", { action: tCommon("viewDetails") })}
             </p>
           )}
-          <p className="text-xs text-muted-foreground">Minimum stay: {minStay} night(s)</p>
+          <p className="text-xs text-muted-foreground">
+            {t("minimumStayNights", { count: minStay })}
+          </p>
         </CardContent>
       </Card>
     </div>

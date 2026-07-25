@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -57,7 +58,14 @@ export function ContactForm() {
   }
 
   if (sent) {
-    return <p className="text-muted-foreground">{tCommon("success")}</p>;
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed py-12 text-center">
+        <span className="flex size-11 items-center justify-center rounded-full bg-success/10 text-success">
+          <CircleCheck className="size-6" />
+        </span>
+        <p className="font-medium text-foreground">{tCommon("success")}</p>
+      </div>
+    );
   }
 
   return (
