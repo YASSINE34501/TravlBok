@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,6 +29,7 @@ export function GenerateRoomInventoryForm({
   roomTypes: RoomTypeOption[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Pms");
   const [roomTypeId, setRoomTypeId] = useState(roomTypes[0]?.id ?? "");
   const [count, setCount] = useState("1");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,7 +51,7 @@ export function GenerateRoomInventoryForm({
         toast.error(result.error);
         return;
       }
-      toast.success("Rooms generated");
+      toast.success(t("roomsGenerated"));
       router.refresh();
     } finally {
       setIsSubmitting(false);
@@ -72,7 +74,7 @@ export function GenerateRoomInventoryForm({
       </Select>
       <Input type="number" min={1} value={count} onChange={(e) => setCount(e.target.value)} />
       <Button disabled={isSubmitting} onClick={handleSubmit}>
-        Generate room units
+        {t("generateRoomUnits")}
       </Button>
     </div>
   );

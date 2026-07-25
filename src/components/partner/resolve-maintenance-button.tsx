@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { resolveMaintenanceIssueAction } from "@/domains/housekeeping/actions";
 import { useRouter } from "@/i18n/navigation";
@@ -15,6 +16,7 @@ export function ResolveMaintenanceButton({
   taskId: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("Pms");
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -28,7 +30,7 @@ export function ResolveMaintenanceButton({
         })
       }
     >
-      Resolve
+      {t("resolve")}
     </Button>
   );
 }

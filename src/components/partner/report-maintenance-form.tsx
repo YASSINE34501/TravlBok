@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,13 +29,15 @@ export function ReportMaintenanceForm({
   rooms: RoomOption[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Pms");
+  const tPriority = useTranslations("TaskPriority");
   const [roomInventoryId, setRoomInventoryId] = useState("NONE");
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<"LOW" | "NORMAL" | "HIGH" | "URGENT">("NORMAL");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const roomItems: Record<string, string> = {
-    NONE: "General (no specific room)",
+    NONE: t("generalNoRoom"),
     ...Object.fromEntries(rooms.map((r) => [r.id, r.unitNumber])),
   };
 
@@ -48,7 +51,7 @@ export function ReportMaintenanceForm({
         title,
         priority,
       });
-      toast.success("Issue reported");
+      toast.success(t("issueReported"));
       setTitle("");
       router.refresh();
     } finally {
@@ -63,7 +66,7 @@ export function ReportMaintenanceForm({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="NONE">General (no specific room)</SelectItem>
+          <SelectItem value="NONE">{t("generalNoRoom")}</SelectItem>
           {rooms.map((r) => (
             <SelectItem key={r.id} value={r.id}>
               {r.unitNumber}
@@ -71,9 +74,14 @@ export function ReportMaintenanceForm({
           ))}
         </SelectContent>
       </Select>
-      <Input placeholder="Issue" value={title} onChange={(e) => setTitle(e.target.value)} />
+      <Input placeholder={t("issue")} value={title} onChange={(e) => setTitle(e.target.value)} />
       <Select
-        items={{ LOW: "Low", NORMAL: "Normal", HIGH: "High", URGENT: "Urgent" }}
+        items={{
+          LOW: tPriority("LOW"),
+          NORMAL: tPriority("NORMAL"),
+          HIGH: tPriority("HIGH"),
+          URGENT: tPriority("URGENT"),
+        }}
         value={priority}
         onValueChange={(v) => v && setPriority(v as typeof priority)}
       >
@@ -81,14 +89,14 @@ export function ReportMaintenanceForm({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="LOW">Low</SelectItem>
-          <SelectItem value="NORMAL">Normal</SelectItem>
-          <SelectItem value="HIGH">High</SelectItem>
-          <SelectItem value="URGENT">Urgent</SelectItem>
+          <SelectItem value="LOW">{tPriority("LOW")}</SelectItem>
+          <SelectItem value="NORMAL">{tPriority("NORMAL")}</SelectItem>
+          <SelectItem value="HIGH">{tPriority("HIGH")}</SelectItem>
+          <SelectItem value="URGENT">{tPriority("URGENT")}</SelectItem>
         </SelectContent>
       </Select>
       <Button disabled={isSubmitting} onClick={handleSubmit}>
-        Report issue
+        {t("reportIssue")}
       </Button>
     </div>
   );

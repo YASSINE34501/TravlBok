@@ -8,6 +8,9 @@ import type {
   ChannelConnectionStatus,
   WithdrawalStatus,
   SyncJobStatus,
+  RoomOperationalStatus,
+  TaskStatus,
+  TaskPriority,
 } from "@/generated/prisma/client";
 import type { StatusTone } from "@/components/ui/status-badge";
 
@@ -87,4 +90,31 @@ export const SYNC_JOB_STATUS_TONE: Record<SyncJobStatus, StatusTone> = {
   FAILED: "destructive",
   PARTIAL: "warning",
   CONFLICT: "destructive",
+};
+
+export const ROOM_OPERATIONAL_STATUS_TONE: Record<RoomOperationalStatus, StatusTone> = {
+  AVAILABLE: "success",
+  READY: "success",
+  INSPECTED: "success",
+  RESERVED: "info",
+  OCCUPIED: "info",
+  DIRTY: "warning",
+  CLEANING: "warning",
+  OUT_OF_SERVICE: "destructive",
+  MAINTENANCE: "destructive",
+};
+
+export const PMS_TASK_STATUS_TONE: Record<TaskStatus, StatusTone> = {
+  PENDING: "neutral",
+  IN_PROGRESS: "info",
+  COMPLETED: "success",
+  INSPECTED: "success",
+  REOPENED: "warning",
+};
+
+export const TASK_PRIORITY_TONE: Record<TaskPriority, StatusTone> = {
+  LOW: "neutral",
+  NORMAL: "info",
+  HIGH: "warning",
+  URGENT: "destructive",
 };

@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   startCleaningAction,
@@ -26,13 +27,15 @@ export function HousekeepingTaskActions({
   canInspect: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("Pms");
+  const tCommon = useTranslations("Common");
   const [isPending, startTransition] = useTransition();
 
   function run(action: () => Promise<{ success: boolean; error?: string }>) {
     startTransition(async () => {
       const result = await action();
       if (!result.success) {
-        toast.error(result.error ?? "Error");
+        toast.error(result.error ?? tCommon("error"));
         return;
       }
       router.refresh();
@@ -43,7 +46,7 @@ export function HousekeepingTaskActions({
     <div className="flex gap-2">
       {status === "PENDING" && (
         <Button size="sm" disabled={isPending} onClick={() => run(() => startCleaningAction(locale, organizationId, taskId))}>
-          Start
+          {t("start")}
         </Button>
       )}
       {status === "IN_PROGRESS" && (
@@ -52,7 +55,7 @@ export function HousekeepingTaskActions({
           disabled={isPending}
           onClick={() => run(() => completeCleaningAction(locale, organizationId, taskId))}
         >
-          Complete
+          {t("complete")}
         </Button>
       )}
       {status === "COMPLETED" && (
@@ -62,7 +65,7 @@ export function HousekeepingTaskActions({
           disabled={isPending}
           onClick={() => run(() => requestInspectionAction(locale, organizationId, taskId))}
         >
-          Request inspection
+          {t("requestInspection")}
         </Button>
       )}
       {canInspect && status === "COMPLETED" && (
@@ -72,7 +75,7 @@ export function HousekeepingTaskActions({
             disabled={isPending}
             onClick={() => run(() => inspectRoomAction(locale, organizationId, taskId, true))}
           >
-            Pass
+            {t("pass")}
           </Button>
           <Button
             size="sm"
@@ -80,7 +83,7 @@ export function HousekeepingTaskActions({
             disabled={isPending}
             onClick={() => run(() => inspectRoomAction(locale, organizationId, taskId, false))}
           >
-            Fail
+            {t("fail")}
           </Button>
         </>
       )}
@@ -91,7 +94,7 @@ export function HousekeepingTaskActions({
           disabled={isPending}
           onClick={() => run(() => reopenTaskAction(locale, organizationId, taskId))}
         >
-          Reopen
+          {t("reopen")}
         </Button>
       )}
     </div>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -36,6 +37,7 @@ export function WalkInDialog({
   roomTypes: RoomTypeOption[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Pms");
   const [open, setOpen] = useState(false);
   const [roomTypeId, setRoomTypeId] = useState(roomTypes[0]?.id ?? "");
   const [checkInDate, setCheckInDate] = useState(new Date().toISOString().slice(0, 10));
@@ -66,7 +68,7 @@ export function WalkInDialog({
         toast.error(result.error);
         return;
       }
-      toast.success("Walk-in booking created");
+      toast.success(t("walkInBookingCreated"));
       setOpen(false);
       router.refresh();
     } finally {
@@ -76,10 +78,10 @@ export function WalkInDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button />}>Walk-in booking</DialogTrigger>
+      <DialogTrigger render={<Button />}>{t("walkIn")}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New walk-in booking</DialogTitle>
+          <DialogTitle>{t("newWalkInBooking")}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <Select items={roomTypeItems} value={roomTypeId} onValueChange={(v) => v && setRoomTypeId(v)}>
@@ -100,32 +102,32 @@ export function WalkInDialog({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <Input
-              placeholder="First name"
+              placeholder={t("firstName")}
               value={guestFirstName}
               onChange={(e) => setGuestFirstName(e.target.value)}
             />
             <Input
-              placeholder="Last name"
+              placeholder={t("lastName")}
               value={guestLastName}
               onChange={(e) => setGuestLastName(e.target.value)}
             />
           </div>
           <Input
             type="email"
-            placeholder="Email"
+            placeholder={t("email")}
             value={guestEmail}
             onChange={(e) => setGuestEmail(e.target.value)}
           />
           <Input
             type="tel"
-            placeholder="Phone"
+            placeholder={t("phone")}
             value={guestPhone}
             onChange={(e) => setGuestPhone(e.target.value)}
           />
         </div>
         <DialogFooter>
           <Button disabled={isSubmitting} onClick={handleSubmit}>
-            Create booking
+            {t("createBooking")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,6 +4,7 @@ import {
   Car,
   MapPinned,
   CalendarCheck,
+  CalendarDays,
   Star,
   Settings,
   Users,
@@ -80,6 +81,11 @@ function getPartnerNavGroups(
                 label: t("pmsFrontDesk"),
                 icon: <ClipboardList />,
                 exactMatch: true,
+              },
+              {
+                href: "/dashboard/pms/calendar",
+                label: t("pmsCalendar"),
+                icon: <CalendarDays />,
               },
               {
                 href: "/dashboard/pms/housekeeping",

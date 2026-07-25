@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,6 +29,7 @@ export function CheckOutDialog({
   guestName: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("Pms");
   const [open, setOpen] = useState(false);
   const [extraChargesAmount, setExtraChargesAmount] = useState("0");
   const [discountAmount, setDiscountAmount] = useState("0");
@@ -46,7 +48,7 @@ export function CheckOutDialog({
         toast.error(result.error);
         return;
       }
-      toast.success("Checked out");
+      toast.success(t("checkedOut"));
       setOpen(false);
       router.refresh();
     } finally {
@@ -56,33 +58,33 @@ export function CheckOutDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" variant="outline" />}>Check out</DialogTrigger>
+      <DialogTrigger render={<Button size="sm" variant="outline" />}>{t("checkOut")}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Check out — {guestName}</DialogTitle>
+          <DialogTitle>{t("checkOutGuest", { guest: guestName })}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <Input
             type="number"
-            placeholder="Extra charges"
+            placeholder={t("extraCharges")}
             value={extraChargesAmount}
             onChange={(e) => setExtraChargesAmount(e.target.value)}
           />
           <Input
             type="number"
-            placeholder="Discount"
+            placeholder={t("discount")}
             value={discountAmount}
             onChange={(e) => setDiscountAmount(e.target.value)}
           />
           <Textarea
-            placeholder="Room condition notes"
+            placeholder={t("roomConditionNotes")}
             value={roomConditionNotes}
             onChange={(e) => setRoomConditionNotes(e.target.value)}
           />
         </div>
         <DialogFooter>
           <Button disabled={isSubmitting} onClick={handleSubmit}>
-            Confirm check-out
+            {t("confirmCheckOut")}
           </Button>
         </DialogFooter>
       </DialogContent>

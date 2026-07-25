@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { TrendingUp, DollarSign, Gauge, XCircle } from "lucide-react";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import {
@@ -7,7 +9,13 @@ import {
   getCancellationsReport,
 } from "@/domains/pms/reports";
 import { formatMoney } from "@/lib/currency/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { MetricCard } from "@/components/ui/metric-card";
+import { DataTableShell } from "@/components/ui/data-table";
+import { AreaChart } from "@/components/ui/charts/area-chart";
+import { BarChart } from "@/components/ui/charts/bar-chart";
+import type { ChartConfig } from "@/components/ui/charts/chart-container";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ReportExportLinks } from "@/components/partner/report-export-links";
 
 export default async function PmsReportsPage({
@@ -20,6 +28,7 @@ export default async function PmsReportsPage({
   const { locale } = await params;
   const { hotelId: requestedHotelId } = await searchParams;
   const { organization } = await getPartnerContext(locale);
+  const t = await getTranslations("Pms");
 
   const hotels = await prisma.hotel.findMany({
     where: { organizationId: organization.id, deletedAt: null },
@@ -47,73 +56,85 @@ export default async function PmsReportsPage({
   const avgRevpar =
     occupancy.length > 0 ? occupancy.reduce((sum, r) => sum + r.revpar, 0) / occupancy.length : 0;
 
+  const occupancyChartConfig: ChartConfig = {
+    occupancyPercent: { label: t("avgOccupancy"), color: "var(--chart-1)" },
+  };
+  const revenueChartConfig: ChartConfig = {
+    revenue: { label: t("revenueByRoomType"), color: "var(--chart-2)" },
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Reports — {hotel.name} (last 30 days)</h1>
-      <ReportExportLinks locale={locale} hotelId={hotel.id} type="occupancy" />
+      <PageHeader
+        title={t("reports")}
+        description={`${hotel.name} · ${t("last30Days")}`}
+        actions={<ReportExportLinks locale={locale} hotelId={hotel.id} type="occupancy" />}
+      />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Avg. Occupancy</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">{avgOccupancy.toFixed(1)}%</CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Avg. ADR</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {formatMoney(avgAdr.toFixed(2), "MAD", locale)}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">Avg. RevPAR</CardTitle>
-          </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {formatMoney(avgRevpar.toFixed(2), "MAD", locale)}
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <MetricCard label={t("avgOccupancy")} value={`${avgOccupancy.toFixed(1)}%`} icon={Gauge} />
+        <MetricCard
+          label={t("avgAdr")}
+          value={formatMoney(avgAdr.toFixed(2), "MAD", locale)}
+          icon={DollarSign}
+        />
+        <MetricCard
+          label={t("avgRevpar")}
+          value={formatMoney(avgRevpar.toFixed(2), "MAD", locale)}
+          icon={TrendingUp}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Revenue by room type</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {revenueByRoomType.map((row) => (
-            <div key={row.roomTypeName} className="flex items-center justify-between text-sm">
-              <span>
-                {row.roomTypeName} ({row.roomsSold} rooms)
-              </span>
-              <span>{formatMoney(row.revenue.toFixed(2), "MAD", locale)}</span>
-            </div>
-          ))}
-          {revenueByRoomType.length === 0 && (
-            <p className="text-sm text-muted-foreground">No revenue in this period.</p>
+      <DataTableShell title={t("avgOccupancy")}>
+        <div className="p-4 sm:p-5">
+          {occupancy.length > 0 ? (
+            <AreaChart
+              data={occupancy}
+              index="day"
+              categories={["occupancyPercent"]}
+              config={occupancyChartConfig}
+              showLegend={false}
+            />
+          ) : (
+            <EmptyState title={t("noRevenueInPeriod")} className="border-0 py-12" />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </DataTableShell>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Cancellations ({cancellations.length})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {cancellations.slice(0, 20).map((r) => (
-            <div key={r.id} className="flex items-center justify-between text-sm">
-              <span>
-                {r.bookingReference} · {r.guestFirstName} {r.guestLastName}
-              </span>
-              <span className="text-muted-foreground">{r.status}</span>
-            </div>
-          ))}
-          {cancellations.length === 0 && (
-            <p className="text-sm text-muted-foreground">No cancellations.</p>
+      <DataTableShell title={t("revenueByRoomType")}>
+        <div className="p-4 sm:p-5">
+          {revenueByRoomType.length > 0 ? (
+            <BarChart
+              data={revenueByRoomType}
+              index="roomTypeName"
+              categories={["revenue"]}
+              config={revenueChartConfig}
+              showLegend={false}
+              currency="MAD"
+              locale={locale}
+            />
+          ) : (
+            <EmptyState title={t("noRevenueInPeriod")} className="border-0 py-12" />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </DataTableShell>
+
+      <DataTableShell title={`${t("cancellations")} (${cancellations.length})`}>
+        {cancellations.length === 0 ? (
+          <EmptyState icon={XCircle} title={t("noCancellations")} className="border-0 py-12" />
+        ) : (
+          <div className="divide-y">
+            {cancellations.slice(0, 20).map((r) => (
+              <div key={r.id} className="flex items-center justify-between gap-3 px-4 py-3 sm:px-5">
+                <p className="text-sm text-foreground">
+                  {r.bookingReference} · {r.guestFirstName} {r.guestLastName}
+                </p>
+                <p className="text-sm text-muted-foreground">{r.status}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </DataTableShell>
     </div>
   );
 }
