@@ -41,11 +41,24 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "Metadata" });
 
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
     title: {
       default: t("title"),
       template: `%s | TravlBok`,
     },
     description: t("description"),
+    openGraph: {
+      title: t("title"),
+      description: t("description"),
+      siteName: "TravlBok",
+      locale,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
   };
 }
 
