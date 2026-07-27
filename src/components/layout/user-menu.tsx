@@ -72,7 +72,7 @@ export function UserMenu({
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => signOut()}>
+        <DropdownMenuItem onClick={() => signOut()}>
           <LogOut />
           {t("logout")}
         </DropdownMenuItem>

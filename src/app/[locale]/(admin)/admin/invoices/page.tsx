@@ -11,6 +11,7 @@ export default async function AdminInvoicesPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Payments");
+  const tStatus = await getTranslations("InvoiceStatus");
 
   const invoices = await prisma.invoice.findMany({
     include: { organization: true },
@@ -34,7 +35,7 @@ export default async function AdminInvoicesPage({
             </span>
             <div className="flex items-center gap-2">
               <Badge variant={invoice.status === "PAID" ? "default" : "secondary"}>
-                {invoice.status}
+                {tStatus(invoice.status)}
               </Badge>
               {invoice.status !== "VOID" && (
                 <VoidInvoiceButton locale={locale} invoiceId={invoice.id} />

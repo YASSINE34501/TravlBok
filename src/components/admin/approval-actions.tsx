@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +33,7 @@ export function ApprovalActions({
   onUnpublish?: () => Promise<void>;
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [isPending, startTransition] = useTransition();
   const [rejectReason, setRejectReason] = useState("");
   const [changeNotes, setChangeNotes] = useState("");
@@ -41,7 +43,7 @@ export function ApprovalActions({
   function run(action: () => Promise<void>) {
     startTransition(async () => {
       await action();
-      toast.success("Updated");
+      toast.success(t("updated"));
       router.refresh();
     });
   }
@@ -51,18 +53,18 @@ export function ApprovalActions({
       {status === "PENDING_REVIEW" && (
         <>
           <Button size="sm" disabled={isPending} onClick={() => run(onApprove)}>
-            Approve
+            {t("approve")}
           </Button>
           <Dialog open={rejectOpen} onOpenChange={setRejectOpen}>
             <DialogTrigger render={<Button size="sm" variant="destructive" />}>
-              Reject
+              {t("reject")}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Reject</DialogTitle>
+                <DialogTitle>{t("reject")}</DialogTitle>
               </DialogHeader>
               <Textarea
-                placeholder="Reason"
+                placeholder={t("rejectReason")}
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
               />
@@ -74,21 +76,21 @@ export function ApprovalActions({
                     setRejectOpen(false);
                   }}
                 >
-                  Confirm reject
+                  {t("confirmReject")}
                 </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
           <Dialog open={changesOpen} onOpenChange={setChangesOpen}>
             <DialogTrigger render={<Button size="sm" variant="outline" />}>
-              Request changes
+              {t("requestChanges")}
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request changes</DialogTitle>
+                <DialogTitle>{t("requestChanges")}</DialogTitle>
               </DialogHeader>
               <Textarea
-                placeholder="What needs to change?"
+                placeholder={t("whatNeedsToChange")}
                 value={changeNotes}
                 onChange={(e) => setChangeNotes(e.target.value)}
               />
@@ -100,7 +102,7 @@ export function ApprovalActions({
                     setChangesOpen(false);
                   }}
                 >
-                  Send
+                  {t("send")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -110,17 +112,17 @@ export function ApprovalActions({
 
       {status === "APPROVED" && onPublish && (
         <Button size="sm" disabled={isPending} onClick={() => run(onPublish)}>
-          Publish
+          {t("publish")}
         </Button>
       )}
       {status === "PUBLISHED" && onUnpublish && (
         <Button size="sm" variant="outline" disabled={isPending} onClick={() => run(onUnpublish)}>
-          Unpublish
+          {t("unpublish")}
         </Button>
       )}
       {onSuspend && status !== "SUSPENDED" && (
         <Button size="sm" variant="destructive" disabled={isPending} onClick={() => run(onSuspend)}>
-          Suspend
+          {t("suspend")}
         </Button>
       )}
     </div>

@@ -16,12 +16,28 @@ export default async function AccountNotificationsPage({
   const user = await requireUser(locale);
   const t = await getTranslations("Account");
   const tCommon = await getTranslations("Common");
+  const tNotifications = await getTranslations("Notifications");
 
   const notifications = await prisma.notification.findMany({
     where: { userId: user.id },
     orderBy: { createdAt: "desc" },
     take: 100,
   });
+
+  // Cast to a permissive signature — the key is a runtime string loaded from
+  // the DB, not a literal next-intl can narrow at compile time.
+  const translate = tNotifications as unknown as (
+    key: string,
+    values?: Record<string, string | number>
+  ) => string;
+
+  function resolveText(n: (typeof notifications)[number]): { title: string; message: string } {
+    const params = (n.paramsJson as Record<string, string | number> | null) ?? undefined;
+    return {
+      title: n.titleKey ? translate(n.titleKey, params) : n.title,
+      message: n.messageKey ? translate(n.messageKey, params) : n.message,
+    };
+  }
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
@@ -33,14 +49,16 @@ export default async function AccountNotificationsPage({
         </div>
       ) : (
         <div className="mt-6 space-y-2">
-          {notifications.map((n) => (
+          {notifications.map((n) => {
+            const { title, message } = resolveText(n);
+            return (
             <Card key={n.id} className="rounded-2xl">
               <CardContent className="flex items-start justify-between gap-3 py-4">
                 <div>
                   <p className={n.readAt ? "font-medium text-foreground" : "font-semibold text-foreground"}>
-                    {n.title}
+                    {title}
                   </p>
-                  <p className="text-sm text-muted-foreground">{n.message}</p>
+                  <p className="text-sm text-muted-foreground">{message}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {n.createdAt.toLocaleString(locale)}
                   </p>
@@ -53,7 +71,8 @@ export default async function AccountNotificationsPage({
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </main>

@@ -46,6 +46,9 @@ async function notifyLowInventoryIfNeeded(
     type: "low_inventory",
     title: "Low room inventory",
     message: `${roomType.name} at ${roomType.hotel.name} has only ${remainingInventory} unit(s) left for the requested dates.`,
+    titleKey: "lowInventoryTitle",
+    messageKey: "lowInventoryMessage",
+    params: { roomTypeName: roomType.name, hotelName: roomType.hotel.name, remaining: remainingInventory },
     metadata: { roomTypeId, remainingInventory },
     channels: ["IN_APP", "EMAIL"],
   });
@@ -253,6 +256,9 @@ export async function createHotelReservationAction(
               status === "CONFIRMED"
                 ? `Your booking ${bookingReference} at ${roomType.hotel.name} is confirmed.`
                 : `Your booking ${bookingReference} at ${roomType.hotel.name} is pending confirmation from the property.`,
+            titleKey: status === "CONFIRMED" ? "bookingConfirmedTitle" : "bookingPendingTitle",
+            messageKey: status === "CONFIRMED" ? "bookingConfirmedHotelMessage" : "bookingPendingMessage",
+            paramsJson: { reference: bookingReference, hotelName: roomType.hotel.name },
           },
         });
 
@@ -419,6 +425,9 @@ export async function createCarReservationAction(
             type: "booking_confirmed",
             title: "Booking confirmed",
             message: `Your booking ${bookingReference} for ${vehicle.brand} ${vehicle.model} is confirmed.`,
+            titleKey: "bookingConfirmedTitle",
+            messageKey: "bookingConfirmedVehicleMessage",
+            paramsJson: { reference: bookingReference, vehicleName: `${vehicle.brand} ${vehicle.model}` },
           },
         });
 
@@ -495,6 +504,9 @@ export async function cancelReservationAction(
     type: "booking_cancelled_by_customer",
     title: "Booking cancelled",
     message: `Booking ${reservation.bookingReference} was cancelled by the customer.`,
+    titleKey: "bookingCancelledTitle",
+    messageKey: "bookingCancelledByCustomerMessage",
+    params: { reference: reservation.bookingReference },
     metadata: { reservationId },
     channels: ["IN_APP", "EMAIL"],
   });
@@ -546,6 +558,9 @@ export async function updatePartnerReservationStatusAction(
       type: "booking_cancelled_by_partner",
       title: "Booking cancelled",
       message: `Your booking ${reservation.bookingReference} was cancelled by the property.`,
+      titleKey: "bookingCancelledTitle",
+      messageKey: "bookingCancelledByPartnerMessage",
+      params: { reference: reservation.bookingReference },
       metadata: { reservationId },
       channels: ["IN_APP", "EMAIL"],
     });

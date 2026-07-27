@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,8 @@ export default async function AdminVehiclesPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const tAdmin = await getTranslations("Admin");
+  const tStatus = await getTranslations("PropertyStatus");
 
   const vehicles = await prisma.vehicle.findMany({
     where: { deletedAt: null },
@@ -26,7 +29,7 @@ export default async function AdminVehiclesPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Vehicles</h1>
+      <h1 className="text-2xl font-semibold">{tAdmin("vehicles")}</h1>
 
       <div className="space-y-3">
         {vehicles.map((vehicle) => (
@@ -40,7 +43,7 @@ export default async function AdminVehiclesPage({
                   {vehicle.organization.displayName} · {vehicle.branch.name}
                 </p>
               </div>
-              <Badge variant="secondary">{vehicle.approvalStatus}</Badge>
+              <Badge variant="secondary">{tStatus(vehicle.approvalStatus)}</Badge>
               <ApprovalActions
                 status={vehicle.approvalStatus}
                 onApprove={approveVehicleAction.bind(null, locale, vehicle.id)}

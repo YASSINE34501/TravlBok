@@ -18,6 +18,8 @@ export default async function PartnerPaymentsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Payments");
+  const tStatus = await getTranslations("PaymentTransactionStatus");
+  const tCommon = await getTranslations("Common");
   const { organization } = await getPartnerContext(locale);
 
   const payments = await prisma.payment.findMany({
@@ -33,7 +35,7 @@ export default async function PartnerPaymentsPage({
 
       <DataTableShell>
         {payments.length === 0 ? (
-          <EmptyState icon={Wallet} title={t("status")} className="border-0 py-12" />
+          <EmptyState icon={Wallet} title={tCommon("noResults")} className="border-0 py-12" />
         ) : (
           <div className="divide-y">
             {payments.map((payment) => (
@@ -48,7 +50,7 @@ export default async function PartnerPaymentsPage({
                 </span>
                 <div className="flex items-center gap-2">
                   <StatusBadge tone={PAYMENT_TRANSACTION_STATUS_TONE[payment.status]}>
-                    {payment.status}
+                    {tStatus(payment.status)}
                   </StatusBadge>
                   {payment.status === "PENDING" &&
                     ["BANK_TRANSFER", "MANUAL", "CASH_AT_PROPERTY"].includes(payment.provider) && (

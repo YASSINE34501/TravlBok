@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { updateStaffBranchAction } from "@/domains/staff/actions";
@@ -19,6 +20,7 @@ export function StaffBranchSelect({
   branches: { id: string; name: string }[];
 }) {
   const router = useRouter();
+  const tCommon = useTranslations("Common");
   const branchItems = Object.fromEntries([
     ["", "Every branch"],
     ...branches.map((b) => [b.id, b.name]),
@@ -27,7 +29,7 @@ export function StaffBranchSelect({
   async function handleChange(value: string | null) {
     const result = await updateStaffBranchAction(locale, organizationId, memberId, value || null);
     if (!result.success) {
-      toast.error(result.error ?? "Something went wrong");
+      toast.error(result.error ?? tCommon("somethingWentWrong"));
       return;
     }
     router.refresh();

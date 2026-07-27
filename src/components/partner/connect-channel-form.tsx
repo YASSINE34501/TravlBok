@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export function ConnectChannelForm({
   hotels: HotelOption[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Partner");
   const [hotelId, setHotelId] = useState(hotels[0]?.id ?? "");
   const [provider, setProvider] = useState<ChannelProviderCode>("MOCK_SANDBOX");
   const [externalHotelId, setExternalHotelId] = useState("");
@@ -58,7 +60,7 @@ export function ConnectChannelForm({
         toast.error(result.error);
         return;
       }
-      toast.success("Channel connected");
+      toast.success(t("channelConnected"));
       setApiKey("");
       setApiSecret("");
       setExternalHotelId("");

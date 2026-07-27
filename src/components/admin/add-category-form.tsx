@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { useRouter } from "@/i18n/navigation";
 
 export function AddCategoryForm({ locale }: { locale: string }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [type, setType] = useState<"HOTEL_TYPE" | "VEHICLE_CATEGORY">("HOTEL_TYPE");
   const [code, setCode] = useState("");
   const [nameEn, setNameEn] = useState("");
@@ -28,7 +30,7 @@ export function AddCategoryForm({ locale }: { locale: string }) {
     setIsSubmitting(true);
     try {
       await createCategoryAction(locale, type, code.toUpperCase(), nameEn, nameFr, nameAr);
-      toast.success("Category added");
+      toast.success(t("categoryAdded"));
       setCode("");
       setNameEn("");
       setNameFr("");

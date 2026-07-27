@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getPartnerContext } from "@/lib/partner-context";
@@ -16,13 +17,14 @@ export default async function PartnerDashboardLayout({
   const { locale } = await params;
   const { organization } = await getPartnerContext(locale);
   const t = await getTranslations("Partner");
+  const tStatus = await getTranslations("PropertyStatus");
   const navGroups = getPartnerNavGroups(organization.type, t);
 
   return (
     <AppShell
       brand={
-        <Link href="/" className="text-lg font-semibold text-primary">
-          TravlBok
+        <Link href="/" className="flex items-center">
+          <Image src="/brand/icon-mark.png" alt="TravlBok" width={550} height={550} className="size-11" />
         </Link>
       }
       navGroups={navGroups}
@@ -30,7 +32,7 @@ export default async function PartnerDashboardLayout({
         <>
           <div className="hidden items-center gap-2 sm:flex">
             <span className="text-sm font-medium">{organization.displayName}</span>
-            <Badge variant="secondary">{organization.verificationStatus}</Badge>
+            <Badge variant="secondary">{tStatus(organization.verificationStatus)}</Badge>
           </div>
           <NotificationBell locale={locale} />
         </>

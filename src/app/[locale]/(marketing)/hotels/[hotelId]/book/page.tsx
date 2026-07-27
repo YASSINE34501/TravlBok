@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/db";
+import { getDisplayCurrencyContext } from "@/lib/currency/display";
 import { HotelBookingForm } from "@/components/booking/hotel-booking-form";
 
 export default async function HotelBookingPage({
@@ -16,10 +17,13 @@ export default async function HotelBookingPage({
 
   if (!roomTypeId) notFound();
 
-  const roomType = await prisma.roomType.findFirst({
-    where: { id: roomTypeId, hotelId, isActive: true, deletedAt: null },
-    include: { hotel: true },
-  });
+  const [roomType, { currency: displayCurrency, rates }] = await Promise.all([
+    prisma.roomType.findFirst({
+      where: { id: roomTypeId, hotelId, isActive: true, deletedAt: null },
+      include: { hotel: true },
+    }),
+    getDisplayCurrencyContext(),
+  ]);
   if (!roomType || roomType.hotel.status !== "PUBLISHED") notFound();
 
   return (
@@ -27,7 +31,14 @@ export default async function HotelBookingPage({
       <h1 className="text-2xl font-semibold tracking-tight">{roomType.hotel.name}</h1>
       <p className="text-muted-foreground">{roomType.name}</p>
       <div className="mt-6">
-        <HotelBookingForm locale={locale} roomTypeId={roomType.id} minStay={roomType.minStay} />
+        <HotelBookingForm
+          locale={locale}
+          roomTypeId={roomType.id}
+          minStay={roomType.minStay}
+          refundable={roomType.refundable}
+          displayCurrency={displayCurrency}
+          rates={rates}
+        />
       </div>
     </main>
   );

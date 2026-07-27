@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { prisma } from "@/lib/db";
+import { getDisplayCurrencyContext } from "@/lib/currency/display";
 import { CarBookingForm } from "@/components/booking/car-booking-form";
 
 export default async function CarBookingPage({
@@ -11,9 +12,12 @@ export default async function CarBookingPage({
   const { locale, vehicleId } = await params;
   setRequestLocale(locale);
 
-  const vehicle = await prisma.vehicle.findFirst({
-    where: { id: vehicleId, approvalStatus: "PUBLISHED", deletedAt: null },
-  });
+  const [vehicle, { currency: displayCurrency, rates }] = await Promise.all([
+    prisma.vehicle.findFirst({
+      where: { id: vehicleId, approvalStatus: "PUBLISHED", deletedAt: null },
+    }),
+    getDisplayCurrencyContext(),
+  ]);
   if (!vehicle) notFound();
 
   return (
@@ -22,7 +26,12 @@ export default async function CarBookingPage({
         {vehicle.brand} {vehicle.model}
       </h1>
       <div className="mt-6">
-        <CarBookingForm locale={locale} vehicleId={vehicle.id} />
+        <CarBookingForm
+          locale={locale}
+          vehicleId={vehicle.id}
+          displayCurrency={displayCurrency}
+          rates={rates}
+        />
       </div>
     </main>
   );

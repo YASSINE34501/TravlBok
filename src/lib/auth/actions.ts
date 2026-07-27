@@ -44,10 +44,14 @@ function generateReferralCode(): string {
   return randomBytes(4).toString("hex").toUpperCase();
 }
 
-export async function registerAction(
-  locale: string,
-  input: RegisterInput
-): Promise<ActionResult> {
+/**
+ * Shared implementation behind both entry points below. The customer and
+ * partner registration surfaces are kept separate at the UI level (distinct
+ * forms/routes/components) AND enforced separately here — a partner role
+ * can never be created through the customer-facing action regardless of
+ * what a tampered client request submits, and vice versa.
+ */
+async function createAccount(locale: string, input: RegisterInput): Promise<ActionResult> {
   const ip = await getRequestIp();
   const limit = await checkRateLimit(`register:ip:${ip}`, 10, 60 * 60 * 1000);
   if (!limit.allowed) {
@@ -162,9 +166,29 @@ export async function registerAction(
     to: user.email,
     firstName: user.firstName,
     verifyUrl: `${appUrl}/${locale}/verify-email?token=${token}`,
+    locale,
   });
 
   return { success: true };
+}
+
+/** Customer-facing entry point — the customer form never renders a role/organization field, and this ignores/overrides anything else submitted, so a partner account can never be created through it. */
+export async function registerCustomerAction(
+  locale: string,
+  input: RegisterInput
+): Promise<ActionResult> {
+  return createAccount(locale, { ...input, role: "CUSTOMER", organizationName: "" });
+}
+
+/** Partner-facing entry point — rejects `CUSTOMER` outright, so a plain traveler account can never be created through the partner surface. */
+export async function registerPartnerAction(
+  locale: string,
+  input: RegisterInput
+): Promise<ActionResult> {
+  if (input.role === "CUSTOMER") {
+    return { success: false, error: "invalidInput" };
+  }
+  return createAccount(locale, input);
 }
 
 export async function verifyEmailAction(token: string): Promise<ActionResult> {
@@ -226,6 +250,7 @@ export async function requestPasswordResetAction(
     to: user.email,
     firstName: user.firstName,
     resetUrl: `${appUrl}/${locale}/reset-password?token=${token}`,
+    locale,
   });
 
   return { success: true };
@@ -293,6 +318,7 @@ export async function resendVerificationAction(
     to: user.email,
     firstName: user.firstName,
     verifyUrl: `${appUrl}/${locale}/verify-email?token=${token}`,
+    locale,
   });
 
   return { success: true };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ export function PricingRuleActions({
   approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
 }) {
   const router = useRouter();
+  const tCommon = useTranslations("Common");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function run(action: () => Promise<{ success: boolean; error?: string }>) {
@@ -32,7 +34,7 @@ export function PricingRuleActions({
     try {
       const result = await action();
       if (!result.success) {
-        toast.error(result.error ?? "Something went wrong");
+        toast.error(result.error ?? tCommon("somethingWentWrong"));
         return;
       }
       router.refresh();

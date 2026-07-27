@@ -34,6 +34,7 @@ export default async function StaffPage({
   const { locale } = await params;
   const t = await getTranslations("Partner");
   const tRoles = await getTranslations("Roles");
+  const tStatus = await getTranslations("OrgMemberStatus");
   const { organization } = await getPartnerContext(locale);
 
   const isCarRental = organization.type === "CAR_RENTAL";
@@ -84,7 +85,7 @@ export default async function StaffPage({
                 </span>
                 <div className="flex items-center gap-2">
                   <StatusBadge tone={MEMBER_STATUS_TONE[member.status]}>
-                    {member.status}
+                    {tStatus(member.status)}
                   </StatusBadge>
                   {isCarRental && member.role === "CAR_RENTAL_STAFF" && (
                     <StaffBranchSelect

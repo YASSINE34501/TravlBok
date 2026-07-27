@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { SearchX } from "lucide-react";
 import { searchVehicles } from "@/domains/vehicles/queries";
+import { searchExternalOffers } from "@/domains/distribution/search";
+import { toVehicleCardData } from "@/domains/distribution/normalize";
 import { prisma } from "@/lib/db";
 import { getDisplayCurrencyContext } from "@/lib/currency/display";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { VehicleCard } from "@/components/vehicles/vehicle-card";
 import { VehicleFilters } from "@/components/vehicles/vehicle-filters";
 import { SearchSort } from "@/components/search/search-sort";
+import { SearchSummaryBar } from "@/components/search/search-summary-bar";
 import { Pagination } from "@/components/search/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { FuelType, TransmissionType } from "@/generated/prisma/client";
@@ -37,7 +40,7 @@ export default async function CarsSearchPage({
 
   const { currency, rates } = await getDisplayCurrencyContext();
 
-  const [{ vehicles, total, page, pageSize }, categories] = await Promise.all([
+  const [{ vehicles, total, page, pageSize }, categories, externalOffers] = await Promise.all([
     searchVehicles({
       location: query.location,
       dropoffLocation: query.dropoffLocation,
@@ -57,6 +60,12 @@ export default async function CarsSearchPage({
       page: query.page ? Number(query.page) : 1,
     }),
     prisma.category.findMany({ where: { type: "VEHICLE_CATEGORY" } }),
+    searchExternalOffers("CAR", {
+      location: query.location,
+      dropoffLocation: query.dropoffLocation,
+      pickupDate: query.pickupDate,
+      returnDate: query.returnDate,
+    }),
   ]);
 
   const categoryOptions = categories.map((c) => ({
@@ -65,13 +74,37 @@ export default async function CarsSearchPage({
     name: pickLocaleText(c.name as Record<string, unknown>, locale),
   }));
 
+  // Empty in production today (no external car provider configured yet) —
+  // this merge is future-proofing, not fabricated data. See
+  // src/domains/distribution/providers/registry.ts.
+  const externalCards = externalOffers.map((offer) => toVehicleCardData(offer, locale));
+
+  const allResults = [...vehicles, ...externalCards];
+  const combinedTotal = total + externalCards.length;
+
+  const summaryItems: Array<{ label: string; value: string }> = [];
+  if (query.location) summaryItems.push({ label: t("pickupLocation"), value: query.location });
+  if (query.pickupDate && query.returnDate) {
+    summaryItems.push({ label: `${t("pickupDate")} / ${t("returnDate")}`, value: `${query.pickupDate} → ${query.returnDate}` });
+  }
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      {summaryItems.length > 0 && (
+        <SearchSummaryBar items={summaryItems} modifyLabel={t("modifySearch")} />
+      )}
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {t("resultsCount", { count: total })}
+          {t("resultsCount", { count: combinedTotal })}
         </h1>
-        <SearchSort basePath="/cars" />
+        <SearchSort
+          basePath="/cars"
+          options={[
+            { value: "recommended", label: t("sortRecommended") },
+            { value: "price_asc", label: t("sortPriceLowToHigh") },
+            { value: "price_desc", label: t("sortPriceHighToLow") },
+          ]}
+        />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[260px_1fr]">
@@ -80,11 +113,11 @@ export default async function CarsSearchPage({
         </aside>
 
         <div>
-          {vehicles.length === 0 ? (
+          {allResults.length === 0 ? (
             <EmptyState icon={SearchX} title={tCommon("noResults")} />
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {vehicles.map((vehicle) => (
+              {allResults.map((vehicle) => (
                 <VehicleCard
                   key={vehicle.id}
                   vehicle={vehicle}

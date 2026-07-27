@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { getPartnerContext } from "@/lib/partner-context";
 import { prisma } from "@/lib/db";
 import { hasFeature } from "@/domains/subscriptions/limits";
@@ -24,6 +25,7 @@ export default async function ChannelsPage({
 }) {
   const { locale } = await params;
   const { organization } = await getPartnerContext(locale);
+  const tStatus = await getTranslations("ChannelConnectionStatus");
 
   const enabled = await hasFeature(organization.id, "featureChannelManager");
   if (!enabled) {
@@ -107,7 +109,7 @@ export default async function ChannelsPage({
                   {connection.hotel.name} · {connection.provider}
                 </CardTitle>
                 <StatusBadge tone={CHANNEL_CONNECTION_STATUS_TONE[connection.status]}>
-                  {connection.status}
+                  {tStatus(connection.status)}
                 </StatusBadge>
               </CardHeader>
               <CardContent className="space-y-4">

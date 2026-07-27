@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -24,13 +25,14 @@ export function ChannelConnectionActions({
   autoSyncEnabled: boolean;
 }) {
   const router = useRouter();
+  const tCommon = useTranslations("Common");
   const [isPending, startTransition] = useTransition();
 
   function run(action: () => Promise<{ success: boolean; error?: string }>, successMessage?: string) {
     startTransition(async () => {
       const result = await action();
       if (!result.success) {
-        toast.error(result.error ?? "Error");
+        toast.error(result.error ?? tCommon("error"));
         return;
       }
       if (successMessage) toast.success(successMessage);

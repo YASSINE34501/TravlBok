@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { RefreshCw } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { getPartnerContext } from "@/lib/partner-context";
 import { getChannelConnectionDetail } from "@/domains/channel-manager/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,9 @@ export default async function ChannelSyncJobsPage({
 }) {
   const { locale, connectionId } = await params;
   const { organization } = await getPartnerContext(locale);
+  const tJobType = await getTranslations("SyncJobType");
+  const tJobDirection = await getTranslations("SyncJobDirection");
+  const tJobStatus = await getTranslations("SyncJobStatus");
 
   const connection = await getChannelConnectionDetail(connectionId, organization.id);
   if (!connection) notFound();
@@ -31,9 +35,9 @@ export default async function ChannelSyncJobsPage({
             <Card key={job.id} className="rounded-2xl">
               <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2">
                 <CardTitle className="text-sm font-medium">
-                  {job.type} · {job.direction} · {job.startedAt.toLocaleString()}
+                  {tJobType(job.type)} · {tJobDirection(job.direction)} · {job.startedAt.toLocaleString()}
                 </CardTitle>
-                <StatusBadge tone={SYNC_JOB_STATUS_TONE[job.status]}>{job.status}</StatusBadge>
+                <StatusBadge tone={SYNC_JOB_STATUS_TONE[job.status]}>{tJobStatus(job.status)}</StatusBadge>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
                 {job.itemsProcessed} processed, {job.itemsFailed} failed

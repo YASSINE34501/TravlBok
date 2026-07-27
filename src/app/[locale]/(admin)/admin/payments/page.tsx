@@ -10,6 +10,7 @@ export default async function AdminPaymentsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Payments");
+  const tStatus = await getTranslations("PaymentTransactionStatus");
 
   const payments = await prisma.payment.findMany({
     include: { organization: true, reservation: true },
@@ -33,7 +34,7 @@ export default async function AdminPaymentsPage({
               {payment.provider} · {formatMoney(payment.amount.toString(), payment.currency, locale)}
             </span>
             <Badge variant={payment.status === "PAID" ? "default" : "secondary"}>
-              {payment.status}
+              {tStatus(payment.status)}
             </Badge>
           </div>
         ))}

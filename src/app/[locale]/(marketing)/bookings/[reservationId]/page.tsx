@@ -5,10 +5,11 @@ import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/rbac";
 import { formatMoney } from "@/lib/currency/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { Separator } from "@/components/ui/separator";
 import { CancelBookingButton } from "@/components/booking/cancel-booking-button";
 import { PrintInvoiceButton } from "@/components/booking/print-invoice-button";
+import { RESERVATION_STATUS_TONE } from "@/lib/status-tones";
 
 export default async function BookingConfirmationPage({
   params,
@@ -38,20 +39,22 @@ export default async function BookingConfirmationPage({
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8" id="invoice">
-      <div className="flex items-center gap-3">
-        <CheckCircle2 className="size-8 text-primary" />
-        <div>
-          <h1 className="text-2xl font-semibold">{t("bookingConfirmed")}</h1>
+      <div className="flex flex-wrap items-center gap-4">
+        <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-success/10 text-success print:hidden">
+          <CheckCircle2 className="size-8" />
+        </span>
+        <div className="flex-1">
+          <h1 className="text-2xl font-semibold tracking-tight">{t("bookingConfirmed")}</h1>
           <p className="text-sm text-muted-foreground">
             {t("bookingReference")}: {reservation.bookingReference}
           </p>
         </div>
-        <Badge className="ms-auto" variant="secondary">
+        <StatusBadge tone={RESERVATION_STATUS_TONE[reservation.status]}>
           {tStatus(reservation.status)}
-        </Badge>
+        </StatusBadge>
       </div>
 
-      <Card className="mt-6">
+      <Card className="mt-6 rounded-2xl">
         <CardHeader>
           <CardTitle>
             {reservation.type === "HOTEL"

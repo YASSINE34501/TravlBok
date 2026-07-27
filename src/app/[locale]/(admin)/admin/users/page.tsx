@@ -22,6 +22,8 @@ export default async function AdminUsersPage({
   const { locale } = await params;
   const { q } = await searchParams;
   const t = await getTranslations("Roles");
+  const tAdmin = await getTranslations("Admin");
+  const tStatus = await getTranslations("UserStatus");
 
   const users = await prisma.user.findMany({
     where: {
@@ -42,17 +44,17 @@ export default async function AdminUsersPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Users</h1>
+      <h1 className="text-2xl font-semibold">{tAdmin("users")}</h1>
 
       <div className="overflow-x-auto rounded-lg border">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-end">Actions</TableHead>
+              <TableHead>{tAdmin("name")}</TableHead>
+              <TableHead>{tAdmin("email")}</TableHead>
+              <TableHead>{tAdmin("role")}</TableHead>
+              <TableHead>{tAdmin("status")}</TableHead>
+              <TableHead className="text-end">{tAdmin("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -65,7 +67,7 @@ export default async function AdminUsersPage({
                 <TableCell>{t(user.role)}</TableCell>
                 <TableCell>
                   <Badge variant={user.status === "SUSPENDED" ? "destructive" : "secondary"}>
-                    {user.status}
+                    {tStatus(user.status)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-end">

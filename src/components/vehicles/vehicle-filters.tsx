@@ -8,6 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+
+const PRICE_MIN = 0;
+const PRICE_MAX = 5000;
 import {
   Select,
   SelectContent,
@@ -171,24 +175,24 @@ export function VehicleFilters({ categories }: { categories: CategoryOption[] })
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold">{t("priceRange")}</h3>
-        <div className="mt-2 flex items-center gap-2">
-          <Input
-            type="number"
-            min={0}
-            placeholder="Min"
-            value={minPrice}
-            onChange={(e) => setMinPrice(e.target.value)}
-          />
-          <span className="text-muted-foreground">–</span>
-          <Input
-            type="number"
-            min={0}
-            placeholder="Max"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(e.target.value)}
-          />
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold">{t("priceRange")}</h3>
+          <span className="text-sm text-muted-foreground">
+            {minPrice || PRICE_MIN} – {maxPrice || PRICE_MAX}
+          </span>
         </div>
+        <Slider
+          className="mt-3"
+          min={PRICE_MIN}
+          max={PRICE_MAX}
+          step={50}
+          value={[Number(minPrice) || PRICE_MIN, Number(maxPrice) || PRICE_MAX]}
+          onValueChange={(newValue) => {
+            const [next_min, next_max] = newValue as number[];
+            setMinPrice(String(next_min));
+            setMaxPrice(String(next_max));
+          }}
+        />
       </div>
 
       <div className="space-y-1.5">

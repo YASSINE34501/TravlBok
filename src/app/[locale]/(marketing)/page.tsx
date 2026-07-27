@@ -1,5 +1,15 @@
+import Image from "next/image";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { ArrowRight, MapPin, Handshake, Link2 } from "lucide-react";
+import {
+  ArrowRight,
+  MapPin,
+  Handshake,
+  Link2,
+  BadgePercent,
+  ShieldCheck,
+  Headset,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
@@ -32,27 +42,65 @@ export default async function HomePage({
 
   return (
     <main>
-      <section className="relative isolate overflow-hidden bg-primary text-primary-foreground">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
-          <div className="absolute start-[-10%] top-[-30%] size-[32rem] rounded-full bg-accent/30 blur-3xl" />
-          <div className="absolute end-[-15%] bottom-[-40%] size-[36rem] rounded-full bg-primary-foreground/10 blur-3xl" />
+      <section className="relative isolate overflow-hidden">
+        <div aria-hidden="true" className="absolute inset-0">
+          <Image
+            src="/hero/airplane-approved.png"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+          {/*
+            Physically left-to-right gradient (not logical start/end): this
+            overlay is anchored to the photo's fixed composition, not to
+            reading direction, so it must stay put in both LTR and RTL —
+            only the text block's own alignment adapts per locale below.
+            Solid only behind the text column, clear by ~70% so the plane
+            reads clearly rather than being washed out.
+          */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, var(--background) 0%, var(--background) 32%, color-mix(in oklch, var(--background) 35%, transparent) 55%, transparent 72%)",
+            }}
+          />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pt-20 pb-32 text-center sm:px-6 sm:pt-28 sm:pb-40">
-          <h1 className="mx-auto max-w-3xl text-4xl font-semibold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-            {t("heroTitle")}
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-lg text-primary-foreground/80">
-            {t("heroSubtitle")}
-          </p>
+        <div className="relative mx-auto max-w-7xl px-4 pt-20 pb-32 sm:px-6 sm:pt-28 sm:pb-40">
+          <div className="max-w-xl text-left">
+            <h1 className="text-4xl font-bold tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl">
+              {t("heroTitle")}
+            </h1>
+            <p className="mt-5 max-w-lg text-lg text-muted-foreground">
+              {t("heroSubtitle")}
+            </p>
+          </div>
         </div>
       </section>
 
       <div className="relative z-10 mx-auto -mt-20 max-w-7xl px-4 sm:-mt-24 sm:px-6">
         <HeroSearch />
+        <div className="mx-auto mt-6 max-w-4xl rounded-2xl border bg-card p-6 shadow-sm">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
+            {[
+              { icon: BadgePercent, title: t("trustBestPrices"), description: t("trustBestPricesDescription") },
+              { icon: ShieldCheck, title: t("trustSecureBooking"), description: t("trustSecureBookingDescription") },
+              { icon: Headset, title: t("trustSupport"), description: t("trustSupportDescription") },
+              { icon: RefreshCw, title: t("trustFlexible"), description: t("trustFlexibleDescription") },
+            ].map(({ icon: Icon, title, description }) => (
+              <div key={title} className="flex flex-col items-center gap-1.5 text-center sm:flex-row sm:items-start sm:gap-3 sm:text-start">
+                <Icon className="size-6 shrink-0 text-primary" strokeWidth={1.75} />
+                <div>
+                  <p className="text-sm font-semibold text-primary">{title}</p>
+                  <p className="hidden text-xs text-muted-foreground sm:block">{description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {destinations.length > 0 && (

@@ -15,20 +15,54 @@ export const pricingRuleFactorSchema = z.enum([
 
 export const pricingRuleSchema = z
   .object({
-    hotelId: z.string().min(1),
-    roomTypeId: z.string().min(1).optional().or(z.literal("")),
-    name: z.string().trim().min(1).max(120),
-    description: z.string().trim().max(500).optional().or(z.literal("")),
+    hotelId: z.string().min(1, { error: "required" }),
+    roomTypeId: z
+      .string()
+      .min(1, { error: "required" })
+      .optional()
+      .or(z.literal("")),
+    name: z
+      .string()
+      .trim()
+      .min(1, { error: "required" })
+      .max(120, { error: "tooLong:120" }),
+    description: z
+      .string()
+      .trim()
+      .max(500, { error: "tooLong:500" })
+      .optional()
+      .or(z.literal("")),
     factor: pricingRuleFactorSchema,
     comparisonOperator: z.enum(["GTE", "LTE"]).optional(),
-    thresholdValue: z.number().min(0).max(9999).optional(),
-    daysOfWeek: z.array(z.number().int().min(0).max(6)).max(7).optional(),
+    thresholdValue: z
+      .number()
+      .min(0, { error: "numberTooSmall:0" })
+      .max(9999, { error: "numberTooLarge:9999" })
+      .optional(),
+    daysOfWeek: z
+      .array(
+        z
+          .number()
+          .int({ error: "mustBeInteger" })
+          .min(0, { error: "numberTooSmall:0" })
+          .max(6, { error: "numberTooLarge:6" })
+      )
+      .max(7, { error: "tooLong:7" })
+      .optional(),
     dateRangeStart: z.string().optional().or(z.literal("")),
     dateRangeEnd: z.string().optional().or(z.literal("")),
     demandLevel: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
     adjustmentType: z.enum(["PERCENTAGE", "FIXED_AMOUNT"]),
-    adjustmentValue: z.number().min(-100).max(100000),
-    priority: z.number().int().min(0).max(1000).default(0),
+    adjustmentValue: z
+      .number()
+      .min(-100, { error: "numberTooSmall:-100" })
+      .max(100000, { error: "numberTooLarge:100000" }),
+    priority: z
+      .number()
+      .int({ error: "mustBeInteger" })
+      .min(0, { error: "numberTooSmall:0" })
+      .max(1000, { error: "numberTooLarge:1000" })
+      .default(0),
     activeFrom: z.string().optional().or(z.literal("")),
     activeTo: z.string().optional().or(z.literal("")),
     requiresApproval: z.boolean().default(false),

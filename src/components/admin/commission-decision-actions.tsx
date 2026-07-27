@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +24,7 @@ export function CommissionDecisionActions({
   commissionId: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [isPending, startTransition] = useTransition();
   const [reason, setReason] = useState("");
   const [open, setOpen] = useState(false);
@@ -35,20 +37,20 @@ export function CommissionDecisionActions({
         onClick={() =>
           startTransition(async () => {
             await approveCommissionAction(locale, commissionId);
-            toast.success("Approved");
+            toast.success(t("approved"));
             router.refresh();
           })
         }
       >
-        Approve
+        {t("approve")}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger render={<Button size="sm" variant="destructive" />}>Reject</DialogTrigger>
+        <DialogTrigger render={<Button size="sm" variant="destructive" />}>{t("reject")}</DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject commission</DialogTitle>
+            <DialogTitle>{t("rejectCommission")}</DialogTitle>
           </DialogHeader>
-          <Textarea placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <Textarea placeholder={t("rejectReason")} value={reason} onChange={(e) => setReason(e.target.value)} />
           <DialogFooter>
             <Button
               disabled={!reason || isPending}
@@ -60,7 +62,7 @@ export function CommissionDecisionActions({
                 })
               }
             >
-              Confirm reject
+              {t("confirmReject")}
             </Button>
           </DialogFooter>
         </DialogContent>

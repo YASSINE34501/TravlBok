@@ -19,6 +19,8 @@ export default async function AdminCouponsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Admin");
+  const tScope = await getTranslations("CouponScope");
+  const tStatus = await getTranslations("CouponStatus");
 
   const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: "desc" } });
 
@@ -31,12 +33,12 @@ export default async function AdminCouponsPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead>Scope</TableHead>
-              <TableHead>Usage</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-end">Actions</TableHead>
+              <TableHead>{t("code")}</TableHead>
+              <TableHead>{t("value")}</TableHead>
+              <TableHead>{t("scope")}</TableHead>
+              <TableHead>{t("usage")}</TableHead>
+              <TableHead>{t("status")}</TableHead>
+              <TableHead className="text-end">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -47,14 +49,14 @@ export default async function AdminCouponsPage({
                   {coupon.value.toString()}
                   {coupon.type === "PERCENTAGE" ? "%" : ` ${coupon.currency ?? ""}`}
                 </TableCell>
-                <TableCell>{coupon.scope}</TableCell>
+                <TableCell>{tScope(coupon.scope)}</TableCell>
                 <TableCell>
                   {coupon.usageCount}
                   {coupon.usageLimit ? ` / ${coupon.usageLimit}` : ""}
                 </TableCell>
                 <TableCell>
                   <Badge variant={coupon.status === "ACTIVE" ? "secondary" : "outline"}>
-                    {coupon.status}
+                    {tStatus(coupon.status)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-end">

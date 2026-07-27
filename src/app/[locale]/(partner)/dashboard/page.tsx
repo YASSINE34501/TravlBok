@@ -41,6 +41,7 @@ export default async function PartnerDashboardPage({
   const tStatus = await getTranslations("BookingStatus");
   const tPayments = await getTranslations("Payments");
   const tCommon = await getTranslations("Common");
+  const tVerification = await getTranslations("PropertyStatus");
   const { organization } = await getPartnerContext(locale);
 
   if (organization.type === "AFFILIATE") {
@@ -99,7 +100,7 @@ export default async function PartnerDashboardPage({
         description={organization.displayName}
         actions={
           organization.verificationStatus !== "APPROVED" ? (
-            <StatusBadge tone="warning">{organization.verificationStatus}</StatusBadge>
+            <StatusBadge tone="warning">{tVerification(organization.verificationStatus)}</StatusBadge>
           ) : undefined
         }
       />

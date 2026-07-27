@@ -72,6 +72,27 @@ enum CurrencyCode {
   MAD
   EUR
   USD
+  GBP
+  CAD
+  CHF
+  AED
+  SAR
+  QAR
+  KWD
+  JPY
+  CNY
+  AUD
+  NZD
+  TRY
+  SEK
+  NOK
+  DKK
+  PLN
+  BRL
+  INR
+  MXN
+  SGD
+  HKD
 }
 
 enum RateSource {
@@ -1515,18 +1536,25 @@ model HomepageSection {
 // =========================================================================
 
 model Notification {
-  id       String    @id @default(uuid())
-  userId   String
-  type     String
-  title    String
-  message  String
-  metadata Json?
+  id         String    @id @default(uuid())
+  userId     String
+  type       String
+  title      String
+  message    String
+  // Optional translation keys (Notifications namespace) + interpolation
+  // params for rendering `title`/`message` in the recipient's own locale.
+  // Nullable/additive so existing rows (and any write path that hasn't been
+  // updated yet) keep working via the plain `title`/`message` fallback.
+  titleKey   String?
+  messageKey String?
+  paramsJson Json?
+  metadata   Json?
   // Which channels this event targeted: IN_APP, EMAIL, and the "-ready"
   // scaffolds SMS_READY/WHATSAPP_READY/PUSH_READY (recorded but not actually
   // delivered — no SMS/WhatsApp/push provider is connected, same honest-
   // scaffold approach Channel Manager took for unconnectable OTA APIs).
-  channels String[]  @default(["IN_APP"])
-  readAt   DateTime?
+  channels   String[]  @default(["IN_APP"])
+  readAt     DateTime?
 
   createdAt DateTime @default(now())
 
@@ -2119,4 +2147,55 @@ model ApiKey {
   createdBy    User         @relation(fields: [createdByUserId], references: [id])
 
   @@index([organizationId])
+}
+
+// Distribution Partners: consuming EXTERNAL Flight/Hotel/Car providers to
+// power on-site search results — the inverse of the `affiliates` domain
+// above (TravlBok's own outbound referral program, where partners refer
+// customers TO TravlBok). Deliberately separate model, deliberately
+// separate name, to avoid conflating the two concepts. `sourceType`/
+// `checkoutMode` are internal-only — never rendered as UI copy or a badge;
+// the public marketplace looks identical regardless of source.
+enum SourceType {
+  DIRECT_TRAVLBOK
+  AFFILIATE_REDIRECT
+  AFFILIATE_WHITE_LABEL
+  AFFILIATE_WIDGET
+}
+
+enum DistributionVertical {
+  HOTEL
+  CAR
+  FLIGHT
+}
+
+// Mirrors ChannelProviderCode's shape (a per-vertical registry of provider
+// codes). Starts with only the dev/test-only sandbox value — real codes are
+// added here once an actual provider contract exists (see MOCK_SANDBOX's
+// note in channel-manager/providers/mock-provider.ts for the same pattern).
+enum DistributionProviderCode {
+  MOCK_SANDBOX
+}
+
+// Click-tracking for externally-sourced offers only (never written for
+// DIRECT_TRAVLBOK results, which go through the existing Reservation flow
+// instead). Mirrors AffiliateClick's visitor/IP-hash approach without
+// reusing that model. Internal bookkeeping only, never surfaced in the
+// public UI.
+model DistributionClick {
+  id              String                   @id @default(uuid())
+  vertical        DistributionVertical
+  provider        DistributionProviderCode
+  sourceType      SourceType
+  externalOfferId String
+  visitorId       String
+  ipAddressHash   String
+  userAgent       String?
+  landingPath     String
+  redirectUrl     String
+
+  createdAt DateTime @default(now())
+
+  @@index([vertical, createdAt])
+  @@index([visitorId])
 }

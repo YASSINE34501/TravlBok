@@ -1,6 +1,7 @@
 import "server-only";
 import { getPreferredCurrency } from "@/lib/currency/cookie";
-import { getLatestExchangeRates, convertAmount } from "@/lib/currency/exchange";
+import { getLatestExchangeRates } from "@/lib/currency/exchange";
+import { convertAmount } from "@/lib/currency/convert";
 import { formatMoney } from "@/lib/currency/format";
 import type { CurrencyCode } from "@/lib/currency/config";
 

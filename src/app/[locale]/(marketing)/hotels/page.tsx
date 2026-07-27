@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { SearchX } from "lucide-react";
 import { searchHotels } from "@/domains/hotels/queries";
+import { searchExternalOffers } from "@/domains/distribution/search";
+import { toHotelCardData } from "@/domains/distribution/normalize";
 import { prisma } from "@/lib/db";
 import { getDisplayCurrencyContext } from "@/lib/currency/display";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { HotelCard } from "@/components/hotels/hotel-card";
 import { HotelFilters } from "@/components/hotels/hotel-filters";
 import { SearchSort } from "@/components/search/search-sort";
+import { SearchSummaryBar } from "@/components/search/search-summary-bar";
 import { Pagination } from "@/components/search/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
 
@@ -59,11 +62,18 @@ export default async function HotelsSearchPage({
     page: query.page ? Number(query.page) : 1,
   };
 
-  const [{ hotels, total, page, pageSize }, amenities, propertyTypes] =
+  const [{ hotels, total, page, pageSize }, amenities, propertyTypes, externalOffers] =
     await Promise.all([
       searchHotels(searchInput),
       prisma.amenity.findMany({ where: { category: "HOTEL" } }),
       prisma.category.findMany({ where: { type: "HOTEL_TYPE" } }),
+      searchExternalOffers("HOTEL", {
+        destination: query.destination,
+        checkIn: query.checkIn,
+        checkOut: query.checkOut,
+        guests: query.guests ? Number(query.guests) : undefined,
+        rooms: query.rooms ? Number(query.rooms) : undefined,
+      }),
     ]);
 
   const amenityOptions = amenities.map((a) => ({
@@ -77,13 +87,40 @@ export default async function HotelsSearchPage({
     name: pickLocaleText(p.name as Record<string, unknown>, locale),
   }));
 
+  // Empty in production today (no external hotel provider configured yet) —
+  // this merge is future-proofing, not fabricated data. See
+  // src/domains/distribution/providers/registry.ts.
+  const externalCards = externalOffers.map((offer) => toHotelCardData(offer, locale));
+
+  const allResults = [...hotels, ...externalCards];
+  const combinedTotal = total + externalCards.length;
+
+  const summaryItems: Array<{ label: string; value: string }> = [];
+  if (query.destination) summaryItems.push({ label: t("destination"), value: query.destination });
+  if (query.checkIn && query.checkOut) {
+    summaryItems.push({ label: `${t("checkIn")} / ${t("checkOut")}`, value: `${query.checkIn} → ${query.checkOut}` });
+  }
+  if (query.guests) summaryItems.push({ label: tCommon("guests"), value: query.guests });
+  if (query.rooms) summaryItems.push({ label: tCommon("rooms"), value: query.rooms });
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      {summaryItems.length > 0 && (
+        <SearchSummaryBar items={summaryItems} modifyLabel={t("modifySearch")} />
+      )}
       <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {t("resultsCount", { count: total })}
+          {t("resultsCount", { count: combinedTotal })}
         </h1>
-        <SearchSort basePath="/hotels" />
+        <SearchSort
+          basePath="/hotels"
+          options={[
+            { value: "recommended", label: t("sortRecommended") },
+            { value: "price_asc", label: t("sortPriceLowToHigh") },
+            { value: "price_desc", label: t("sortPriceHighToLow") },
+            { value: "rating", label: t("sortRating") },
+          ]}
+        />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[260px_1fr]">
@@ -92,11 +129,11 @@ export default async function HotelsSearchPage({
         </aside>
 
         <div>
-          {hotels.length === 0 ? (
+          {allResults.length === 0 ? (
             <EmptyState icon={SearchX} title={tCommon("noResults")} />
           ) : (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {hotels.map((hotel) => (
+              {allResults.map((hotel) => (
                 <HotelCard
                   key={hotel.id}
                   hotel={hotel}

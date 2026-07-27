@@ -154,6 +154,9 @@ export const authConfig: NextAuthConfig = {
               type: "new_login_detected",
               title: "New login detected",
               message: `A new login to your TravlBok account was detected from IP address ${ipAddress}.`,
+              titleKey: "newLoginTitle",
+              messageKey: "newLoginMessage",
+              params: { ip: ipAddress },
               metadata: { ipAddress, userAgent },
               channels: ["IN_APP", "EMAIL"],
             });

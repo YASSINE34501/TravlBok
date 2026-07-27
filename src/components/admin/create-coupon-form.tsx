@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { useRouter } from "@/i18n/navigation";
 
 export function CreateCouponForm({ locale }: { locale: string }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [code, setCode] = useState("");
   const [type, setType] = useState<"PERCENTAGE" | "FIXED">("PERCENTAGE");
   const [value, setValue] = useState("");
@@ -36,7 +38,7 @@ export function CreateCouponForm({ locale }: { locale: string }) {
         validFrom,
         validTo,
       });
-      toast.success("Coupon created");
+      toast.success(t("couponCreated"));
       setCode("");
       setValue("");
       router.refresh();

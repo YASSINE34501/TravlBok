@@ -26,10 +26,10 @@ export default async function AdminAuditLogsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Actor</TableHead>
-              <TableHead>Action</TableHead>
-              <TableHead>Entity</TableHead>
+              <TableHead>{t("date")}</TableHead>
+              <TableHead>{t("actor")}</TableHead>
+              <TableHead>{t("action")}</TableHead>
+              <TableHead>{t("entity")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -38,7 +38,7 @@ export default async function AdminAuditLogsPage() {
                 <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                   {log.createdAt.toLocaleString()}
                 </TableCell>
-                <TableCell>{log.actor?.email ?? "System"}</TableCell>
+                <TableCell>{log.actor?.email ?? t("system")}</TableCell>
                 <TableCell>{log.action}</TableCell>
                 <TableCell>
                   {log.entityType} {log.entityId ? `#${log.entityId.slice(0, 8)}` : ""}

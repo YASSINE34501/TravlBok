@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ export function AssignSubscriptionForm({
   plans: Option[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [organizationId, setOrganizationId] = useState(organizations[0]?.id ?? "");
   const [planId, setPlanId] = useState(plans[0]?.id ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,7 +39,7 @@ export function AssignSubscriptionForm({
     setIsSubmitting(true);
     try {
       await assignSubscriptionAction(locale, organizationId, planId);
-      toast.success("Subscription assigned");
+      toast.success(t("subscriptionAssigned"));
       router.refresh();
     } finally {
       setIsSubmitting(false);

@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { toast } from "sonner";
+import { isPlatformStaff, isPartnerRole } from "@/lib/role-groups";
+import type { Role } from "@/generated/prisma/client";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +67,16 @@ export function LoginForm() {
         return;
       }
 
-      router.push("/");
+      const session = await getSession();
+      const role = session?.user?.role as Role | undefined;
+      const destination = role
+        ? isPlatformStaff(role)
+          ? "/admin"
+          : isPartnerRole(role)
+            ? "/dashboard"
+            : "/"
+        : "/";
+      router.push(destination);
       router.refresh();
     } catch {
       toast.error(tCommon("somethingWentWrong"));

@@ -17,6 +17,8 @@ export default async function SubscriptionPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Partner");
+  const tSubscriptionStatus = await getTranslations("SubscriptionStatus");
+  const tBillingInterval = await getTranslations("BillingInterval");
   const { organization } = await getPartnerContext(locale);
 
   const [subscription, plans] = await Promise.all([
@@ -42,11 +44,13 @@ export default async function SubscriptionPage({
                 {pickLocaleText(subscription.plan.name as Record<string, unknown>, locale)}
               </p>
               <StatusBadge tone={SUBSCRIPTION_STATUS_TONE[subscription.status]}>
-                {subscription.status}
+                {tSubscriptionStatus(subscription.status)}
               </StatusBadge>
               <p className="text-muted-foreground">
-                Billing: {subscription.billingInterval} · Renews{" "}
-                {subscription.currentPeriodEnd.toDateString()}
+                {t("billingRenewalSummary", {
+                  interval: tBillingInterval(subscription.billingInterval),
+                  date: subscription.currentPeriodEnd.toLocaleDateString(locale),
+                })}
               </p>
             </CardContent>
           </Card>
@@ -66,7 +70,7 @@ export default async function SubscriptionPage({
           />
         </>
       ) : (
-        <EmptyState icon={CreditCard} title="No subscription found" />
+        <EmptyState icon={CreditCard} title={t("noSubscriptionFound")} />
       )}
     </div>
   );

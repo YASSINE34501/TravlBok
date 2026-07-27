@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { toggleCouponStatusAction } from "@/domains/admin/actions";
@@ -16,6 +17,7 @@ export function ToggleCouponButton({
   status: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [isPending, startTransition] = useTransition();
 
   function handleClick() {
@@ -25,14 +27,14 @@ export function ToggleCouponButton({
         couponId,
         status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
       );
-      toast.success("Updated");
+      toast.success(t("updated"));
       router.refresh();
     });
   }
 
   return (
     <Button size="sm" variant="outline" disabled={isPending} onClick={handleClick}>
-      {status === "ACTIVE" ? "Deactivate" : "Activate"}
+      {status === "ACTIVE" ? t("deactivate") : t("activate")}
     </Button>
   );
 }

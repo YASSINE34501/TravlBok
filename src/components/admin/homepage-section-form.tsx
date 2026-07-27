@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ export function HomepageSectionForm({
   section?: Section;
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [key, setKey] = useState(section?.key ?? "");
   const [titleEn, setTitleEn] = useState(section?.titleEn ?? "");
   const [titleFr, setTitleFr] = useState(section?.titleFr ?? "");
@@ -60,7 +62,7 @@ export function HomepageSectionForm({
         sortOrder: Number(sortOrder) || 0,
         isActive,
       });
-      toast.success("Saved");
+      toast.success(t("saved"));
       if (!section) {
         setKey("");
         setTitleEn("");

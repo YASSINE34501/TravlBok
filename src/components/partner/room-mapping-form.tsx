@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ export function RoomMappingForm({
   roomTypes: RoomTypeOption[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Partner");
   const [roomTypeId, setRoomTypeId] = useState(roomTypes[0]?.id ?? "");
   const [externalRoomId, setExternalRoomId] = useState("");
   const [externalRatePlanId, setExternalRatePlanId] = useState("");
@@ -49,7 +51,7 @@ export function RoomMappingForm({
         toast.error(result.error);
         return;
       }
-      toast.success("Room mapped");
+      toast.success(t("roomMapped"));
       setExternalRoomId("");
       setExternalRatePlanId("");
       router.refresh();

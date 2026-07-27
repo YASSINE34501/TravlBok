@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ export function AddAffiliateCommissionRuleForm({
   organizations: OrganizationOption[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [organizationId, setOrganizationId] = useState("PLATFORM_DEFAULT");
   const [serviceType, setServiceType] = useState<"HOTEL" | "CAR">("HOTEL");
   const [type, setType] = useState<"PERCENTAGE" | "FIXED">("PERCENTAGE");
@@ -45,7 +47,7 @@ export function AddAffiliateCommissionRuleForm({
         type,
         value: Number(value),
       });
-      toast.success("Rule added");
+      toast.success(t("ruleAdded"));
       setValue("");
       router.refresh();
     } finally {

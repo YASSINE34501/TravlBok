@@ -11,6 +11,7 @@ export default async function AdminPricingPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Admin");
+  const tStatus = await getTranslations("ApprovalStatus");
 
   const rules = await getAllPricingRulesForAdmin();
   const pendingCount = rules.filter((r) => r.approvalStatus === "PENDING").length;
@@ -66,7 +67,7 @@ export default async function AdminPricingPage({
                         : "secondary"
                   }
                 >
-                  {rule.approvalStatus}
+                  {tStatus(rule.approvalStatus)}
                 </Badge>
                 {rule.approvalStatus === "PENDING" && (
                   <>

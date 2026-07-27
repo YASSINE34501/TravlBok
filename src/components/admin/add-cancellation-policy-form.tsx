@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { useRouter } from "@/i18n/navigation";
 
 export function AddCancellationPolicyForm({ locale }: { locale: string }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [nameEn, setNameEn] = useState("");
   const [nameFr, setNameFr] = useState("");
   const [nameAr, setNameAr] = useState("");
@@ -43,7 +45,7 @@ export function AddCancellationPolicyForm({ locale }: { locale: string }) {
         descriptionAr,
         rules,
       });
-      toast.success("Cancellation policy added");
+      toast.success(t("cancellationPolicyAdded"));
       setNameEn("");
       setNameFr("");
       setNameAr("");

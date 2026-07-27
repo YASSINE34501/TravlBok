@@ -1,8 +1,9 @@
 import { getTranslations } from "next-intl/server";
-import { Compass, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { BrandLogo } from "@/components/icons/brand-logo";
 
 export async function Footer() {
   const t = await getTranslations("Footer");
@@ -39,13 +40,8 @@ export async function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 md:grid-cols-5">
           <div className="md:col-span-2">
-            <Link href="/" className="flex items-center gap-2 text-primary">
-              <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <Compass className="size-4.5" />
-              </span>
-              <span className="text-lg font-semibold tracking-tight text-foreground">
-                {tCommon("brand")}
-              </span>
+            <Link href="/" className="flex items-center">
+              <BrandLogo className="h-16 w-auto" />
             </Link>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
               {t("newsletterDescription")}

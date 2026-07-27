@@ -29,6 +29,7 @@ export default async function PmsReportsPage({
   const { hotelId: requestedHotelId } = await searchParams;
   const { organization } = await getPartnerContext(locale);
   const t = await getTranslations("Pms");
+  const tBookingStatus = await getTranslations("BookingStatus");
 
   const hotels = await prisma.hotel.findMany({
     where: { organizationId: organization.id, deletedAt: null },
@@ -129,7 +130,7 @@ export default async function PmsReportsPage({
                 <p className="text-sm text-foreground">
                   {r.bookingReference} · {r.guestFirstName} {r.guestLastName}
                 </p>
-                <p className="text-sm text-muted-foreground">{r.status}</p>
+                <p className="text-sm text-muted-foreground">{tBookingStatus(r.status)}</p>
               </div>
             ))}
           </div>

@@ -23,6 +23,10 @@
 # production
 /build
 
+# electron-builder output (packaged installers/exe — contains bundled
+# runtime credentials, see ELECTRON.md; never commit or distribute)
+/release
+
 # misc
 .DS_Store
 *.pem

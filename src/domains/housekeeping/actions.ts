@@ -42,6 +42,12 @@ export async function assignHousekeepingTaskAction(
       type: "housekeeping_task_assigned",
       title: "New housekeeping task assigned",
       message: `You've been assigned a ${task.type.toLowerCase()} task${input.priority ? ` (${input.priority} priority)` : ""}.`,
+      titleKey: "housekeepingTaskTitle",
+      messageKey: "housekeepingTaskMessage",
+      params: {
+        taskType: task.type.toLowerCase(),
+        priority: input.priority ? ` (${input.priority} priority)` : "",
+      },
       metadata: { taskId },
       channels: ["IN_APP"],
     });
@@ -221,6 +227,9 @@ export async function reportMaintenanceIssueAction(
     type: "maintenance_issue_reported",
     title: "Maintenance issue reported",
     message: `${input.title}${input.priority === "URGENT" ? " (URGENT)" : ""}`,
+    titleKey: "maintenanceReportedTitle",
+    messageKey: "maintenanceReportedMessage",
+    params: { issueTitle: input.title, urgent: input.priority === "URGENT" ? " (URGENT)" : "" },
     channels: ["IN_APP"],
   });
   revalidatePath(`/${locale}/dashboard/pms/maintenance`);

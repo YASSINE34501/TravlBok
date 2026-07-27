@@ -264,6 +264,8 @@ export async function assignSubscriptionAction(
     type: "subscription_plan_assigned",
     title: "Subscription plan updated",
     message: "TravlBok has assigned a new subscription plan to your organization.",
+    titleKey: "subscriptionUpdatedTitle",
+    messageKey: "subscriptionUpdatedMessage",
     metadata: { planId },
     channels: ["IN_APP", "EMAIL"],
   });
@@ -291,6 +293,8 @@ export async function suspendSubscriptionAction(
     type: "subscription_suspended",
     title: "Subscription suspended",
     message: "Your subscription has been suspended by TravlBok. Contact support for details.",
+    titleKey: "subscriptionSuspendedTitle",
+    messageKey: "subscriptionSuspendedMessage",
     channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/subscriptions`);

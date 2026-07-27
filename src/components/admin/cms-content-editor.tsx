@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +16,7 @@ export function CmsContentEditor({
   slug: string;
   content: Record<string, unknown>;
 }) {
+  const t = useTranslations("Admin");
   const [text, setText] = useState(JSON.stringify(content, null, 2));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,7 @@ export function CmsContentEditor({
     setIsSubmitting(true);
     try {
       await updateCmsPageAction(locale, slug, parsed);
-      toast.success("Saved");
+      toast.success(t("saved"));
     } finally {
       setIsSubmitting(false);
     }

@@ -46,6 +46,9 @@ export async function handlePaymentProviderEvent(event: WebhookEvent): Promise<v
           newStatus === "PAID"
             ? `Your payment for booking ${reservation.bookingReference} was confirmed.`
             : `Your payment for booking ${reservation.bookingReference} failed. Please try again.`,
+        titleKey: newStatus === "PAID" ? "paymentConfirmedTitle" : "paymentFailedTitle",
+        messageKey: newStatus === "PAID" ? "paymentConfirmedMessage" : "paymentFailedMessage",
+        params: { reference: reservation.bookingReference },
         metadata: { paymentId: updated.id, reservationId: reservation.id },
         channels: ["IN_APP", "EMAIL"],
       });
@@ -61,6 +64,8 @@ export async function handlePaymentProviderEvent(event: WebhookEvent): Promise<v
         type: "subscription_payment_confirmed",
         title: "Subscription payment confirmed",
         message: "Your subscription payment was confirmed and your plan is active.",
+        titleKey: "subscriptionPaymentConfirmedTitle",
+        messageKey: "subscriptionPaymentConfirmedMessage",
         metadata: { subscriptionId: updated.subscriptionId },
         channels: ["IN_APP", "EMAIL"],
       });
@@ -76,6 +81,8 @@ export async function handlePaymentProviderEvent(event: WebhookEvent): Promise<v
         type: "subscription_payment_failed",
         title: "Subscription payment failed",
         message: "Your subscription payment failed. Your account is now past due — please update your payment method.",
+        titleKey: "subscriptionPaymentFailedTitle",
+        messageKey: "subscriptionPaymentFailedMessage",
         metadata: { subscriptionId: updated.subscriptionId },
         channels: ["IN_APP", "EMAIL"],
       });

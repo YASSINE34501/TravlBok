@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { useRouter } from "@/i18n/navigation";
 
 export function AddCountryForm({ locale }: { locale: string }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [code, setCode] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [nameFr, setNameFr] = useState("");
@@ -20,7 +22,7 @@ export function AddCountryForm({ locale }: { locale: string }) {
     setIsSubmitting(true);
     try {
       await createCountryAction(locale, code.toUpperCase(), nameEn, nameFr, nameAr);
-      toast.success("Country added");
+      toast.success(t("countryAdded"));
       setCode("");
       setNameEn("");
       setNameFr("");

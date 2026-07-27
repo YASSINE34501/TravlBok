@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { adminSetRuleStatusAction } from "@/domains/dynamic-pricing/actions";
@@ -16,6 +17,8 @@ export function PricingRuleStatusButton({
   status: "APPROVED" | "REJECTED";
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
+  const tCommon = useTranslations("Common");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function handleClick() {
@@ -23,7 +26,7 @@ export function PricingRuleStatusButton({
     try {
       const result = await adminSetRuleStatusAction(locale, ruleId, status);
       if (!result.success) {
-        toast.error("Something went wrong");
+        toast.error(tCommon("somethingWentWrong"));
         return;
       }
       router.refresh();
@@ -34,7 +37,7 @@ export function PricingRuleStatusButton({
 
   return (
     <Button size="sm" variant="outline" disabled={isSubmitting} onClick={handleClick}>
-      {status === "APPROVED" ? "Approve" : "Reject"}
+      {status === "APPROVED" ? t("approve") : t("reject")}
     </Button>
   );
 }

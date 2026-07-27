@@ -2,6 +2,7 @@
   "name": "travlbok",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,7 +14,14 @@
     "db:seed": "tsx prisma/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "build:next": "next build",
+    "electron:icon": "node scripts/generate-icon.js",
+    "electron:prepare": "node scripts/prepare-electron.js",
+    "electron:build": "npm run build:next && npm run electron:prepare",
+    "electron:dev": "npm run electron:build && electron .",
+    "electron:pack": "npm run electron:build && electron-builder --dir -c electron-builder.yml",
+    "electron:dist": "npm run electron:build && electron-builder -c electron-builder.yml"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -28,6 +36,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
+    "embla-carousel-react": "^8.6.0",
     "exceljs": "^4.4.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.25.0",
@@ -61,6 +70,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "tailwindcss": "^4",

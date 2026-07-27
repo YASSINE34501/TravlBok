@@ -14,6 +14,10 @@ export default async function AdminChannelsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Admin");
+  const tConnStatus = await getTranslations("ChannelConnectionStatus");
+  const tJobType = await getTranslations("SyncJobType");
+  const tJobDirection = await getTranslations("SyncJobDirection");
+  const tJobStatus = await getTranslations("SyncJobStatus");
 
   const [connections, recentJobs] = await Promise.all([
     getAllChannelConnectionsForAdmin(),
@@ -64,7 +68,7 @@ export default async function AdminChannelsPage({
               </span>
               <div className="flex items-center gap-2">
                 <Badge variant={connection.status === "CONNECTED" ? "default" : "secondary"}>
-                  {connection.status}
+                  {tConnStatus(connection.status)}
                 </Badge>
                 <span className="text-muted-foreground">
                   {connection._count.syncJobs} jobs · {connection._count.reservationImports} imports
@@ -88,7 +92,7 @@ export default async function AdminChannelsPage({
             <div key={job.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
               <span>
                 {job.channelConnection.organization.displayName} · {job.channelConnection.hotel.name} ·{" "}
-                {job.type} · {job.direction}
+                {tJobType(job.type)} · {tJobDirection(job.direction)}
               </span>
               <Badge
                 variant={
@@ -99,7 +103,7 @@ export default async function AdminChannelsPage({
                       : "secondary"
                 }
               >
-                {job.status}
+                {tJobStatus(job.status)}
               </Badge>
             </div>
           ))}

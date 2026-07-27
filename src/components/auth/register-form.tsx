@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
@@ -10,13 +10,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -28,16 +21,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 import { registerSchema, type RegisterInput } from "@/lib/validation/auth";
-import { registerAction } from "@/lib/auth/actions";
+import { registerCustomerAction } from "@/lib/auth/actions";
 
-const ROLE_OPTIONS = [
-  "CUSTOMER",
-  "HOTEL_OWNER",
-  "CAR_RENTAL_OWNER",
-  "TRAVEL_AGENCY",
-  "AFFILIATE_PARTNER",
-] as const;
-
+/**
+ * Customer-only registration — no role selector, no organization field, ever.
+ * Partner sign-up is a completely separate form/route/server action
+ * (`partner-register-form.tsx` / `/register/partner` / `registerPartnerAction`).
+ */
 export function RegisterForm({ locale }: { locale: string }) {
   const t = useTranslations("Auth");
   const tCommon = useTranslations("Common");
@@ -59,18 +49,10 @@ export function RegisterForm({ locale }: { locale: string }) {
     },
   });
 
-  const role = useWatch({ control: form.control, name: "role" });
-  const needsOrganization =
-    role === "HOTEL_OWNER" || role === "CAR_RENTAL_OWNER" || role === "TRAVEL_AGENCY";
-
-  const roleItems = Object.fromEntries(
-    ROLE_OPTIONS.map((option) => [option, t(`role${toPascalCase(option)}`)])
-  );
-
   async function onSubmit(values: RegisterInput) {
     setIsSubmitting(true);
     try {
-      const result = await registerAction(locale, values);
+      const result = await registerCustomerAction(locale, values);
       if (!result.success) {
         if (result.fieldErrors?.email === "emailAlreadyUsed") {
           form.setError("email", { message: t("emailAlreadyUsed") });
@@ -160,55 +142,6 @@ export function RegisterForm({ locale }: { locale: string }) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("accountType")}</FormLabel>
-                  <Select
-                    items={roleItems}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                  >
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {ROLE_OPTIONS.map((option) => (
-                        <SelectItem key={option} value={option}>
-                          {t(`role${toPascalCase(option)}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {needsOrganization && (
-              <FormField
-                control={form.control}
-                name="organizationName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {role === "HOTEL_OWNER" && t("roleHotelOwner")}
-                      {role === "CAR_RENTAL_OWNER" && t("roleCarRentalOwner")}
-                      {role === "TRAVEL_AGENCY" && t("roleTravelAgency")}
-                    </FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
             <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
@@ -273,12 +206,4 @@ export function RegisterForm({ locale }: { locale: string }) {
       </CardContent>
     </Card>
   );
-}
-
-function toPascalCase(value: string): string {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
 }

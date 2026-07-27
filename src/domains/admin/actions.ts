@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { requireRole, ROLE_GROUPS } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { notifyUser, notifyOrganizationOwners } from "@/domains/notifications/service";
+import type { CurrencyCode } from "@/lib/currency/config";
 
 const PLATFORM_STAFF = ROLE_GROUPS.platformStaff;
 
@@ -33,6 +34,8 @@ export async function approveOrganizationAction(locale: string, organizationId: 
     type: "organization_approved",
     title: "Organization approved",
     message: "Your organization has been approved by TravlBok.",
+    titleKey: "orgApprovedTitle",
+    messageKey: "orgApprovedMessage",
     channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/organizations`);
@@ -65,6 +68,9 @@ export async function rejectOrganizationAction(
     type: "organization_rejected",
     title: "Organization rejected",
     message: `Your organization application was rejected: ${reason}`,
+    titleKey: "orgRejectedTitle",
+    messageKey: "orgRejectedMessage",
+    params: { reason },
     channels: ["IN_APP", "EMAIL"],
   });
   revalidatePath(`/${locale}/admin/organizations`);
@@ -136,6 +142,9 @@ export async function approveHotelAction(locale: string, hotelId: string) {
     type: "property_approved",
     title: "Property approved",
     message: `${hotel.name} has been approved and can now be published.`,
+    titleKey: "propertyApprovedTitle",
+    messageKey: "propertyApprovedMessage",
+    params: { propertyName: hotel.name },
     metadata: { hotelId },
     channels: ["IN_APP", "EMAIL"],
   });
@@ -159,6 +168,9 @@ export async function rejectHotelAction(locale: string, hotelId: string, reason:
     type: "property_rejected",
     title: "Property rejected",
     message: `${hotel.name} was rejected: ${reason}`,
+    titleKey: "propertyRejectedTitle",
+    messageKey: "propertyRejectedMessage",
+    params: { propertyName: hotel.name, reason },
     metadata: { hotelId },
     channels: ["IN_APP", "EMAIL"],
   });
@@ -249,6 +261,9 @@ export async function approveVehicleAction(locale: string, vehicleId: string) {
     type: "vehicle_approved",
     title: "Vehicle approved",
     message: `${vehicle.brand} ${vehicle.model} has been approved and can now be published.`,
+    titleKey: "vehicleApprovedTitle",
+    messageKey: "vehicleApprovedMessage",
+    params: { vehicleName: `${vehicle.brand} ${vehicle.model}` },
     metadata: { vehicleId },
     channels: ["IN_APP", "EMAIL"],
   });
@@ -277,6 +292,9 @@ export async function rejectVehicleAction(locale: string, vehicleId: string, rea
     type: "vehicle_rejected",
     title: "Vehicle rejected",
     message: `${vehicle.brand} ${vehicle.model} was rejected: ${reason}`,
+    titleKey: "vehicleRejectedTitle",
+    messageKey: "vehicleRejectedMessage",
+    params: { vehicleName: `${vehicle.brand} ${vehicle.model}`, reason },
     metadata: { vehicleId },
     channels: ["IN_APP", "EMAIL"],
   });
@@ -383,7 +401,7 @@ export async function activateUserAction(locale: string, userId: string) {
 
 export async function addExchangeRateAction(
   locale: string,
-  targetCurrency: "EUR" | "USD",
+  targetCurrency: Exclude<CurrencyCode, "MAD">,
   rate: number
 ) {
   const admin = await requireRole(locale, PLATFORM_STAFF);
@@ -525,6 +543,8 @@ export async function moderateReviewAction(
       status === "APPROVED"
         ? "Your review has been approved and is now visible on TravlBok."
         : "Your review did not meet TravlBok's guidelines and was not published.",
+    titleKey: status === "APPROVED" ? "reviewPublishedTitle" : "reviewNotPublishedTitle",
+    messageKey: status === "APPROVED" ? "reviewPublishedMessage" : "reviewNotPublishedMessage",
     metadata: { reviewId },
     channels: ["IN_APP"],
   });

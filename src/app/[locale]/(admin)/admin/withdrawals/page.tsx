@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/db";
 import { formatMoney } from "@/lib/currency/format";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +10,8 @@ export default async function AdminWithdrawalsPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
+  const t = await getTranslations("Admin");
+  const tStatus = await getTranslations("WithdrawalStatus");
 
   const withdrawals = await prisma.withdrawal.findMany({
     include: { affiliate: { include: { organization: true } } },
@@ -17,7 +20,7 @@ export default async function AdminWithdrawalsPage({
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Withdrawals</h1>
+      <h1 className="text-2xl font-semibold">{t("withdrawals")}</h1>
 
       <div className="space-y-2">
         {withdrawals.map((withdrawal) => (
@@ -32,7 +35,7 @@ export default async function AdminWithdrawalsPage({
             </span>
             <div className="flex items-center gap-2">
               <Badge variant={withdrawal.status === "PAID" ? "default" : "secondary"}>
-                {withdrawal.status}
+                {tStatus(withdrawal.status)}
               </Badge>
               <WithdrawalDecisionActions
                 locale={locale}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -21,6 +22,7 @@ export function GlobalSettingsForm({
   locale: string;
   initialValue: { defaultLocale: string; defaultCurrency: string; maintenanceMode: boolean };
 }) {
+  const t = useTranslations("Admin");
   const [defaultLocale, setDefaultLocale] = useState(initialValue.defaultLocale);
   const [defaultCurrency, setDefaultCurrency] = useState(initialValue.defaultCurrency);
   const [maintenanceMode, setMaintenanceMode] = useState(initialValue.maintenanceMode);
@@ -34,7 +36,7 @@ export function GlobalSettingsForm({
         defaultCurrency,
         maintenanceMode,
       });
-      toast.success("Saved");
+      toast.success(t("saved"));
     } finally {
       setIsSubmitting(false);
     }

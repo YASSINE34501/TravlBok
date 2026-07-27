@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ export function PricingRuleForm({
   hotels: Hotel[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Partner");
   const [hotelId, setHotelId] = useState(hotels[0]?.id ?? "");
   const [roomTypeId, setRoomTypeId] = useState<string>("");
   const [name, setName] = useState("");
@@ -97,7 +99,7 @@ export function PricingRuleForm({
         toast.error(result.error);
         return;
       }
-      toast.success("Pricing rule created");
+      toast.success(t("pricingRuleCreated"));
       setName("");
       setDescription("");
       router.refresh();

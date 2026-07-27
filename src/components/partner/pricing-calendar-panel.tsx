@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ export function PricingCalendarPanel({
   organizationId: string;
   roomTypeOptions: RoomTypeOption[];
 }) {
+  const t = useTranslations("Partner");
   const [roomTypeId, setRoomTypeId] = useState(roomTypeOptions[0]?.id ?? "");
   const [startDate, setStartDate] = useState(todayPlus(0));
   const [endDate, setEndDate] = useState(todayPlus(7));
@@ -61,7 +63,10 @@ export function PricingCalendarPanel({
       setRows(result.nights);
       setMode("simulation");
       toast.success(
-        `Occupancy ${result.occupancyRatePercent.toFixed(0)}% · ${result.remainingInventory} unit(s) remaining`
+        t("simulationResult", {
+          rate: result.occupancyRatePercent.toFixed(0),
+          remaining: result.remainingInventory,
+        })
       );
     } finally {
       setIsBusy(false);
@@ -90,7 +95,7 @@ export function PricingCalendarPanel({
         setRows(history.entries);
         setMode("calendar");
       }
-      toast.success("Pricing calendar recalculated");
+      toast.success(t("pricingCalendarRecalculated"));
     } finally {
       setIsBusy(false);
     }

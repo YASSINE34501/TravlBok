@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   Select,
@@ -27,6 +28,7 @@ export function ReservationStatusSelect({
   currentStatus: string;
 }) {
   const router = useRouter();
+  const tCommon = useTranslations("Common");
   const [isPending, startTransition] = useTransition();
 
   function handleChange(value: string | null) {
@@ -39,7 +41,7 @@ export function ReservationStatusSelect({
         value as (typeof STATUSES)[number]
       );
       if (result.success) {
-        toast.success("Updated");
+        toast.success(tCommon("updated"));
         router.refresh();
       }
     });

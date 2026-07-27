@@ -12,6 +12,7 @@ export default async function AdminCmsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Admin");
+  const tStatus = await getTranslations("CmsPageStatus");
 
   const pages = await prisma.cmsPage.findMany({ orderBy: { slug: "asc" } });
 
@@ -29,7 +30,7 @@ export default async function AdminCmsPage({
                   </p>
                   <p className="text-sm text-muted-foreground">/{page.slug}</p>
                 </div>
-                <Badge variant="secondary">{page.status}</Badge>
+                <Badge variant="secondary">{tStatus(page.status)}</Badge>
               </CardContent>
             </Card>
           </Link>

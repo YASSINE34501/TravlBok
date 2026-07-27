@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { getTranslations } from "next-intl/server";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 const emailFrom = process.env.EMAIL_FROM ?? "TravlBok <no-reply@travlbok.com>";
@@ -29,16 +30,18 @@ export async function sendVerificationEmail(params: {
   to: string;
   firstName: string;
   verifyUrl: string;
+  locale: string;
 }) {
+  const t = await getTranslations({ locale: params.locale, namespace: "Email" });
   await sendEmail({
     to: params.to,
-    subject: "Verify your TravlBok email address",
+    subject: t("verifySubject"),
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h1 style="color:#1e3a5f;">Welcome to TravlBok, ${params.firstName}</h1>
-        <p>Please confirm your email address to activate your account.</p>
-        <p><a href="${params.verifyUrl}" style="display:inline-block;padding:12px 24px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;">Verify email</a></p>
-        <p>Or copy this link: ${params.verifyUrl}</p>
+        <h1 style="color:#1e3a5f;">${t("verifyHeading", { firstName: params.firstName })}</h1>
+        <p>${t("verifyBody")}</p>
+        <p><a href="${params.verifyUrl}" style="display:inline-block;padding:12px 24px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;">${t("verifyButton")}</a></p>
+        <p>${t("verifyLinkPrefix", { url: params.verifyUrl })}</p>
       </div>
     `,
   });
@@ -48,17 +51,19 @@ export async function sendPasswordResetEmail(params: {
   to: string;
   firstName: string;
   resetUrl: string;
+  locale: string;
 }) {
+  const t = await getTranslations({ locale: params.locale, namespace: "Email" });
   await sendEmail({
     to: params.to,
-    subject: "Reset your TravlBok password",
+    subject: t("resetSubject"),
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h1 style="color:#1e3a5f;">Password reset</h1>
-        <p>Hi ${params.firstName}, click below to set a new password. This link expires in 1 hour.</p>
-        <p><a href="${params.resetUrl}" style="display:inline-block;padding:12px 24px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;">Reset password</a></p>
-        <p>Or copy this link: ${params.resetUrl}</p>
-        <p>If you didn't request this, you can safely ignore this email.</p>
+        <h1 style="color:#1e3a5f;">${t("resetHeading")}</h1>
+        <p>${t("resetBody", { firstName: params.firstName })}</p>
+        <p><a href="${params.resetUrl}" style="display:inline-block;padding:12px 24px;background:#1e3a5f;color:#fff;border-radius:8px;text-decoration:none;">${t("resetButton")}</a></p>
+        <p>${t("resetLinkPrefix", { url: params.resetUrl })}</p>
+        <p>${t("resetIgnoreNotice")}</p>
       </div>
     `,
   });
@@ -70,16 +75,18 @@ export async function sendNotificationEmail(params: {
   firstName: string;
   title: string;
   message: string;
+  locale: string;
 }) {
+  const t = await getTranslations({ locale: params.locale, namespace: "Email" });
   await sendEmail({
     to: params.to,
     subject: params.title,
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
         <h1 style="color:#1e3a5f; font-size: 20px;">${params.title}</h1>
-        <p>Hi ${params.firstName},</p>
+        <p>${t("notificationGreeting", { firstName: params.firstName })}</p>
         <p>${params.message}</p>
-        <p style="color:#888; font-size: 12px;">You're receiving this because of activity on your TravlBok account.</p>
+        <p style="color:#888; font-size: 12px;">${t("notificationFooter")}</p>
       </div>
     `,
   });

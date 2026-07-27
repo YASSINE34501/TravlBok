@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/i18n/navigation";
@@ -15,12 +16,13 @@ export function UserActions({
   onActivate: () => Promise<void>;
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [isPending, startTransition] = useTransition();
 
   function run(action: () => Promise<void>) {
     startTransition(async () => {
       await action();
-      toast.success("Updated");
+      toast.success(t("updated"));
       router.refresh();
     });
   }
@@ -28,14 +30,14 @@ export function UserActions({
   if (status === "SUSPENDED") {
     return (
       <Button size="sm" disabled={isPending} onClick={() => run(onActivate)}>
-        Activate
+        {t("activate")}
       </Button>
     );
   }
 
   return (
     <Button size="sm" variant="destructive" disabled={isPending} onClick={() => run(onSuspend)}>
-      Suspend
+      {t("suspend")}
     </Button>
   );
 }

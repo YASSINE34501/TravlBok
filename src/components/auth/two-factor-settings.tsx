@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ export function TwoFactorSettings({
   initiallyEnabled: boolean;
 }) {
   const router = useRouter();
+  const t = useTranslations("Auth");
   const [enabled, setEnabled] = useState(initiallyEnabled);
   const [step, setStep] = useState<"idle" | "setup" | "backup-codes">("idle");
   const [qrDataUrl, setQrDataUrl] = useState("");
@@ -71,7 +73,7 @@ export function TwoFactorSettings({
         toast.error(result.error);
         return;
       }
-      toast.success("Two-factor authentication disabled");
+      toast.success(t("twoFactorDisabled"));
       setEnabled(false);
       setPassword("");
       setStep("idle");

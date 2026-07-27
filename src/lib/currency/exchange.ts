@@ -1,15 +1,20 @@
 import "server-only";
 import { prisma } from "@/lib/db";
-import { DEFAULT_CURRENCY, type CurrencyCode } from "@/lib/currency/config";
+import { CURRENCIES, DEFAULT_CURRENCY, type CurrencyCode } from "@/lib/currency/config";
 
 /**
  * Returns the latest known rate for each currency expressed as
  * "amount of MAD equal to 1 unit of that currency" (MAD itself is always 1).
+ * Currencies without an admin-entered rate yet default to 1 (same placeholder
+ * behavior as before expansion) until a real rate is entered at /admin/exchange-rates.
  */
 export async function getLatestExchangeRates(): Promise<
   Record<CurrencyCode, number>
 > {
-  const rates: Record<CurrencyCode, number> = { MAD: 1, EUR: 1, USD: 1 };
+  const rates = Object.fromEntries(CURRENCIES.map((code) => [code, 1])) as Record<
+    CurrencyCode,
+    number
+  >;
 
   const results = await prisma.exchangeRate.findMany({
     where: { baseCurrency: DEFAULT_CURRENCY },
@@ -22,19 +27,4 @@ export async function getLatestExchangeRates(): Promise<
   }
 
   return rates;
-}
-
-export function convertAmount(
-  amount: number,
-  from: CurrencyCode,
-  to: CurrencyCode,
-  ratesToMad: Record<CurrencyCode, number>
-): number {
-  if (from === to) return amount;
-
-  const amountInMad = from === DEFAULT_CURRENCY ? amount : amount * ratesToMad[from];
-  const converted =
-    to === DEFAULT_CURRENCY ? amountInMad : amountInMad / ratesToMad[to];
-
-  return Math.round(converted * 100) / 100;
 }

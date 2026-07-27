@@ -13,8 +13,6 @@ export function formatMoney(
       style: "currency",
       currency,
       currencyDisplay: currency === "MAD" ? "code" : "symbol",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
     }).format(numericAmount);
   } catch {
     return `${numericAmount.toFixed(2)} ${currency}`;

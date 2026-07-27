@@ -17,6 +17,7 @@ export default async function AffiliateWithdrawalsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Partner");
+  const tStatus = await getTranslations("WithdrawalStatus");
   const { organization } = await getPartnerContext(locale);
 
   const affiliate = await prisma.affiliate.findUniqueOrThrow({
@@ -49,7 +50,7 @@ export default async function AffiliateWithdrawalsPage({
                   </span>
                 </span>
                 <StatusBadge tone={WITHDRAWAL_STATUS_TONE[withdrawal.status]}>
-                  {withdrawal.status}
+                  {tStatus(withdrawal.status)}
                 </StatusBadge>
               </div>
             ))}

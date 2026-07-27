@@ -26,6 +26,9 @@ async function notifySyncFailure(organizationId: string, provider: string, messa
     type: "channel_sync_error",
     title: "Channel sync failed",
     message: `Syncing with ${provider} failed: ${message}`,
+    titleKey: "channelSyncFailedTitle",
+    messageKey: "channelSyncFailedMessage",
+    params: { provider, error: message },
     channels: ["IN_APP", "EMAIL"],
   });
 }

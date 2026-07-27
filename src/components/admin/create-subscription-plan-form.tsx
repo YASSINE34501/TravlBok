@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,6 +39,7 @@ const FEATURE_FIELDS = [
 
 export function CreateSubscriptionPlanForm({ locale }: { locale: string }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [tier, setTier] = useState<Tier>("STARTER");
   const [nameEn, setNameEn] = useState("");
   const [nameFr, setNameFr] = useState("");
@@ -87,7 +89,7 @@ export function CreateSubscriptionPlanForm({ locale }: { locale: string }) {
         maxMonthlyBookings: toLimit(maxMonthlyBookings),
         ...features,
       });
-      toast.success("Plan created");
+      toast.success(t("planCreated"));
       setNameEn("");
       setNameFr("");
       setNameAr("");

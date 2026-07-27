@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +29,7 @@ export function SimulateReservationForm({
   mappings: MappingOption[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Partner");
   const [externalRoomId, setExternalRoomId] = useState(mappings[0]?.externalRoomId ?? "");
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
@@ -57,7 +59,7 @@ export function SimulateReservationForm({
         toast.error(result.error);
         return;
       }
-      toast.success("Reservation imported");
+      toast.success(t("reservationImported"));
       router.refresh();
     } finally {
       setIsSubmitting(false);

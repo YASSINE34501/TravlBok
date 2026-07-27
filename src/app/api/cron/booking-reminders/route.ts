@@ -53,6 +53,9 @@ export async function POST(request: Request) {
       type: "checkin_reminder",
       title: "Check-in tomorrow",
       message: `Your check-in at ${reservation.hotelLink?.hotel.name ?? "your hotel"} is tomorrow. Booking ${reservation.bookingReference}.`,
+      titleKey: "checkinReminderTitle",
+      messageKey: "checkinReminderMessage",
+      params: { hotelName: reservation.hotelLink?.hotel.name ?? "your hotel", reference: reservation.bookingReference },
       metadata: { reservationId: reservation.id },
       channels: ["IN_APP", "EMAIL"],
     });
@@ -69,6 +72,9 @@ export async function POST(request: Request) {
       type: "pickup_reminder",
       title: "Vehicle pickup tomorrow",
       message: `Your vehicle pickup is tomorrow. Booking ${reservation.bookingReference}.`,
+      titleKey: "pickupReminderTitle",
+      messageKey: "pickupReminderMessage",
+      params: { reference: reservation.bookingReference },
       metadata: { reservationId: reservation.id },
       channels: ["IN_APP", "EMAIL"],
     });

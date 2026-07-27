@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ import { useRouter } from "@/i18n/navigation";
 
 export function AddAmenityForm({ locale }: { locale: string }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [code, setCode] = useState("");
   const [category, setCategory] = useState<"HOTEL" | "ROOM" | "VEHICLE" | "GENERAL">("HOTEL");
   const [nameEn, setNameEn] = useState("");
@@ -28,7 +30,7 @@ export function AddAmenityForm({ locale }: { locale: string }) {
     setIsSubmitting(true);
     try {
       await createAmenityAction(locale, code.toUpperCase(), category, nameEn, nameFr, nameAr);
-      toast.success("Amenity added");
+      toast.success(t("amenityAdded"));
       setCode("");
       setNameEn("");
       setNameFr("");

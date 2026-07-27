@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { processWithdrawalAction } from "@/domains/affiliates/actions";
@@ -16,12 +17,13 @@ export function WithdrawalDecisionActions({
   status: string;
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [isPending, startTransition] = useTransition();
 
   function run(decision: "APPROVED" | "REJECTED" | "PAID") {
     startTransition(async () => {
       await processWithdrawalAction(locale, withdrawalId, decision);
-      toast.success("Updated");
+      toast.success(t("updated"));
       router.refresh();
     });
   }
@@ -31,16 +33,16 @@ export function WithdrawalDecisionActions({
       {status === "REQUESTED" && (
         <>
           <Button size="sm" disabled={isPending} onClick={() => run("APPROVED")}>
-            Approve
+            {t("approve")}
           </Button>
           <Button size="sm" variant="destructive" disabled={isPending} onClick={() => run("REJECTED")}>
-            Reject
+            {t("reject")}
           </Button>
         </>
       )}
       {status === "APPROVED" && (
         <Button size="sm" disabled={isPending} onClick={() => run("PAID")}>
-          Mark paid
+          {t("markPaid")}
         </Button>
       )}
     </div>

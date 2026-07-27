@@ -17,6 +17,7 @@ export default async function AdminExchangeRatesPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Admin");
+  const tSource = await getTranslations("RateSource");
 
   const rates = await prisma.exchangeRate.findMany({
     orderBy: { effectiveAt: "desc" },
@@ -32,10 +33,10 @@ export default async function AdminExchangeRatesPage({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Pair</TableHead>
-              <TableHead>Rate</TableHead>
-              <TableHead>Source</TableHead>
+              <TableHead>{t("date")}</TableHead>
+              <TableHead>{t("pair")}</TableHead>
+              <TableHead>{t("rate")}</TableHead>
+              <TableHead>{t("source")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -48,7 +49,7 @@ export default async function AdminExchangeRatesPage({
                   {rate.baseCurrency} / {rate.targetCurrency}
                 </TableCell>
                 <TableCell>{rate.rate.toString()}</TableCell>
-                <TableCell>{rate.source}</TableCell>
+                <TableCell>{tSource(rate.source)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

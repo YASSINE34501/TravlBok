@@ -3,25 +3,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import type { Role } from "@/generated/prisma/client";
+import { ROLE_GROUPS, isPlatformStaff } from "@/lib/role-groups";
 
-export const ROLE_GROUPS = {
-  platformStaff: ["SUPER_ADMIN", "ADMIN", "SUPPORT_AGENT"] as Role[],
-  hotelStaff: [
-    "HOTEL_OWNER",
-    "HOTEL_MANAGER",
-    "RECEPTIONIST",
-    "HOUSEKEEPING_STAFF",
-    "HOTEL_ACCOUNTANT",
-  ] as Role[],
-  carRentalStaff: ["CAR_RENTAL_OWNER", "CAR_RENTAL_STAFF"] as Role[],
-  partnerOwners: [
-    "HOTEL_OWNER",
-    "CAR_RENTAL_OWNER",
-    "TRAVEL_AGENCY",
-    "TOUR_PROVIDER",
-  ] as Role[],
-  affiliatePartners: ["AFFILIATE_PARTNER"] as Role[],
-} as const;
+export { ROLE_GROUPS, isPlatformStaff };
 
 export type SessionUser = {
   id: string;
@@ -108,8 +92,4 @@ export async function requireOrganizationAccess(
   }
 
   return user;
-}
-
-export function isPlatformStaff(role: Role): boolean {
-  return ROLE_GROUPS.platformStaff.includes(role);
 }

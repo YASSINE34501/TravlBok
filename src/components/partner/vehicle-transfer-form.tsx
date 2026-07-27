@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,7 @@ export function VehicleTransferForm({
   branches: { id: string; name: string }[];
 }) {
   const router = useRouter();
+  const t = useTranslations("Partner");
   const [targetBranchId, setTargetBranchId] = useState(currentBranchId);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,7 +43,7 @@ export function VehicleTransferForm({
         toast.error(result.error);
         return;
       }
-      toast.success("Vehicle transferred");
+      toast.success(t("vehicleTransferred"));
       router.refresh();
     } finally {
       setIsSubmitting(false);

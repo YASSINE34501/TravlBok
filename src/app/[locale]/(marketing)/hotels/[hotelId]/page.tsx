@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { StarRating } from "@/components/ui/star-rating";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Link } from "@/i18n/navigation";
 
 export async function generateMetadata({
@@ -58,6 +60,15 @@ export default async function HotelDetailPage({
       ? [{ id: "main", url: hotel.mainImageUrl }]
       : [];
 
+  const cheapestRoom = hotel.roomTypes.reduce<(typeof hotel.roomTypes)[number] | null>(
+    (lowest, room) => (!lowest || Number(room.basePrice) < Number(lowest.basePrice) ? room : lowest),
+    null
+  );
+  const avgRating =
+    hotel.reviews.length > 0
+      ? hotel.reviews.reduce((sum, r) => sum + r.rating, 0) / hotel.reviews.length
+      : null;
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -70,34 +81,60 @@ export default async function HotelDetailPage({
                 {cityName}
               </span>
             )}
-            {hotel.starRating ? (
-              <span className="flex items-center gap-1 text-sm">
-                <Star className="size-4 fill-accent text-accent" />
-                {hotel.starRating}
-              </span>
-            ) : null}
+            {hotel.starRating ? <StarRating rating={hotel.starRating} size="md" /> : null}
           </div>
         </div>
       </div>
 
       {galleryImages.length > 0 && (
-        <div className="mt-6 grid grid-cols-4 gap-2 overflow-hidden rounded-2xl">
-          <div className="relative col-span-4 aspect-[16/9] bg-muted sm:col-span-2 sm:row-span-2">
-            <Image
-              src={galleryImages[0].url}
-              alt={hotel.name}
-              fill
-              priority
-              sizes="(min-width: 640px) 50vw, 100vw"
-              className="object-cover"
-            />
+        <>
+          {/* Mobile: swipeable carousel */}
+          <div className="mt-6 sm:hidden">
+            <Carousel className="overflow-hidden rounded-2xl">
+              <CarouselContent>
+                {galleryImages.map((media, i) => (
+                  <CarouselItem key={media.id}>
+                    <div className="relative aspect-[4/3] bg-muted">
+                      <Image
+                        src={media.url}
+                        alt={hotel.name}
+                        fill
+                        priority={i === 0}
+                        sizes="100vw"
+                        className="object-cover"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {galleryImages.length > 1 && (
+                <>
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </>
+              )}
+            </Carousel>
           </div>
-          {galleryImages.slice(1, 5).map((media) => (
-            <div key={media.id} className="relative hidden aspect-square bg-muted sm:block">
-              <Image src={media.url} alt="" fill sizes="25vw" className="object-cover" />
+
+          {/* Desktop: static tiled grid */}
+          <div className="mt-6 hidden grid-cols-4 gap-2 overflow-hidden rounded-2xl sm:grid">
+            <div className="relative col-span-4 aspect-[16/9] bg-muted sm:col-span-2 sm:row-span-2">
+              <Image
+                src={galleryImages[0].url}
+                alt={hotel.name}
+                fill
+                priority
+                sizes="(min-width: 640px) 50vw, 100vw"
+                className="object-cover"
+              />
             </div>
-          ))}
-        </div>
+            {galleryImages.slice(1, 5).map((media) => (
+              <div key={media.id} className="relative hidden aspect-square bg-muted sm:block">
+                <Image src={media.url} alt="" fill sizes="25vw" className="object-cover" />
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
@@ -225,11 +262,7 @@ export default async function HotelDetailPage({
                           <span className="font-medium text-foreground">
                             {review.user.firstName} {review.user.lastName.charAt(0)}.
                           </span>
-                          <span className="flex items-center text-accent">
-                            {Array.from({ length: review.rating }).map((_, i) => (
-                              <Star key={i} className="size-3.5 fill-accent" />
-                            ))}
-                          </span>
+                          <StarRating rating={review.rating} size="sm" />
                         </div>
                         {review.comment && (
                           <p className="mt-1 text-sm text-muted-foreground">
@@ -244,6 +277,50 @@ export default async function HotelDetailPage({
             </section>
           )}
         </div>
+
+        <aside className="lg:sticky lg:top-24 lg:h-fit">
+          <Card className="rounded-2xl shadow-sm">
+            <CardContent className="space-y-4">
+              {cheapestRoom ? (
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("from")}</p>
+                  <p className="text-2xl font-semibold text-foreground">
+                    {formatFromBase(
+                      cheapestRoom.basePrice.toString(),
+                      cheapestRoom.currency,
+                      currency,
+                      rates,
+                      locale
+                    )}
+                    <span className="ms-1 text-sm font-normal text-muted-foreground">
+                      {t("perNight")}
+                    </span>
+                  </p>
+                </div>
+              ) : null}
+              {avgRating ? (
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Star className="size-4 fill-[#F4B400] text-[#F4B400]" />
+                  <span className="font-medium text-foreground">{avgRating.toFixed(1)}</span>
+                  <span>
+                    ({hotel.reviews.length} {tHome("reviews").toLowerCase()})
+                  </span>
+                </div>
+              ) : null}
+              <Button
+                className="w-full"
+                render={
+                  cheapestRoom ? (
+                    <Link href={`/hotels/${hotel.id}/book?roomTypeId=${cheapestRoom.id}`} />
+                  ) : undefined
+                }
+                disabled={!cheapestRoom}
+              >
+                {tBooking("confirmBooking")}
+              </Button>
+            </CardContent>
+          </Card>
+        </aside>
       </div>
     </main>
   );

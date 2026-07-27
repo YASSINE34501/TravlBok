@@ -1,26 +1,15 @@
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Car, MapPin, Users, Cog } from "lucide-react";
-import { Link } from "@/i18n/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
+import { OfferLink } from "@/components/marketplace/offer-link";
+import { getCheckoutMode } from "@/domains/distribution/checkout-mode";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { formatFromBase } from "@/lib/currency/display";
 import type { CurrencyCode } from "@/lib/currency/config";
-
-type VehicleCardData = {
-  id: string;
-  brand: string;
-  model: string;
-  year: number;
-  seats: number;
-  transmission: string;
-  pricePerDay: unknown;
-  currency: CurrencyCode;
-  mainImageUrl: string | null;
-  media: { url: string }[];
-  branch: { city: { name: unknown } | null } | null;
-};
+import type { VehicleCardData } from "@/domains/distribution/normalize";
 
 export async function VehicleCard({
   vehicle,
@@ -38,14 +27,20 @@ export async function VehicleCard({
   const cityName = vehicle.branch?.city
     ? pickLocaleText(vehicle.branch.city.name as Record<string, unknown>, locale)
     : null;
-  const imageUrl = vehicle.mainImageUrl ?? vehicle.media[0]?.url ?? null;
+  const imageUrl = vehicle.mainImageUrl ?? vehicle.media?.[0]?.url ?? null;
   const transmissionLabel =
     vehicle.transmission === "AUTOMATIC"
       ? tVehicle("transmissionAutomatic")
       : tVehicle("transmissionManual");
+  const checkoutMode = getCheckoutMode(vehicle.sourceType ?? "DIRECT_TRAVLBOK");
 
   return (
-    <Link href={`/cars/${vehicle.id}`} className="group block">
+    <OfferLink
+      checkoutMode={checkoutMode}
+      internalHref={`/cars/${vehicle.id}`}
+      externalHref={vehicle.externalRedirectUrl}
+      className="group block"
+    >
       <Card className="overflow-hidden rounded-2xl py-0 ring-1 ring-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/20">
         <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
           {imageUrl ? (
@@ -68,7 +63,8 @@ export async function VehicleCard({
         </div>
         <CardContent className="space-y-1.5 pb-4">
           <p className="line-clamp-1 font-medium text-foreground">
-            {vehicle.brand} {vehicle.model} · {vehicle.year}
+            {vehicle.brand} {vehicle.model}
+            {vehicle.year ? ` · ${vehicle.year}` : ""}
           </p>
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {cityName && (
@@ -77,10 +73,12 @@ export async function VehicleCard({
                 {cityName}
               </span>
             )}
-            <span className="flex items-center gap-1">
-              <Users className="size-3.5" />
-              {vehicle.seats}
-            </span>
+            {vehicle.seats ? (
+              <span className="flex items-center gap-1">
+                <Users className="size-3.5" />
+                {vehicle.seats}
+              </span>
+            ) : null}
           </div>
           <p className="pt-1 text-sm">
             <span className="font-semibold text-foreground">
@@ -94,8 +92,15 @@ export async function VehicleCard({
             </span>
             <span className="text-muted-foreground"> {t("perDay")}</span>
           </p>
+          {/* Decorative only — the whole card is already the click target. */}
+          <span
+            className={buttonVariants({ size: "sm", className: "mt-2 w-full justify-center" })}
+            aria-hidden="true"
+          >
+            {t("viewDetails")}
+          </span>
         </CardContent>
       </Card>
-    </Link>
+    </OfferLink>
   );
 }

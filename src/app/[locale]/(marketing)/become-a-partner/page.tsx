@@ -43,7 +43,7 @@ export default async function BecomeAPartnerPage({
               <p className="text-sm text-muted-foreground">
                 {tMarketing("partnerHotelDescription")}
               </p>
-              <Button render={<Link href="/register" />}>
+              <Button render={<Link href="/register/partner?role=HOTEL_OWNER" />}>
                 {tMarketing("partnerHotelCta")}
               </Button>
             </CardContent>
@@ -57,7 +57,7 @@ export default async function BecomeAPartnerPage({
               <p className="text-sm text-muted-foreground">
                 {tMarketing("partnerCarDescription")}
               </p>
-              <Button render={<Link href="/register" />}>
+              <Button render={<Link href="/register/partner?role=CAR_RENTAL_OWNER" />}>
                 {tMarketing("partnerCarCta")}
               </Button>
             </CardContent>

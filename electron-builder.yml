@@ -1,0 +1,52 @@
+# electron-builder config for the TravlBok Windows desktop app.
+# Run via: npm run electron:dist  (see package.json)
+#
+# INTERNAL DISTRIBUTION ONLY: the packaged output bundles .next/standalone,
+# which scripts/prepare-electron.js has already stamped with a runtime .env
+# containing live Supabase/Stripe/Auth credentials. Do not upload the
+# resulting installer anywhere outside the trusted team. See ELECTRON.md.
+appId: com.travlbok.desktop
+productName: TravlBok
+copyright: Copyright (c) TravlBok
+
+directories:
+  output: release
+  buildResources: build-assets
+
+# Only the Electron shell itself ships as app code; the real application is
+# the pre-built Next.js standalone server, shipped separately below via
+# extraResources so it sits outside app.asar (server.js needs a real
+# filesystem path to spawn from, and to find its own public/.next/static).
+files:
+  - electron/**/*
+  - package.json
+  - "!**/*.map"
+
+extraResources:
+  - from: .next/standalone
+    to: standalone
+    filter:
+      - "**/*"
+
+asar: true
+compression: normal
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build-assets/icon.ico
+  artifactName: "${productName}-Setup-${version}.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: TravlBok
+  artifactName: "${productName}-Setup-${version}.${ext}"
+
+# Never publish automatically from a local build.
+publish: null

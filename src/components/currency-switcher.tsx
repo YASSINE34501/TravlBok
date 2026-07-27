@@ -25,7 +25,7 @@ export function CurrencySwitcher() {
           <DropdownMenuItem
             key={code}
             data-active={code === currency}
-            onSelect={() => setCurrency(code)}
+            onClick={() => setCurrency(code)}
           >
             <span className="font-medium">{code}</span>
             <span className="ms-2 text-muted-foreground">{t(code)}</span>

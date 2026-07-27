@@ -14,9 +14,11 @@ import { Separator } from "@/components/ui/separator";
 import { previewCarPriceAction } from "@/domains/reservations/preview";
 import { createCarReservationAction } from "@/domains/reservations/actions";
 import { formatMoney } from "@/lib/currency/format";
+import { convertAmount } from "@/lib/currency/convert";
 import { useRouter } from "@/i18n/navigation";
 import type { CurrencyCode } from "@/lib/currency/config";
 import { PaymentMethodSelect, type PaymentProviderChoice } from "./payment-method-select";
+import { BookingSteps } from "./booking-steps";
 
 type Breakdown = {
   currency: CurrencyCode;
@@ -28,7 +30,17 @@ type Breakdown = {
   days?: number;
 };
 
-export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleId: string }) {
+export function CarBookingForm({
+  locale,
+  vehicleId,
+  displayCurrency,
+  rates,
+}: {
+  locale: string;
+  vehicleId: string;
+  displayCurrency: CurrencyCode;
+  rates: Record<CurrencyCode, number>;
+}) {
   const t = useTranslations("Booking");
   const tSearch = useTranslations("Search");
   const tAuth = useTranslations("Auth");
@@ -57,6 +69,14 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
   const [breakdown, setBreakdown] = useState<Breakdown | null>(null);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
+
+  function toDisplayCurrency(amount: number, fromCurrency: CurrencyCode) {
+    return formatMoney(
+      convertAmount(amount, fromCurrency, displayCurrency, rates),
+      displayCurrency,
+      locale
+    );
+  }
 
   async function handlePreview() {
     if (!pickupAt || !returnAt) {
@@ -115,7 +135,13 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+    <div>
+      <BookingSteps
+        steps={[t("travelerDetails"), t("payment"), t("reviewAndConfirm")]}
+        currentStep={!breakdown ? 1 : isBooking ? 3 : 2}
+      />
+      <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>{t("travelerDetails")}</CardTitle>
@@ -242,6 +268,14 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
               className="mt-1"
             />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("payment")}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <PaymentMethodSelect value={paymentProvider} onChange={setPaymentProvider} />
           <div>
             <Label htmlFor="coupon">{t("couponCode")}</Label>
@@ -260,30 +294,38 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
           )}
         </CardContent>
       </Card>
+        </div>
 
       <Card className="h-fit">
         <CardHeader>
-          <CardTitle>{t("priceBreakdown")}</CardTitle>
+          <CardTitle>{t("reviewAndConfirm")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {breakdown ? (
             <>
               <Row
                 label={t("basePrice")}
-                value={formatMoney(breakdown.basePriceAmount, breakdown.currency, locale)}
+                value={toDisplayCurrency(breakdown.basePriceAmount, breakdown.currency)}
               />
               {breakdown.discountAmount > 0 && (
                 <Row
                   label={t("discount")}
-                  value={`-${formatMoney(breakdown.discountAmount, breakdown.currency, locale)}`}
+                  value={`-${toDisplayCurrency(breakdown.discountAmount, breakdown.currency)}`}
                 />
               )}
               <Separator />
               <Row
                 label={t("total")}
-                value={formatMoney(breakdown.totalAmount, breakdown.currency, locale)}
+                value={toDisplayCurrency(breakdown.totalAmount, breakdown.currency)}
                 bold
               />
+              {displayCurrency !== breakdown.currency && (
+                <p className="text-xs text-muted-foreground">
+                  {t("willBeChargedAmount", {
+                    amount: formatMoney(breakdown.totalAmount, breakdown.currency, locale),
+                  })}
+                </p>
+              )}
               <Button
                 className="w-full"
                 disabled={isBooking || !guestFirstName || !guestLastName || !guestEmail}
@@ -299,6 +341,7 @@ export function CarBookingForm({ locale, vehicleId }: { locale: string; vehicleI
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

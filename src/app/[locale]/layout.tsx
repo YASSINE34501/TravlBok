@@ -10,6 +10,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
 import { CurrencyProvider } from "@/components/currency-provider";
 import { getPreferredCurrency } from "@/lib/currency/cookie";
+import { GlobalAffiliateScript } from "@/components/marketplace/global-affiliate-script";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -75,6 +76,7 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">
+        <GlobalAffiliateScript />
         <NextIntlClientProvider>
           <AuthSessionProvider>
             <CurrencyProvider initialCurrency={preferredCurrency}>

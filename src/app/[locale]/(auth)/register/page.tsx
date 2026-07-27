@@ -20,6 +20,12 @@ export default async function RegisterPage({
           {t("signIn")}
         </Link>
       </p>
+      <p className="text-center text-sm text-muted-foreground">
+        {t("areYouAPartner")}{" "}
+        <Link href="/register/partner" className="font-medium text-primary hover:underline">
+          {t("listYourProperty")}
+        </Link>
+      </p>
     </div>
   );
 }

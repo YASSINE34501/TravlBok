@@ -130,7 +130,10 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
-const VALIDATION_KEY_PATTERN = /^[a-zA-Z][a-zA-Z0-9]*$/
+// Plain key ("required") or "key:value" ("tooShort:8") for constraints that
+// need a dynamic number (min/max length, numeric range) interpolated into
+// the translated message as `{value}`.
+const VALIDATION_KEY_PATTERN = /^[a-zA-Z][a-zA-Z0-9]*(:-?[a-zA-Z0-9]+)?$/
 
 function FormMessage({ className, children, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField()
@@ -138,8 +141,17 @@ function FormMessage({ className, children, ...props }: React.ComponentProps<"p"
   const rawMessage = error ? String(error?.message ?? "") : undefined
 
   let body: React.ReactNode = children ?? rawMessage
-  if (rawMessage && VALIDATION_KEY_PATTERN.test(rawMessage) && tValidation.has(rawMessage)) {
-    body = tValidation(rawMessage)
+  if (rawMessage && VALIDATION_KEY_PATTERN.test(rawMessage)) {
+    const [key, value] = rawMessage.split(":")
+    if (tValidation.has(key as never)) {
+      // Cast to a permissive signature — the key is a runtime string parsed
+      // from the zod error message, not a literal next-intl can narrow.
+      const translate = tValidation as unknown as (
+        key: string,
+        values?: Record<string, string>
+      ) => string
+      body = value ? translate(key, { value }) : translate(key)
+    }
   }
 
   if (!body) {

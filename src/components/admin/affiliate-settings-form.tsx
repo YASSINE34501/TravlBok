@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ export function AffiliateSettingsForm({
   settings: AffiliateSettings;
 }) {
   const router = useRouter();
+  const t = useTranslations("Admin");
   const [minimumWithdrawal, setMinimumWithdrawal] = useState(String(settings.minimumWithdrawal));
   const [holdingPeriodDays, setHoldingPeriodDays] = useState(String(settings.holdingPeriodDays));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -28,7 +30,7 @@ export function AffiliateSettingsForm({
         holdingPeriodDays: Number(holdingPeriodDays),
         payoutMethods: settings.payoutMethods,
       });
-      toast.success("Saved");
+      toast.success(t("saved"));
       router.refresh();
     } finally {
       setIsSubmitting(false);

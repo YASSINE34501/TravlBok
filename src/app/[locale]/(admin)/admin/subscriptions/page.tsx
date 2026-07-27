@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/db";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
+import { formatMoney } from "@/lib/currency/format";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AssignSubscriptionForm } from "@/components/admin/assign-subscription-form";
@@ -13,6 +14,8 @@ export default async function AdminSubscriptionsPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations("Admin");
+  const tCommon = await getTranslations("Common");
+  const tStatus = await getTranslations("SubscriptionStatus");
 
   const [subscriptions, organizations, plans] = await Promise.all([
     prisma.subscription.findMany({
@@ -39,10 +42,12 @@ export default async function AdminSubscriptionsPage({
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recurring revenue (est.)</CardTitle>
+          <CardTitle className="text-base">{t("recurringRevenue")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-2xl font-semibold">{mrr.toFixed(2)} MAD / month</p>
+          <p className="text-2xl font-semibold">
+            {formatMoney(mrr, "MAD", locale)} / {tCommon("perMonth")}
+          </p>
         </CardContent>
       </Card>
 
@@ -68,7 +73,7 @@ export default async function AdminSubscriptionsPage({
             </span>
             <div className="flex items-center gap-2">
               <Badge variant={sub.status === "ACTIVE" ? "default" : "secondary"}>
-                {sub.status}
+                {tStatus(sub.status)}
               </Badge>
               {sub.status !== "SUSPENDED" && (
                 <SuspendSubscriptionButton locale={locale} organizationId={sub.organizationId} />
