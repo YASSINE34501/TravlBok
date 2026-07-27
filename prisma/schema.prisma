@@ -2127,6 +2127,26 @@ model RateLimitBucket {
   @@index([windowStart])
 }
 
+enum CronRunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+// Prevents overlapping invocations of the same /api/cron/* job (Vercel Cron
+// does not guarantee mutual exclusion between scheduled and manually-retried
+// invocations). Claimed via a single atomic INSERT ... ON CONFLICT DO UPDATE
+// statement (see src/lib/cron/lock.ts) so it stays correct under pgbouncer
+// transaction pooling — no session-scoped advisory locks, no held-open
+// transactions around external API calls.
+model CronRun {
+  id         String        @id @default(cuid())
+  jobName    String        @unique
+  status     CronRunStatus
+  startedAt  DateTime
+  finishedAt DateTime?
+}
+
 // Partner-facing API key management ("API key management" per MASTER-PLAN).
 // No public REST surface is built against these yet (same honest-scaffold
 // reasoning as Channel Manager's providers/webhook route) — issuing and

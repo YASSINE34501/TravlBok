@@ -32,6 +32,7 @@ export function FileDropzone({
   className,
 }: Props) {
   const t = useTranslations("Common");
+  const tValidation = useTranslations("Validation");
   const inputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -54,7 +55,7 @@ export function FileDropzone({
             formData
           );
           if (!result.success) {
-            toast.error(result.error);
+            toast.error(tValidation.has(result.error) ? tValidation(result.error) : result.error);
             continue;
           }
           uploaded.push({ id: result.id, url: result.url });
@@ -65,7 +66,7 @@ export function FileDropzone({
         setIsUploading(false);
       }
     },
-    [locale, purpose, organizationId, multiple, value, onChange]
+    [locale, purpose, organizationId, multiple, value, onChange, tValidation]
   );
 
   return (

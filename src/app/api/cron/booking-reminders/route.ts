@@ -1,22 +1,17 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { notifyUser } from "@/domains/notifications/service";
 import { logAudit } from "@/lib/audit";
+import { runCronJob } from "@/lib/cron/run";
 
 export const runtime = "nodejs";
 
 /**
- * "Reminders" — meant to be invoked once daily by an external scheduler
- * (same CRON_SECRET-guarded pattern as retry-failed-payments and
- * channel-auto-sync; no in-app job queue, consistent scope boundary).
- * Notifies customers with a hotel check-in or car pickup tomorrow.
+ * Invoked daily by Vercel Cron (see vercel.json) — notifies customers with a
+ * hotel check-in or car pickup tomorrow. Per-reservation dedup (below) means
+ * a non-overlapping re-run hours later still won't double-send; the
+ * `runCronJob` lock additionally prevents a genuinely overlapping run.
  */
-export async function POST(request: Request) {
-  const secret = request.headers.get("x-cron-secret");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+async function run() {
   const tomorrowStart = new Date();
   tomorrowStart.setDate(tomorrowStart.getDate() + 1);
   tomorrowStart.setHours(0, 0, 0, 0);
@@ -87,5 +82,13 @@ export async function POST(request: Request) {
     metadata: { sent },
   });
 
-  return NextResponse.json({ sent });
+  return { sent };
+}
+
+export async function GET(request: Request) {
+  return runCronJob(request, "booking-reminders", run);
+}
+
+export async function POST(request: Request) {
+  return runCronJob(request, "booking-reminders", run);
 }

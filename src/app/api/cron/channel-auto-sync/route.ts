@@ -1,22 +1,17 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { runPushSync, runPullSync } from "@/domains/channel-manager/sync";
 import { logAudit } from "@/lib/audit";
+import { runCronJob } from "@/lib/cron/run";
 
 export const runtime = "nodejs";
 
 /**
- * Meant to be invoked periodically by an external scheduler (same pattern
- * as /api/cron/retry-failed-payments) — no in-app job queue, per Phase 3's
- * "Performance and Scalability" scope boundary (Redis-ready architecture is
- * prep, not a requirement to actually stand up a queue in this phase).
+ * Invoked periodically by Vercel Cron (see vercel.json). Push/pull sync is
+ * naturally idempotent (it reconciles state, it doesn't append), so the
+ * main risk from an overlapping run is wasted duplicate work, not incorrect
+ * data — the `runCronJob` lock avoids that too.
  */
-export async function POST(request: Request) {
-  const secret = request.headers.get("x-cron-secret");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+async function run() {
   const connections = await prisma.channelConnection.findMany({
     where: { status: "CONNECTED", autoSyncEnabled: true },
     select: { id: true },
@@ -43,5 +38,13 @@ export async function POST(request: Request) {
     metadata: { count: results.length },
   });
 
-  return NextResponse.json({ processed: results.length, results });
+  return { processed: results.length, results };
+}
+
+export async function GET(request: Request) {
+  return runCronJob(request, "channel-auto-sync", run);
+}
+
+export async function POST(request: Request) {
+  return runCronJob(request, "channel-auto-sync", run);
 }

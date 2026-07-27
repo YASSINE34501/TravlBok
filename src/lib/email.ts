@@ -1,29 +1,47 @@
+import "server-only";
 import { Resend } from "resend";
 import { getTranslations } from "next-intl/server";
+import { isEmailConfigured, getEmailConfig } from "@/lib/env";
 
-const resendApiKey = process.env.RESEND_API_KEY;
-const emailFrom = process.env.EMAIL_FROM ?? "TravlBok <no-reply@travlbok.com>";
+let cachedClient: Resend | null = null;
 
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
+function getResendClient(): Resend {
+  if (cachedClient) return cachedClient;
+  const { apiKey } = getEmailConfig();
+  cachedClient = new Resend(apiKey);
+  return cachedClient;
+}
 
-async function sendEmail(params: {
-  to: string;
-  subject: string;
-  html: string;
-}) {
-  if (!resend) {
+/**
+ * Throws on any failure (missing config, Resend API-level error, network
+ * error) — every caller in this file wraps its own call so a delivery
+ * failure never crashes the triggering request; it just means the
+ * notification/verification/reset email didn't go out this time.
+ */
+async function sendEmail(params: { to: string; subject: string; html: string }) {
+  if (!isEmailConfigured()) {
     console.info(
       `[email:dev] Skipping send (no RESEND_API_KEY). To: ${params.to} | Subject: ${params.subject}\n${params.html}`
     );
     return;
   }
 
-  await resend.emails.send({
-    from: emailFrom,
+  const { from } = getEmailConfig();
+  const resend = getResendClient();
+  const { error } = await resend.emails.send({
+    from,
     to: params.to,
     subject: params.subject,
     html: params.html,
   });
+
+  if (error) {
+    // Resend's SDK returns { error } for API-level failures (invalid key,
+    // rate limit, unverified domain) rather than throwing — surface it as a
+    // thrown error so every call site's try/catch actually catches it.
+    // `error.message` is Resend's own description, never our secret key.
+    throw new Error(`Resend API error: ${error.message}`);
+  }
 }
 
 export async function sendVerificationEmail(params: {

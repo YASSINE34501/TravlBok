@@ -34,7 +34,13 @@ export async function uploadFileAction(
   }
 
   const rules = getUploadRules(purpose);
-  const stored = await saveUploadedFile(file, rules.folder);
+  let stored: Awaited<ReturnType<typeof saveUploadedFile>>;
+  try {
+    stored = await saveUploadedFile(file, purpose, rules.folder);
+  } catch (error) {
+    console.error("[upload] storage write failed", error);
+    return { success: false, error: "uploadFailed" };
+  }
 
   const record = await prisma.uploadedFile.create({
     data: {

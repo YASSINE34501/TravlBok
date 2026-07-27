@@ -162,12 +162,19 @@ async function createAccount(locale: string, input: RegisterInput): Promise<Acti
     },
   });
 
-  await sendVerificationEmail({
-    to: user.email,
-    firstName: user.firstName,
-    verifyUrl: `${appUrl}/${locale}/verify-email?token=${token}`,
-    locale,
-  });
+  try {
+    await sendVerificationEmail({
+      to: user.email,
+      firstName: user.firstName,
+      verifyUrl: `${appUrl}/${locale}/verify-email?token=${token}`,
+      locale,
+    });
+  } catch (error) {
+    // The account and its verification token are already committed — a
+    // delivery hiccup must not turn a successful signup into an error page.
+    // The user can retry via resendVerificationAction.
+    console.error("[auth] verification email failed to send", error);
+  }
 
   return { success: true };
 }
@@ -246,12 +253,19 @@ export async function requestPasswordResetAction(
     },
   });
 
-  await sendPasswordResetEmail({
-    to: user.email,
-    firstName: user.firstName,
-    resetUrl: `${appUrl}/${locale}/reset-password?token=${token}`,
-    locale,
-  });
+  try {
+    await sendPasswordResetEmail({
+      to: user.email,
+      firstName: user.firstName,
+      resetUrl: `${appUrl}/${locale}/reset-password?token=${token}`,
+      locale,
+    });
+  } catch (error) {
+    // The reset token is already committed — don't turn a delivery hiccup
+    // into a visible error (this endpoint also intentionally never reveals
+    // whether the account existed, so failing loudly here would be a tell).
+    console.error("[auth] password reset email failed to send", error);
+  }
 
   return { success: true };
 }
@@ -314,12 +328,16 @@ export async function resendVerificationAction(
     },
   });
 
-  await sendVerificationEmail({
-    to: user.email,
-    firstName: user.firstName,
-    verifyUrl: `${appUrl}/${locale}/verify-email?token=${token}`,
-    locale,
-  });
+  try {
+    await sendVerificationEmail({
+      to: user.email,
+      firstName: user.firstName,
+      verifyUrl: `${appUrl}/${locale}/verify-email?token=${token}`,
+      locale,
+    });
+  } catch (error) {
+    console.error("[auth] verification email failed to send (resend)", error);
+  }
 
   return { success: true };
 }

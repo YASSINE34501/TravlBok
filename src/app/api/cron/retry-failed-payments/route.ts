@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getProvider } from "@/domains/payments/providers/registry";
 import { syncReservationPaymentSnapshot } from "@/domains/payments/sync";
 import { logAudit } from "@/lib/audit";
+import { runCronJob } from "@/lib/cron/run";
 
 export const runtime = "nodejs";
 
@@ -10,17 +10,13 @@ const MAX_RETRIES = 3;
 const RETRY_BACKOFF_HOURS = [1, 6, 24];
 
 /**
- * Meant to be invoked periodically by an external scheduler (Vercel Cron /
- * OS cron), guarded by a shared secret — intentionally not a Redis/BullMQ
- * queue. Full job-queue infrastructure is Phase 3 "Performance and
- * Scalability" scope, not required here.
+ * Invoked periodically by Vercel Cron (see vercel.json). The `runCronJob`
+ * lock is the important guard here specifically: without it, two
+ * overlapping invocations could both select the same "due" payment before
+ * either updates it, calling `provider.createPaymentIntent` twice for one
+ * payment.
  */
-export async function POST(request: Request) {
-  const secret = request.headers.get("x-cron-secret");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+async function run() {
   const duePayments = await prisma.payment.findMany({
     where: {
       status: "FAILED",
@@ -79,5 +75,13 @@ export async function POST(request: Request) {
     metadata: { count: results.length },
   });
 
-  return NextResponse.json({ processed: results.length, results });
+  return { processed: results.length, results };
+}
+
+export async function GET(request: Request) {
+  return runCronJob(request, "retry-failed-payments", run);
+}
+
+export async function POST(request: Request) {
+  return runCronJob(request, "retry-failed-payments", run);
 }

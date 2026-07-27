@@ -12,6 +12,10 @@ import { createMockProvider } from "./mock-provider";
  * plus one line here — no calling-code changes, same swap-in pattern.
  */
 function isMockProviderEnabled(): boolean {
+  // Hard override, not just a documented convention: a leaked/misconfigured
+  // env flag must never be able to fabricate offers in front of real
+  // customers, regardless of what ENABLE_MOCK_DISTRIBUTION_PROVIDER says.
+  if (process.env.NODE_ENV === "production") return false;
   return process.env.ENABLE_MOCK_DISTRIBUTION_PROVIDER === "true";
 }
 

@@ -300,6 +300,7 @@
     "invalidDateRange": "La date de départ doit être après la date d'arrivée.",
     "fileTooLarge": "Le fichier est trop volumineux.",
     "invalidFileType": "Ce type de fichier n'est pas pris en charge.",
+    "uploadFailed": "Échec du téléversement. Veuillez réessayer.",
     "tooShort": "Doit contenir au moins {value} caractère(s).",
     "tooLong": "Doit contenir au plus {value} caractère(s).",
     "invalidUrl": "Saisissez une URL valide.",

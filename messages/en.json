@@ -300,6 +300,7 @@
     "invalidDateRange": "Check-out date must be after check-in date.",
     "fileTooLarge": "File is too large.",
     "invalidFileType": "This file type is not supported.",
+    "uploadFailed": "Upload failed. Please try again.",
     "tooShort": "Must be at least {value} character(s).",
     "tooLong": "Must be at most {value} character(s).",
     "invalidUrl": "Enter a valid URL.",
