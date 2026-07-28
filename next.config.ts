@@ -11,9 +11,15 @@ const isDev = process.env.NODE_ENV === "development";
 // which would disable static optimization across this app's many marketplace
 // pages. `img-src https:` (not a fixed allowlist) matches `images.remotePatterns`
 // below, which already accepts any HTTPS host for partner-uploaded photos.
+// emrldtp.com is the Travelpayouts Drive script's host (see
+// GlobalAffiliateScript, mounted in the [locale] root layout) — without it
+// allowlisted here, CSP silently blocks that <script src> from ever loading
+// in production. If the script itself makes its own network calls once
+// live, add the exact domain(s) observed in a CSP-violation report/browser
+// console — don't broaden connect-src speculatively.
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://emrldtp.com${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https:;
   font-src 'self' data:;

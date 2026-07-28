@@ -39,9 +39,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   return {
-    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+    metadataBase: new URL(appUrl),
     title: {
       default: t("title"),
       template: `%s | TravlBok`,
@@ -53,11 +54,20 @@ export async function generateMetadata({
       siteName: "TravlBok",
       locale,
       type: "website",
+      // Explicit absolute URLs, not a relative path — opengraph-image.tsx
+      // lives at the true app/ root (a sibling of [locale], not a
+      // descendant), so it has no ancestor metadataBase of its own to
+      // resolve a relative path against. An absolute URL sidesteps that
+      // entirely (and keeps the image statically generated — nesting it
+      // under [locale] to inherit metadataBase was tried and reverted: it
+      // turned a cached static route into a per-request dynamic one).
+      images: [`${appUrl}/opengraph-image`],
     },
     twitter: {
       card: "summary_large_image",
       title: t("title"),
       description: t("description"),
+      images: [`${appUrl}/twitter-image`],
     },
   };
 }
