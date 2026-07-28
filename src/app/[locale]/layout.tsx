@@ -11,6 +11,7 @@ import { AuthSessionProvider } from "@/components/auth/session-provider";
 import { CurrencyProvider } from "@/components/currency-provider";
 import { getPreferredCurrency } from "@/lib/currency/cookie";
 import { GlobalAffiliateScript } from "@/components/marketplace/global-affiliate-script";
+import { getAppUrl } from "@/lib/env";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -39,7 +40,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = getAppUrl();
 
   return {
     metadataBase: new URL(appUrl),

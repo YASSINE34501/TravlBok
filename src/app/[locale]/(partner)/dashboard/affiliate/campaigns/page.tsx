@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { CreateCampaignForm } from "@/components/partner/create-campaign-form";
 import { ToggleCampaignButton } from "@/components/partner/toggle-campaign-button";
 import { CampaignQrCode } from "@/components/partner/campaign-qr-code";
+import { getAppUrl } from "@/lib/env";
 
 export default async function AffiliateCampaignsPage({
   params,
@@ -28,7 +29,7 @@ export default async function AffiliateCampaignsPage({
     orderBy: { createdAt: "desc" },
   });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = getAppUrl();
 
   return (
     <div className="space-y-6">

@@ -6,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getAppUrl } from "@/lib/env";
 import {
   registerSchema,
   forgotPasswordSchema,
@@ -20,7 +21,7 @@ type ActionResult =
   | { success: true }
   | { success: false; error: string; fieldErrors?: Record<string, string> };
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const appUrl = getAppUrl();
 
 async function getRequestIp(): Promise<string> {
   const headerList = await headers();

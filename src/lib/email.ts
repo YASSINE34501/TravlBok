@@ -18,7 +18,7 @@ function getResendClient(): Resend {
  * failure never crashes the triggering request; it just means the
  * notification/verification/reset email didn't go out this time.
  */
-async function sendEmail(params: { to: string; subject: string; html: string }) {
+async function sendEmail(params: { to: string; subject: string; html: string; replyTo?: string }) {
   if (!isEmailConfigured()) {
     console.info(
       `[email:dev] Skipping send (no RESEND_API_KEY). To: ${params.to} | Subject: ${params.subject}\n${params.html}`
@@ -33,6 +33,7 @@ async function sendEmail(params: { to: string; subject: string; html: string }) 
     to: params.to,
     subject: params.subject,
     html: params.html,
+    ...(params.replyTo ? { replyTo: params.replyTo } : {}),
   });
 
   if (error) {
@@ -84,6 +85,21 @@ export async function sendPasswordResetEmail(params: {
         <p>${t("resetIgnoreNotice")}</p>
       </div>
     `,
+  });
+}
+
+/** Contact-form submission, delivered to the platform's own support inbox (EMAIL_FROM) with the visitor set as replyTo — internal-facing, so not locale-translated. */
+export async function sendContactMessageEmail(params: {
+  name: string;
+  email: string;
+  message: string;
+}) {
+  const { from } = isEmailConfigured() ? getEmailConfig() : { from: "TravlBok <no-reply@travlbok.com>" };
+  await sendEmail({
+    to: from,
+    replyTo: params.email,
+    subject: `New contact message from ${params.name}`,
+    html: `<p><strong>${params.name}</strong> (${params.email}) wrote:</p><p>${params.message.replace(/\n/g, "<br/>")}</p>`,
   });
 }
 

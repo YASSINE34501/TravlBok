@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/ui/metric-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { PayoutMethodForm } from "@/components/partner/payout-method-form";
+import { getAppUrl } from "@/lib/env";
 
 export default async function AffiliateOverviewPage({
   params,
@@ -32,7 +33,7 @@ export default async function AffiliateOverviewPage({
       .reduce((total, c) => total + Number(c.amount), 0);
 
   const currency = commissions[0]?.currency ?? "MAD";
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = getAppUrl();
   const referralLink = `${appUrl}/${locale}/r/${affiliate.referralCode}`;
 
   const payoutMethod = affiliate.payoutMethod as { type?: string; details?: string } | null;
