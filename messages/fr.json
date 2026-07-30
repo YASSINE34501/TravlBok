@@ -72,7 +72,10 @@
     "taxesFeesIncluded": "Taxes et frais inclus",
     "taxesFeesExcluded": "Hors taxes et frais",
     "payAtProperty": "Payer sur place",
-    "onlinePayment": "Paiement en ligne"
+    "onlinePayment": "Paiement en ligne",
+    "saveToWishlist": "Ajouter à la liste de souhaits",
+    "previous": "Précédent",
+    "done": "Terminé"
   },
   "Locale": {
     "en": "English",
@@ -127,7 +130,12 @@
     "myBookings": "Mes réservations",
     "security": "Sécurité",
     "dashboard": "Tableau de bord",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "hotelsMenuAllHotels": "Tous les hôtels",
+    "hotelsMenuDestinations": "Destinations populaires",
+    "hotelsMenuDeals": "Offres",
+    "wishlist": "Liste de souhaits",
+    "wishlistComingSoon": "Liste de souhaits — bientôt disponible"
   },
   "Footer": {
     "company": "Entreprise",
@@ -177,7 +185,21 @@
     "trustSupport": "Assistance 24/7",
     "trustSupportDescription": "Nous sommes là pour vous aider à tout moment",
     "trustFlexible": "Options flexibles",
-    "trustFlexibleDescription": "Modifications et annulations faciles"
+    "trustFlexibleDescription": "Modifications et annulations faciles",
+    "searchActivities": "Activités",
+    "activitiesComingSoon": "La recherche d'activités arrive bientôt.",
+    "memberExclusiveTitle": "Exclusivité membres",
+    "memberExclusiveDescription": "Créez un compte gratuit pour débloquer des tarifs membres sur une sélection de séjours.",
+    "memberExclusiveCta": "Inscription gratuite",
+    "exclusiveDeals": "Offres exclusives pour vous",
+    "viewAllDeals": "Voir toutes les offres",
+    "trustMemberRewardsTitle": "Avantages membres",
+    "trustMemberRewardsDescription": "Programme de fidélité bientôt disponible",
+    "trustPayTitle": "Payez comme vous voulez",
+    "trustPayDescription": "Paiement sécurisé par carte ou PayPal",
+    "trustPlatformTitle": "Plateforme de confiance",
+    "trustPlatformDescription": "Partenaires vérifiés dans le monde entier",
+    "viewAllDestinations": "Voir toutes les destinations"
   },
   "Search": {
     "destination": "Destination",
@@ -220,7 +242,12 @@
     "sortPriceHighToLow": "Prix décroissant",
     "sortRating": "Mieux notés",
     "resultsCount": "{count, plural, =0 {Aucun résultat} one {# résultat} other {# résultats}}",
-    "modifySearch": "Modifier la recherche"
+    "modifySearch": "Modifier la recherche",
+    "guestsAndRooms": "Voyageurs et chambres",
+    "addGuest": "Ajouter un voyageur",
+    "removeGuest": "Retirer un voyageur",
+    "addRoom": "Ajouter une chambre",
+    "removeRoom": "Retirer une chambre"
   },
   "Flights": {
     "sortBest": "Meilleurs",
@@ -921,5 +948,13 @@
     "subscriptionPaymentConfirmedMessage": "Votre paiement d'abonnement a été confirmé et votre forfait est actif.",
     "subscriptionPaymentFailedTitle": "Échec du paiement d'abonnement",
     "subscriptionPaymentFailedMessage": "Votre paiement d'abonnement a échoué. Votre compte est maintenant en retard de paiement — veuillez mettre à jour votre moyen de paiement."
+  },
+  "AffiliateDisclosure": {
+    "text": "TravlBok peut percevoir une commission lorsque vous réservez via certains liens partenaires, sans frais supplémentaires pour vous."
+  },
+  "NotFound": {
+    "title": "Page introuvable",
+    "description": "La page que vous recherchez n'existe pas ou a peut-être été déplacée.",
+    "backHome": "Retour à l'accueil"
   }
 }

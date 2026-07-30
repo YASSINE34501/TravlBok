@@ -72,7 +72,10 @@
     "taxesFeesIncluded": "Taxes and fees included",
     "taxesFeesExcluded": "Excludes taxes and fees",
     "payAtProperty": "Pay at property",
-    "onlinePayment": "Online payment"
+    "onlinePayment": "Online payment",
+    "saveToWishlist": "Save to wishlist",
+    "previous": "Previous",
+    "done": "Done"
   },
   "Locale": {
     "en": "English",
@@ -127,7 +130,12 @@
     "myBookings": "My bookings",
     "security": "Security",
     "dashboard": "Dashboard",
-    "logout": "Log out"
+    "logout": "Log out",
+    "hotelsMenuAllHotels": "All hotels",
+    "hotelsMenuDestinations": "Popular destinations",
+    "hotelsMenuDeals": "Deals",
+    "wishlist": "Wishlist",
+    "wishlistComingSoon": "Wishlist — coming soon"
   },
   "Footer": {
     "company": "Company",
@@ -177,7 +185,21 @@
     "trustSupport": "24/7 support",
     "trustSupportDescription": "We're here to help anytime",
     "trustFlexible": "Flexible options",
-    "trustFlexibleDescription": "Easy changes and cancellations"
+    "trustFlexibleDescription": "Easy changes and cancellations",
+    "searchActivities": "Activities",
+    "activitiesComingSoon": "Activities search is coming soon.",
+    "memberExclusiveTitle": "Member exclusive",
+    "memberExclusiveDescription": "Create a free account to unlock member pricing on select stays.",
+    "memberExclusiveCta": "Sign up free",
+    "exclusiveDeals": "Exclusive deals for you",
+    "viewAllDeals": "View all deals",
+    "trustMemberRewardsTitle": "Member rewards",
+    "trustMemberRewardsDescription": "Loyalty program launching soon",
+    "trustPayTitle": "Pay your way",
+    "trustPayDescription": "Secure checkout with card or PayPal",
+    "trustPlatformTitle": "Trusted platform",
+    "trustPlatformDescription": "Verified partners worldwide",
+    "viewAllDestinations": "View all destinations"
   },
   "Search": {
     "destination": "Destination",
@@ -220,7 +242,12 @@
     "sortPriceHighToLow": "Price: high to low",
     "sortRating": "Top rated",
     "resultsCount": "{count, plural, =0 {No results} one {# result} other {# results}}",
-    "modifySearch": "Modify search"
+    "modifySearch": "Modify search",
+    "guestsAndRooms": "Guests & rooms",
+    "addGuest": "Add guest",
+    "removeGuest": "Remove guest",
+    "addRoom": "Add room",
+    "removeRoom": "Remove room"
   },
   "Flights": {
     "sortBest": "Best",
@@ -921,5 +948,13 @@
     "subscriptionPaymentConfirmedMessage": "Your subscription payment was confirmed and your plan is active.",
     "subscriptionPaymentFailedTitle": "Subscription payment failed",
     "subscriptionPaymentFailedMessage": "Your subscription payment failed. Your account is now past due — please update your payment method."
+  },
+  "AffiliateDisclosure": {
+    "text": "TravlBok may earn a commission when you book through selected partner links, at no additional cost to you."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or may have moved.",
+    "backHome": "Back to homepage"
   }
 }

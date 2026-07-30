@@ -11,7 +11,9 @@ import { AuthSessionProvider } from "@/components/auth/session-provider";
 import { CurrencyProvider } from "@/components/currency-provider";
 import { getPreferredCurrency } from "@/lib/currency/cookie";
 import { GlobalAffiliateScript } from "@/components/marketplace/global-affiliate-script";
+import { JsonLd } from "@/components/seo/json-ld";
 import { getAppUrl } from "@/lib/env";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -49,6 +51,7 @@ export async function generateMetadata({
       template: `%s | TravlBok`,
     },
     description: t("description"),
+    alternates: buildLocaleAlternates(locale, ""),
     openGraph: {
       title: t("title"),
       description: t("description"),
@@ -90,6 +93,30 @@ export default async function LocaleLayout({
 
   const dir = isRtlLocale(locale) ? "rtl" : "ltr";
   const preferredCurrency = await getPreferredCurrency();
+  const appUrl = getAppUrl();
+
+  // Organization + WebSite structured data, real fields only (name, url,
+  // logo) — no fabricated address, ratings, or social profiles. The
+  // SearchAction target mirrors HeroSearch's own real hotel-search query
+  // param (`destination`), not an invented endpoint.
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "TravlBok",
+    url: appUrl,
+    logo: `${appUrl}/icon.svg`,
+  };
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "TravlBok",
+    url: appUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${appUrl}/${locale}/hotels?destination={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
 
   return (
     <html
@@ -100,6 +127,8 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col font-sans">
+        <JsonLd data={organizationJsonLd} />
+        <JsonLd data={websiteJsonLd} />
         <GlobalAffiliateScript />
         <NextIntlClientProvider>
           <AuthSessionProvider>

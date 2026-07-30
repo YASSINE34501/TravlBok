@@ -14,6 +14,9 @@ import { Separator } from "@/components/ui/separator";
 import { StarRating } from "@/components/ui/star-rating";
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import { Link } from "@/i18n/navigation";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
+import { getAppUrl } from "@/lib/env";
+import { JsonLd } from "@/components/seo/json-ld";
 
 export async function generateMetadata({
   params,
@@ -27,6 +30,7 @@ export async function generateMetadata({
   return {
     title: hotel.name,
     description: description?.slice(0, 160),
+    alternates: buildLocaleAlternates(locale, `/hotels/${hotelId}`),
   };
 }
 
@@ -69,8 +73,60 @@ export default async function HotelDetailPage({
       ? hotel.reviews.reduce((sum, r) => sum + r.rating, 0) / hotel.reviews.length
       : null;
 
+  // Real fields only — no fabricated rating, price, or availability.
+  // aggregateRating/offers are omitted entirely when there's no real review
+  // or active room-type data to back them, rather than defaulted to zero.
+  const appUrl = getAppUrl();
+  const countryName = hotel.country
+    ? pickLocaleText(hotel.country.name as Record<string, unknown>, locale)
+    : undefined;
+  const hotelJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Hotel",
+    name: hotel.name,
+    ...(description ? { description } : {}),
+    ...(galleryImages.length > 0 ? { image: galleryImages.map((m) => m.url) } : {}),
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: hotel.address,
+      ...(cityName ? { addressLocality: cityName } : {}),
+      ...(countryName ? { addressCountry: countryName } : {}),
+    },
+    ...(hotel.mapLat && hotel.mapLng
+      ? {
+          geo: {
+            "@type": "GeoCoordinates",
+            latitude: Number(hotel.mapLat),
+            longitude: Number(hotel.mapLng),
+          },
+        }
+      : {}),
+    ...(hotel.starRating ? { starRating: { "@type": "Rating", ratingValue: hotel.starRating } } : {}),
+    ...(avgRating !== null
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: Number(avgRating.toFixed(1)),
+            reviewCount: hotel.reviews.length,
+          },
+        }
+      : {}),
+    ...(cheapestRoom
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: String(cheapestRoom.basePrice),
+            priceCurrency: cheapestRoom.currency,
+            availability: "https://schema.org/InStock",
+            url: `${appUrl}/${locale}/hotels/${hotelId}`,
+          },
+        }
+      : {}),
+  };
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+      <JsonLd data={hotelJsonLd} />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{hotel.name}</h1>
@@ -300,7 +356,7 @@ export default async function HotelDetailPage({
               ) : null}
               {avgRating ? (
                 <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Star className="size-4 fill-[#F4B400] text-[#F4B400]" />
+                  <Star className="size-4 fill-primary text-primary" />
                   <span className="font-medium text-foreground">{avgRating.toFixed(1)}</span>
                   <span>
                     ({hotel.reviews.length} {tHome("reviews").toLowerCase()})

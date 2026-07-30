@@ -35,7 +35,7 @@ export function Pagination({
         disabled={page <= 1}
         render={<Link href={buildHref(Math.max(1, page - 1))} />}
       >
-        <ChevronLeft className="size-4" />
+        <ChevronLeft className="size-4 rtl:rotate-180" />
       </Button>
       <span className="px-3 text-sm text-muted-foreground">
         {page} / {totalPages}
@@ -46,7 +46,7 @@ export function Pagination({
         disabled={page >= totalPages}
         render={<Link href={buildHref(Math.min(totalPages, page + 1))} />}
       >
-        <ChevronRight className="size-4" />
+        <ChevronRight className="size-4 rtl:rotate-180" />
       </Button>
     </div>
   );

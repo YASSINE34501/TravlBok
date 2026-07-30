@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +18,9 @@ export function CurrencySwitcher() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="sm" />}>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="sm" className="gap-1" />}>
         {currency}
+        <ChevronDown className="size-3.5 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {CURRENCIES.map((code) => (

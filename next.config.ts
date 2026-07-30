@@ -14,16 +14,19 @@ const isDev = process.env.NODE_ENV === "development";
 // emrldtp.com is the Travelpayouts Drive script's host (see
 // GlobalAffiliateScript, mounted in the [locale] root layout) — without it
 // allowlisted here, CSP silently blocks that <script src> from ever loading
-// in production. If the script itself makes its own network calls once
-// live, add the exact domain(s) observed in a CSP-violation report/browser
-// console — don't broaden connect-src speculatively.
+// in production. It also fetches its own config from
+// emrldtp.com/entrypoint_config at runtime (confirmed via a real browser
+// console check: without connect-src allowlisting this exact host, that
+// fetch is blocked and the script logs "config is not valid" and never
+// finishes initializing) — this is the one domain observed in that
+// CSP-violation report; don't broaden connect-src beyond it speculatively.
 const cspHeader = `
   default-src 'self';
   script-src 'self' 'unsafe-inline' https://emrldtp.com${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https:;
   font-src 'self' data:;
-  connect-src 'self';
+  connect-src 'self' https://emrldtp.com;
   object-src 'none';
   base-uri 'self';
   form-action 'self';

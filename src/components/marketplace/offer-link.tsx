@@ -23,7 +23,7 @@ export function OfferLink({
 }) {
   if (checkoutMode === "EXTERNAL_REDIRECT" && externalHref) {
     return (
-      <a href={externalHref} className={className}>
+      <a href={externalHref} className={className} rel="sponsored noopener noreferrer">
         {children}
       </a>
     );

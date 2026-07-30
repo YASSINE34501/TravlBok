@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Package } from "lucide-react";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 
 export async function generateMetadata({
   params,
@@ -10,7 +11,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Packages" });
-  return { title: t("title") };
+  return { title: t("title"), alternates: buildLocaleAlternates(locale, "/packages") };
 }
 
 export default async function PackagesPage({

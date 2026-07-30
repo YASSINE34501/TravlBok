@@ -10,16 +10,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ locale: string; vehicleId: string }>;
 }): Promise<Metadata> {
-  const { vehicleId } = await params;
+  const { locale, vehicleId } = await params;
   const vehicle = await getVehicleById(vehicleId);
   if (!vehicle) return {};
-  return { title: `${vehicle.brand} ${vehicle.model}` };
+  return {
+    title: `${vehicle.brand} ${vehicle.model}`,
+    alternates: buildLocaleAlternates(locale, `/cars/${vehicleId}`),
+  };
 }
 
 export default async function VehicleDetailPage({

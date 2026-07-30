@@ -59,7 +59,7 @@
     "somethingWentWrong": "حدث خطأ ما. حاول مرة أخرى.",
     "tryAgain": "أعد المحاولة",
     "noResults": "لم يتم العثور على نتائج.",
-    "comingSoon": "قريباً",
+    "comingSoon": "قريبًا",
     "learnMore": "اعرف المزيد",
     "getStarted": "ابدأ الآن",
     "download": "تنزيل",
@@ -72,7 +72,10 @@
     "taxesFeesIncluded": "شامل الضرائب والرسوم",
     "taxesFeesExcluded": "غير شامل الضرائب والرسوم",
     "payAtProperty": "الدفع في العقار",
-    "onlinePayment": "الدفع عبر الإنترنت"
+    "onlinePayment": "الدفع عبر الإنترنت",
+    "saveToWishlist": "الحفظ في قائمة الرغبات",
+    "previous": "السابق",
+    "done": "تم"
   },
   "Locale": {
     "en": "English",
@@ -127,7 +130,12 @@
     "myBookings": "حجوزاتي",
     "security": "الأمان",
     "dashboard": "لوحة التحكم",
-    "logout": "تسجيل الخروج"
+    "logout": "تسجيل الخروج",
+    "hotelsMenuAllHotels": "جميع الفنادق",
+    "hotelsMenuDestinations": "الوجهات الشائعة",
+    "hotelsMenuDeals": "العروض",
+    "wishlist": "قائمة الرغبات",
+    "wishlistComingSoon": "قائمة الرغبات — قريبًا"
   },
   "Footer": {
     "company": "الشركة",
@@ -177,7 +185,21 @@
     "trustSupport": "دعم على مدار الساعة",
     "trustSupportDescription": "نحن هنا لمساعدتك في أي وقت",
     "trustFlexible": "خيارات مرنة",
-    "trustFlexibleDescription": "تعديلات وإلغاءات سهلة"
+    "trustFlexibleDescription": "تعديلات وإلغاءات سهلة",
+    "searchActivities": "الأنشطة",
+    "activitiesComingSoon": "البحث عن الأنشطة قادم قريبًا.",
+    "memberExclusiveTitle": "حصري للأعضاء",
+    "memberExclusiveDescription": "أنشئ حسابًا مجانيًا للحصول على أسعار الأعضاء على إقامات مختارة.",
+    "memberExclusiveCta": "التسجيل مجانًا",
+    "exclusiveDeals": "عروض حصرية لك",
+    "viewAllDeals": "عرض جميع العروض",
+    "trustMemberRewardsTitle": "مكافآت الأعضاء",
+    "trustMemberRewardsDescription": "برنامج الولاء يُطلق قريبًا",
+    "trustPayTitle": "ادفع بطريقتك",
+    "trustPayDescription": "دفع آمن بالبطاقة أو PayPal",
+    "trustPlatformTitle": "منصة موثوقة",
+    "trustPlatformDescription": "شركاء موثوقون حول العالم",
+    "viewAllDestinations": "عرض جميع الوجهات"
   },
   "Search": {
     "destination": "الوجهة",
@@ -220,7 +242,12 @@
     "sortPriceHighToLow": "السعر: من الأعلى للأقل",
     "sortRating": "الأعلى تقييماً",
     "resultsCount": "{count, plural, =0 {لا توجد نتائج} one {نتيجة واحدة} two {نتيجتان} few {# نتائج} many {# نتيجة} other {# نتيجة}}",
-    "modifySearch": "تعديل البحث"
+    "modifySearch": "تعديل البحث",
+    "guestsAndRooms": "الضيوف والغرف",
+    "addGuest": "إضافة ضيف",
+    "removeGuest": "إزالة ضيف",
+    "addRoom": "إضافة غرفة",
+    "removeRoom": "إزالة غرفة"
   },
   "Flights": {
     "sortBest": "الأفضل",
@@ -921,5 +948,13 @@
     "subscriptionPaymentConfirmedMessage": "تم تأكيد دفعة اشتراكك وخطتك أصبحت نشطة.",
     "subscriptionPaymentFailedTitle": "فشل دفع الاشتراك",
     "subscriptionPaymentFailedMessage": "فشلت عملية دفع اشتراكك. حسابك متأخر السداد الآن — يرجى تحديث وسيلة الدفع."
+  },
+  "AffiliateDisclosure": {
+    "text": "قد تحصل TravlBok على عمولة عند الحجز عبر بعض روابط الشركاء، دون أي تكلفة إضافية عليك."
+  },
+  "NotFound": {
+    "title": "الصفحة غير موجودة",
+    "description": "الصفحة التي تبحث عنها غير موجودة أو ربما تم نقلها.",
+    "backHome": "العودة إلى الصفحة الرئيسية"
   }
 }

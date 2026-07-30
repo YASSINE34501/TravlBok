@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
+import { resolveSafeExternalRedirect } from "@/lib/affiliate/urls";
 import type { DistributionVertical, DistributionProviderCode, SourceType } from "@/generated/prisma/client";
 
 export const runtime = "nodejs";
@@ -40,14 +41,16 @@ export async function GET(
   const offerId = request.nextUrl.searchParams.get("offerId") ?? "unknown";
   const targetUrl = request.nextUrl.searchParams.get("url");
 
-  if (!targetUrl || !VALID_VERTICALS.includes(vertical)) {
+  if (!VALID_VERTICALS.includes(vertical)) {
     return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
 
-  let destination: URL;
-  try {
-    destination = new URL(targetUrl);
-  } catch {
+  // Protocol-allowlisted (http/https only) — deliberately not host-restricted,
+  // since sending visitors to third-party provider domains not known in
+  // advance is this route's whole purpose. Blocks `javascript:`/`data:`/etc.
+  // from ever reaching a Location header. See src/lib/affiliate/validation.ts.
+  const destination = resolveSafeExternalRedirect(targetUrl);
+  if (!destination) {
     return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
 

@@ -13,6 +13,7 @@ import { SearchSort } from "@/components/search/search-sort";
 import { SearchSummaryBar } from "@/components/search/search-summary-bar";
 import { Pagination } from "@/components/search/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 
 type SortOption = "recommended" | "price_asc" | "price_desc" | "rating";
 
@@ -23,7 +24,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
-  return { title: t("hotelsTitle"), description: t("hotelsDescription") };
+  return {
+    title: t("hotelsTitle"),
+    description: t("hotelsDescription"),
+    alternates: buildLocaleAlternates(locale, "/hotels"),
+  };
 }
 
 export default async function HotelsSearchPage({

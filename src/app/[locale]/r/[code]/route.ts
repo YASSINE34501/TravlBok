@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { AFFILIATE_REF_COOKIE } from "@/domains/affiliates/conversion";
+import { resolveSafeInternalRedirect } from "@/lib/affiliate/urls";
 
 export const runtime = "nodejs";
 
@@ -23,10 +24,18 @@ export async function GET(
 ) {
   const { locale, code } = await params;
   const campaignSlug = request.nextUrl.searchParams.get("camp") ?? undefined;
-  const destination = request.nextUrl.searchParams.get("to") || `/${locale}`;
+  // Same-origin only — `to` must never leave the site (this is a referral
+  // landing page, not an offer redirect). An absolute or protocol-relative
+  // `to` value would otherwise resolve to itself regardless of `request.url`
+  // as the base, making this an open redirect. See src/lib/affiliate/urls.ts.
+  const destination = resolveSafeInternalRedirect(
+    request.nextUrl.searchParams.get("to"),
+    request.url,
+    `/${locale}`
+  );
 
   const affiliate = await prisma.affiliate.findUnique({ where: { referralCode: code } });
-  const response = NextResponse.redirect(new URL(destination, request.url));
+  const response = NextResponse.redirect(destination);
 
   if (!affiliate) {
     return response;
@@ -70,7 +79,7 @@ export async function GET(
         visitorId,
         ipAddressHash,
         userAgent: request.headers.get("user-agent") ?? undefined,
-        landingPath: destination,
+        landingPath: destination.pathname + destination.search,
       },
     }));
 

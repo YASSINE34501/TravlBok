@@ -2,11 +2,29 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { BedDouble, Car, Plane, MapPin, CalendarDays, Users, Search, ArrowLeftRight } from "lucide-react";
+import {
+  BedDouble,
+  Car,
+  Plane,
+  Tag,
+  MapPin,
+  CalendarDays,
+  Users,
+  Search,
+  ArrowLeftRight,
+  ChevronDown,
+  Plus,
+  Minus,
+} from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   InputGroup,
   InputGroupAddon,
@@ -72,7 +90,7 @@ export function HeroSearch() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl rounded-2xl border bg-card p-4 text-start shadow-xl ring-1 ring-black/5 sm:p-6">
+    <div className="p-4 text-start sm:p-6">
       <Tabs defaultValue="hotels">
         <TabsList
           variant="line"
@@ -98,6 +116,13 @@ export function HeroSearch() {
           >
             <Plane className="size-4" />
             {tHome("searchFlights")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="activities"
+            className="gap-1.5 px-1 text-muted-foreground data-active:text-primary"
+          >
+            <Tag className="size-4" />
+            {tHome("searchActivities")}
           </TabsTrigger>
         </TabsList>
 
@@ -148,34 +173,79 @@ export function HeroSearch() {
                 />
               </InputGroup>
             </div>
-            <div className="sm:col-span-2">
-              <Label htmlFor="guests">{tCommon("guests")}</Label>
-              <InputGroup className="mt-1.5 h-10">
-                <InputGroupAddon>
-                  <Users className="size-4" />
-                </InputGroupAddon>
-                <InputGroupInput
-                  id="guests"
-                  type="number"
-                  min={1}
-                  max={20}
-                  value={guests}
-                  onChange={(e) => setGuests(Number(e.target.value))}
-                />
-              </InputGroup>
-            </div>
-            <div>
-              <Label htmlFor="rooms">{tCommon("rooms")}</Label>
-              <InputGroup className="mt-1.5 h-10">
-                <InputGroupInput
-                  id="rooms"
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={rooms}
-                  onChange={(e) => setRooms(Number(e.target.value))}
-                />
-              </InputGroup>
+            <div className="sm:col-span-3">
+              <Label htmlFor="guests-rooms-trigger">{t("guestsAndRooms")}</Label>
+              <Popover>
+                <PopoverTrigger
+                  render={
+                    <button
+                      id="guests-rooms-trigger"
+                      type="button"
+                      className="mt-1.5 flex h-10 w-full items-center gap-2 rounded-lg border border-input bg-transparent px-2.5 text-start text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                    />
+                  }
+                >
+                  <Users className="size-4 text-muted-foreground" />
+                  <span className="flex-1">
+                    {tCommon("guests")} {guests}, {tCommon("rooms")} {rooms}
+                  </span>
+                  <ChevronDown className="size-4 text-muted-foreground" />
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="start">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{tCommon("guests")}</span>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        aria-label={t("removeGuest")}
+                        disabled={guests <= 1}
+                        onClick={() => setGuests((g) => Math.max(1, g - 1))}
+                      >
+                        <Minus className="size-3.5" />
+                      </Button>
+                      <span className="w-4 text-center text-sm tabular-nums">{guests}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        aria-label={t("addGuest")}
+                        disabled={guests >= 20}
+                        onClick={() => setGuests((g) => Math.min(20, g + 1))}
+                      >
+                        <Plus className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{tCommon("rooms")}</span>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        aria-label={t("removeRoom")}
+                        disabled={rooms <= 1}
+                        onClick={() => setRooms((r) => Math.max(1, r - 1))}
+                      >
+                        <Minus className="size-3.5" />
+                      </Button>
+                      <span className="w-4 text-center text-sm tabular-nums">{rooms}</span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon-sm"
+                        aria-label={t("addRoom")}
+                        disabled={rooms >= 10}
+                        onClick={() => setRooms((r) => Math.min(10, r + 1))}
+                      >
+                        <Plus className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             <Button type="submit" size="lg" className="gap-2 sm:col-span-1 sm:self-end">
               <Search className="size-4" />
@@ -377,6 +447,13 @@ export function HeroSearch() {
               {tCommon("search")}
             </Button>
           </form>
+        </TabsContent>
+
+        <TabsContent value="activities">
+          <div className="flex flex-col items-center gap-2 py-10 text-center">
+            <Tag className="size-6 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">{tHome("activitiesComingSoon")}</p>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

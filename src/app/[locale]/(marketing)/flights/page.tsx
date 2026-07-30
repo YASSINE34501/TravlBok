@@ -8,6 +8,7 @@ import { FlightFilters } from "@/components/flights/flight-filters";
 import { SearchSort } from "@/components/search/search-sort";
 import { SearchSummaryBar } from "@/components/search/search-summary-bar";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 
 export async function generateMetadata({
   params,
@@ -16,7 +17,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
-  return { title: t("flightsTitle"), description: t("flightsDescription") };
+  return {
+    title: t("flightsTitle"),
+    description: t("flightsDescription"),
+    alternates: buildLocaleAlternates(locale, "/flights"),
+  };
 }
 
 type FlightSort = "best" | "price_asc" | "duration_asc";

@@ -35,8 +35,8 @@ export function StarRating({ rating, maxStars = 5, size = "md", className }: Pro
             key={i}
             className={cn(
               SIZE_CLASSES[size],
-              "shrink-0 transition-colors duration-150 hover:fill-[#FFC107] hover:text-[#FFC107]",
-              filled ? "fill-[#F4B400] text-[#F4B400]" : "fill-[#D1D5DB] text-[#D1D5DB]"
+              "shrink-0 transition-colors duration-150 hover:fill-primary hover:text-primary",
+              filled ? "fill-primary text-primary" : "fill-muted text-muted"
             )}
           />
         );

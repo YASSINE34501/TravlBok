@@ -5,6 +5,7 @@ import { getPopularDestinations } from "@/domains/hotels/queries";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
 import { Link } from "@/i18n/navigation";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 
 export async function generateMetadata({
   params,
@@ -13,7 +14,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
-  return { title: t("destinationsTitle"), description: t("destinationsDescription") };
+  return {
+    title: t("destinationsTitle"),
+    description: t("destinationsDescription"),
+    alternates: buildLocaleAlternates(locale, "/destinations"),
+  };
 }
 
 export default async function DestinationsPage({

@@ -42,8 +42,27 @@ export function getCronSecret(): string {
   return requireVars(["CRON_SECRET"] as const).CRON_SECRET;
 }
 
+/**
+ * Falls back through, in order: the explicit production URL, Vercel's
+ * auto-provided preview/production URL (unprefixed, needs a scheme), then
+ * localhost for local dev only. Warns once per server lifetime if a
+ * production deploy is serving off the localhost fallback — that means
+ * `NEXT_PUBLIC_APP_URL` was never set in the Vercel project and every
+ * canonical URL, OG image, and sitemap entry generated until it's fixed
+ * will silently point at localhost.
+ */
+let warnedMissingAppUrl = false;
+
 export function getAppUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (isProduction() && !warnedMissingAppUrl) {
+    warnedMissingAppUrl = true;
+    console.warn(
+      "[env] NEXT_PUBLIC_APP_URL is not set in production — canonical URLs, OG images, and the sitemap will point at localhost until it's configured."
+    );
+  }
+  return "http://localhost:3000";
 }
 
 export function isProduction(): boolean {

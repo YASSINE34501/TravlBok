@@ -5,6 +5,7 @@ import { searchHotels } from "@/domains/hotels/queries";
 import { getDisplayCurrencyContext } from "@/lib/currency/display";
 import { HotelCard } from "@/components/hotels/hotel-card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 
 export async function generateMetadata({
   params,
@@ -13,7 +14,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
-  return { title: t("dealsTitle"), description: t("dealsDescription") };
+  return {
+    title: t("dealsTitle"),
+    description: t("dealsDescription"),
+    alternates: buildLocaleAlternates(locale, "/deals"),
+  };
 }
 
 export default async function DealsPage({

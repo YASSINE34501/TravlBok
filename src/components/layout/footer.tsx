@@ -4,6 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { Button } from "@/components/ui/button";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
 import { BrandLogo } from "@/components/icons/brand-logo";
+import { AffiliateDisclosure } from "@/components/affiliate/affiliate-disclosure";
 
 export async function Footer() {
   const t = await getTranslations("Footer");
@@ -38,15 +39,15 @@ export async function Footer() {
   return (
     <footer className="border-t bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <div className="grid gap-10 md:grid-cols-5">
+        <div className="grid items-start gap-10 md:grid-cols-5">
           <div className="md:col-span-2">
             <Link href="/" className="flex items-center">
-              <BrandLogo className="h-16 w-auto" />
+              <BrandLogo variant="primary" className="h-11 w-auto" />
             </Link>
-            <p className="mt-4 max-w-sm text-sm text-muted-foreground">
+            <p className="mt-3 max-w-sm text-sm text-muted-foreground">
               {t("newsletterDescription")}
             </p>
-            <form className="mt-5 max-w-sm">
+            <form className="mt-4 max-w-sm">
               <InputGroup>
                 <InputGroupAddon>
                   <Mail className="size-4" />
@@ -83,6 +84,7 @@ export async function Footer() {
             &copy; {new Date().getFullYear()} {tCommon("brand")}. {t("rights")}
           </p>
         </div>
+        <AffiliateDisclosure className="mt-4" />
       </div>
     </footer>
   );

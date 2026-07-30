@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { requireRole, ROLE_GROUPS } from "@/lib/rbac";
@@ -22,7 +21,8 @@ export default async function AdminLayout({
     <AppShell
       brand={
         <Link href="/" className="flex items-center">
-          <Image src="/brand/icon-mark.png" alt="TravlBok" width={550} height={550} className="size-11" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/travlbok-mark.svg" alt="TravlBok" className="size-11" />
         </Link>
       }
       navGroups={navGroups}

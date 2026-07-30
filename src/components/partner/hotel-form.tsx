@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StarRating } from "@/components/ui/star-rating";
 import { hotelSchema, type HotelInput } from "@/lib/validation/hotel";
 import { createHotelAction, updateHotelAction } from "@/domains/hotels/actions";
 import { useRouter } from "@/i18n/navigation";
@@ -82,7 +83,9 @@ export function HotelForm({
   const categoryItems = Object.fromEntries(categories.map((c) => [c.id, c.name]));
   const countryItems = Object.fromEntries(countries.map((c) => [c.id, c.name]));
   const cityItems = Object.fromEntries(availableCities.map((c) => [c.id, c.name]));
-  const starItems = { "1": "★", "2": "★★", "3": "★★★", "4": "★★★★", "5": "★★★★★" };
+  const starItems = Object.fromEntries(
+    [1, 2, 3, 4, 5].map((star) => [String(star), <StarRating key={star} rating={star} size="sm" />])
+  );
 
   async function onSubmit(values: HotelInput) {
     setIsSubmitting(true);
@@ -219,7 +222,7 @@ export function HotelForm({
                       <SelectContent>
                         {[1, 2, 3, 4, 5].map((star) => (
                           <SelectItem key={star} value={String(star)}>
-                            {"★".repeat(star)}
+                            <StarRating rating={star} size="sm" />
                           </SelectItem>
                         ))}
                       </SelectContent>

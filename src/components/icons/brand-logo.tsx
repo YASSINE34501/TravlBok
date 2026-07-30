@@ -1,28 +1,51 @@
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type Props = {
   className?: string;
+  /**
+   * "primary" (icon + wordmark + tagline) is for marketing pages and the
+   * footer. "navbar" (icon + wordmark, no tagline) is for desktop and
+   * mobile navigation — the full lockup's tagline becomes illegible at
+   * navbar heights, so the navbar gets its own tighter-cropped asset
+   * instead of the same file shrunk further.
+   */
+  variant?: "primary" | "navbar";
 };
 
-const ASPECT_WIDTH = 1536;
-const ASPECT_HEIGHT = 1024;
+const SOURCES = {
+  primary: { light: "/brand/travlbok-logo.svg", dark: "/brand/travlbok-logo-dark.svg" },
+  navbar: { light: "/brand/travlbok-navbar-logo.svg", dark: "/brand/travlbok-navbar-logo-dark.svg" },
+} as const;
 
 /**
- * Official TravlBok logo (icon + wordmark lockup). The source file has a
- * lot of transparent padding above/below the actual artwork, so it needs
- * a taller display height than a typical compact navbar logo to stay
- * legible — that's inherent to the asset, not a rendering bug.
+ * Official TravlBok logo lockup, a tightly-cropped vector — a plain <img>
+ * is deliberate here over next/image: SVG logos gain nothing from the
+ * raster image optimizer, and this avoids needing `dangerouslyAllowSVG`
+ * in next.config.
+ *
+ * Two source files per variant, toggled by Tailwind's `dark:` variant
+ * (CSS-only, no theme hook needed — stays a server component): the
+ * wordmark and tagline are set in dark ink for light backgrounds, which
+ * is illegible against the dark-mode navy background, so the dark variant
+ * swaps that ink text for a light cream while keeping the gold "Bok"/mark
+ * unchanged in both.
  */
-export function BrandLogo({ className }: Props) {
+export function BrandLogo({ className, variant = "primary" }: Props) {
+  const { light, dark } = SOURCES[variant];
   return (
-    <Image
-      src="/brand/logo.png"
-      alt="TravlBok"
-      width={ASPECT_WIDTH}
-      height={ASPECT_HEIGHT}
-      className={cn("object-contain", className)}
-      priority
-    />
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={light}
+        alt="TravlBok"
+        className={cn("h-auto w-auto object-contain dark:hidden", className)}
+      />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={dark}
+        alt="TravlBok"
+        className={cn("hidden h-auto w-auto object-contain dark:block", className)}
+      />
+    </>
   );
 }

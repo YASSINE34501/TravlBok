@@ -14,6 +14,7 @@ import { SearchSummaryBar } from "@/components/search/search-summary-bar";
 import { Pagination } from "@/components/search/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
 import type { FuelType, TransmissionType } from "@/generated/prisma/client";
+import { buildLocaleAlternates } from "@/lib/seo/alternates";
 
 export async function generateMetadata({
   params,
@@ -22,7 +23,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "Metadata" });
-  return { title: t("carsTitle"), description: t("carsDescription") };
+  return {
+    title: t("carsTitle"),
+    description: t("carsDescription"),
+    alternates: buildLocaleAlternates(locale, "/cars"),
+  };
 }
 
 export default async function CarsSearchPage({
