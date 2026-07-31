@@ -74,7 +74,7 @@ export function HeroSearch() {
       <Tabs defaultValue="hotels">
         <TabsList
           variant="line"
-          className="h-10 gap-4 border-b pb-0 [&_[data-slot=tabs-trigger]]:after:bg-primary"
+          className="h-10 max-w-full flex-nowrap gap-4 overflow-x-auto border-b pb-0 [&_[data-slot=tabs-trigger]]:shrink-0 [&_[data-slot=tabs-trigger]]:after:bg-primary"
         >
           <TabsTrigger
             value="hotels"
@@ -84,18 +84,18 @@ export function HeroSearch() {
             {tHome("searchHotels")}
           </TabsTrigger>
           <TabsTrigger
-            value="cars"
-            className="gap-1.5 px-1 text-muted-foreground data-active:text-primary"
-          >
-            <Car className="size-4" />
-            {tHome("searchCars")}
-          </TabsTrigger>
-          <TabsTrigger
             value="flights"
             className="gap-1.5 px-1 text-muted-foreground data-active:text-primary"
           >
             <Plane className="size-4" />
             {tHome("searchFlights")}
+          </TabsTrigger>
+          <TabsTrigger
+            value="cars"
+            className="gap-1.5 px-1 text-muted-foreground data-active:text-primary"
+          >
+            <Car className="size-4" />
+            {tHome("searchCars")}
           </TabsTrigger>
           <TabsTrigger
             value="activities"
@@ -112,7 +112,7 @@ export function HeroSearch() {
             className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4"
           >
             <div className="sm:col-span-2">
-              <Label htmlFor="hotel-destination">{t("destination")}</Label>
+              <Label htmlFor="hotel-destination" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("destination")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <MapPin className="size-4" />
@@ -126,7 +126,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="check-in">{t("checkIn")}</Label>
+              <Label htmlFor="check-in" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("checkIn")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />
@@ -140,7 +140,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="check-out">{t("checkOut")}</Label>
+              <Label htmlFor="check-out" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("checkOut")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />
@@ -154,7 +154,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div className="sm:col-span-3">
-              <Label htmlFor="guests-rooms-trigger">{t("guestsAndRooms")}</Label>
+              <Label htmlFor="guests-rooms-trigger" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("guestsAndRooms")}</Label>
               <Popover>
                 <PopoverTrigger
                   render={
@@ -240,7 +240,7 @@ export function HeroSearch() {
             className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4"
           >
             <div>
-              <Label htmlFor="car-location">{t("pickupLocation")}</Label>
+              <Label htmlFor="car-location" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("pickupLocation")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <MapPin className="size-4" />
@@ -254,7 +254,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="car-dropoff-location">{t("dropoffLocation")}</Label>
+              <Label htmlFor="car-dropoff-location" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("dropoffLocation")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <MapPin className="size-4" />
@@ -268,7 +268,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="pickup-date">{t("pickupDate")}</Label>
+              <Label htmlFor="pickup-date" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("pickupDate")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />
@@ -282,7 +282,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="return-date">{t("returnDate")}</Label>
+              <Label htmlFor="return-date" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("returnDate")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />

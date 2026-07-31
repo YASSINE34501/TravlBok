@@ -200,15 +200,37 @@ export async function getPopularDestinations(take = 6) {
   });
 
   const cityIds = grouped.map((g) => g.cityId).filter((id): id is string => !!id);
-  const cities = await prisma.city.findMany({
-    where: { id: { in: cityIds } },
-    include: { country: true },
-  });
+  const [cities, cheapestRoomsByCity] = await Promise.all([
+    prisma.city.findMany({
+      where: { id: { in: cityIds } },
+      include: { country: true },
+    }),
+    Promise.all(
+      cityIds.map((cityId) =>
+        prisma.roomType.findFirst({
+          where: {
+            isActive: true,
+            deletedAt: null,
+            hotel: { cityId, status: "PUBLISHED", deletedAt: null },
+          },
+          orderBy: { basePrice: "asc" },
+          select: { basePrice: true, currency: true },
+        }).then((room) => [cityId, room] as const)
+      )
+    ),
+  ]);
+  const cheapestRoomByCity = new Map(cheapestRoomsByCity);
 
   return grouped
     .map((g) => {
       const city = cities.find((c) => c.id === g.cityId);
-      return city ? { city, hotelCount: g._count._all } : null;
+      if (!city || !g.cityId) return null;
+      const cheapestRoom = cheapestRoomByCity.get(g.cityId);
+      return {
+        city,
+        hotelCount: g._count._all,
+        fromPrice: cheapestRoom ? { amount: cheapestRoom.basePrice, currency: cheapestRoom.currency } : null,
+      };
     })
     .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
 }

@@ -111,6 +111,7 @@
     "switchCurrency": "Change currency"
   },
   "Nav": {
+    "tagline": "Travel more, pay less",
     "home": "Home",
     "hotels": "Hotels",
     "carRentals": "Car rentals",
@@ -161,8 +162,10 @@
     "rights": "All rights reserved."
   },
   "Home": {
-    "heroTitle": "Find your next adventure",
-    "heroSubtitle": "Search, compare and book hotels, flights and car rentals worldwide.",
+    "heroTitle": "Discover the world. Book with",
+    "heroTitleHighlight": "confidence",
+    "heroSubtitle": "Compare hundreds of travel sites and save on your next trip.",
+    "startingFromPrice": "From {price}/night",
     "searchHotels": "Hotels",
     "searchCars": "Car rentals",
     "searchFlights": "Flights",

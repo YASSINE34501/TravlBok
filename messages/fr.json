@@ -111,6 +111,7 @@
     "switchCurrency": "Changer de devise"
   },
   "Nav": {
+    "tagline": "Voyagez plus, payez moins",
     "home": "Accueil",
     "hotels": "Hôtels",
     "carRentals": "Location de voitures",
@@ -161,8 +162,10 @@
     "rights": "Tous droits réservés."
   },
   "Home": {
-    "heroTitle": "Trouvez votre prochaine aventure",
-    "heroSubtitle": "Recherchez, comparez et réservez hôtels, vols et locations de voitures dans le monde entier.",
+    "heroTitle": "Découvrez le monde. Réservez en toute",
+    "heroTitleHighlight": "confiance",
+    "heroSubtitle": "Comparez des centaines de sites de voyage et économisez sur votre prochain séjour.",
+    "startingFromPrice": "À partir de {price}/nuit",
     "searchHotels": "Hôtels",
     "searchCars": "Location de voitures",
     "searchFlights": "Vols",

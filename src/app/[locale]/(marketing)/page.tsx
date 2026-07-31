@@ -31,8 +31,9 @@ import {
   searchHotels,
 } from "@/domains/hotels/queries";
 import { getFeaturedVehicles } from "@/domains/vehicles/queries";
-import { getDisplayCurrencyContext } from "@/lib/currency/display";
+import { getDisplayCurrencyContext, formatFromBase } from "@/lib/currency/display";
 import { pickLocaleText } from "@/lib/i18n/locale-text";
+import type { CurrencyCode } from "@/lib/currency/config";
 
 const DESTINATION_IMAGE_BY_CITY: Record<string, string> = {
   bali: "/destinations/bali.webp",
@@ -59,14 +60,19 @@ export default async function HomePage({
   ]);
   const deals = dealsResult.hotels;
 
-  const destinationCards = destinations.map(({ city, hotelCount }) => {
+  const destinationCards = destinations.map(({ city, hotelCount, fromPrice }) => {
     const cityName = pickLocaleText(city.name as Record<string, unknown>, locale);
     const countryName = pickLocaleText(
       (city as { country: { name: unknown } }).country.name as Record<string, unknown>,
       locale
     );
     const image = DESTINATION_IMAGE_BY_CITY[cityName.trim().toLowerCase()];
-    return { id: city.id, cityName, countryName, hotelCount, image };
+    const fromPriceLabel = fromPrice
+      ? t("startingFromPrice", {
+          price: formatFromBase(fromPrice.amount.toString(), fromPrice.currency as CurrencyCode, currency, rates, locale),
+        })
+      : null;
+    return { id: city.id, cityName, countryName, hotelCount, fromPriceLabel, image };
   });
 
   const trustBarPrimary = [
@@ -120,7 +126,7 @@ export default async function HomePage({
                 {t("trustBestPrices")}
               </span>
               <h1 className="mt-4 text-4xl leading-[1.05] font-bold tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl">
-                {t("heroTitle")}
+                {t("heroTitle")} <span className="text-primary">{t("heroTitleHighlight")}</span>.
               </h1>
               <p className="mt-5 max-w-lg text-lg text-muted-foreground">
                 {t("heroSubtitle")}
@@ -139,11 +145,11 @@ export default async function HomePage({
               <div className="mt-10 hidden shrink-0 gap-4 lg:mt-1 lg:flex lg:w-[600px]">
                 <div className="flex w-56 shrink-0 flex-col justify-between rounded-2xl bg-card p-5 shadow-lg">
                   <div>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-primary uppercase">
                       <Crown className="size-3.5" />
                       {t("memberExclusiveTitle")}
                     </span>
-                    <p className="mt-3 text-sm text-muted-foreground">
+                    <p className="mt-3 text-sm font-medium text-foreground">
                       {t("memberExclusiveDescription")}
                     </p>
                   </div>
@@ -359,12 +365,12 @@ export default async function HomePage({
 function DestinationTile({
   cityName,
   countryName,
-  hotelCount,
+  fromPriceLabel,
   image,
 }: {
   cityName: string;
   countryName: string;
-  hotelCount: number;
+  fromPriceLabel: string | null;
   image?: string;
 }) {
   return (
@@ -401,7 +407,9 @@ function DestinationTile({
       <div className="absolute inset-x-0 bottom-0 p-2.5 text-white">
         <p className="line-clamp-1 text-sm font-semibold">{cityName}</p>
         <p className="line-clamp-1 text-xs text-white/80">{countryName}</p>
-        <p className="text-[11px] text-white/70">{hotelCount}</p>
+        {fromPriceLabel && (
+          <p className="text-[11px] font-semibold text-primary">{fromPriceLabel}</p>
+        )}
       </div>
     </Link>
   );

@@ -111,6 +111,7 @@
     "switchCurrency": "تغيير العملة"
   },
   "Nav": {
+    "tagline": "سافر أكثر، وادفع أقل",
     "home": "الرئيسية",
     "hotels": "الفنادق",
     "carRentals": "تأجير السيارات",
@@ -161,8 +162,10 @@
     "rights": "جميع الحقوق محفوظة."
   },
   "Home": {
-    "heroTitle": "ابحث عن مغامرتك القادمة",
-    "heroSubtitle": "ابحث وقارن واحجز الفنادق والرحلات الجوية وتأجير السيارات حول العالم.",
+    "heroTitle": "اكتشف العالم. احجز",
+    "heroTitleHighlight": "بثقة",
+    "heroSubtitle": "قارن بين مئات مواقع السفر ووفر في رحلتك القادمة.",
+    "startingFromPrice": "من {price}/الليلة",
     "searchHotels": "الفنادق",
     "searchCars": "تأجير السيارات",
     "searchFlights": "الرحلات الجوية",

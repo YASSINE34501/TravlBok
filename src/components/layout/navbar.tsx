@@ -55,10 +55,13 @@ export async function Navbar() {
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/95 backdrop-blur-md supports-backdrop-filter:bg-background/75">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center">
-            <BrandLogo variant="navbar" className="h-9 w-auto sm:h-10" />
+          <Link href="/" className="flex flex-col justify-center">
+            <BrandLogo variant="navbar" className="h-8 w-auto sm:h-9" />
+            <span className="hidden text-[11px] font-medium text-muted-foreground xl:block">
+              {t("tagline")}
+            </span>
           </Link>
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Main">
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -127,7 +130,7 @@ export async function Navbar() {
               />
             </>
           ) : (
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="hidden items-center gap-2 lg:flex">
               <Button variant="outline" render={<Link href="/login" />}>
                 {t("login")}
               </Button>
@@ -141,7 +144,7 @@ export async function Navbar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="md:hidden"
+                  className="lg:hidden"
                   aria-label="Open menu"
                 />
               }
