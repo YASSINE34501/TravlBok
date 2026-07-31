@@ -3,12 +3,11 @@
 import { useEffect, useRef } from "react";
 
 // Official Travelpayouts Flights Search Form widget — approved, exact
-// embed code, parameters unmodified. `color_button`/`color_button_text`
-// already match the TravlBok brand tokens (gold primary / dark ink text).
-// `locale=en` is fixed by the approved embed and intentionally not varied
-// per site locale — changing it would modify an approved parameter.
+// embed code, parameters unmodified. `locale=en` is fixed by the approved
+// embed and intentionally not varied per site locale — changing it would
+// modify an approved parameter.
 const WIDGET_SRC =
-  "https://tpembd.com/content?currency=usd&trs=554594&shmarker=755720&locale=en&stops=0&show_hotels=true&powered_by=true&border_radius=0&plain=true&color_button=%23FDBA06&color_button_text=%230F172A&promo_id=3414&campaign_id=111";
+  "https://tpembd.com/content?currency=usd&trs=554594&shmarker=755720&locale=en&stops=any&show_hotels=false&powered_by=true&border_radius=0&plain=true&color_button=%23FDBA06&color_button_text=%23ffffff&promo_id=3414&campaign_id=111";
 
 const WIDGET_SCRIPT_ID = "travelpayouts-flights-widget";
 
