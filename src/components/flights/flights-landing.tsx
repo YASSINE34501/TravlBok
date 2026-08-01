@@ -88,25 +88,39 @@ export async function FlightsLanding({
       {/* 1. Hero Flight Search */}
       <section className="relative isolate overflow-hidden">
         <div aria-hidden="true" className="absolute inset-0">
-          <Image src="/hero/santorini.webp" alt="" fill priority sizes="100vw" className="object-cover" />
+          <Image
+            src="/hero/airplane-sunset.webp"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 ltr:hidden rtl:block"
             style={{
               backgroundImage:
-                "linear-gradient(to right, var(--background) 0%, var(--background) 30%, color-mix(in oklch, var(--background) 30%, transparent) 55%, transparent 75%)",
+                "linear-gradient(to left, oklch(0.16 0.03 264 / 0.62) 0%, oklch(0.16 0.03 264 / 0.5) 28%, oklch(0.16 0.03 264 / 0.26) 52%, oklch(0.16 0.03 264 / 0.06) 72%, transparent 85%)",
+            }}
+          />
+          <div
+            className="absolute inset-0 ltr:block rtl:hidden"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, oklch(0.16 0.03 264 / 0.62) 0%, oklch(0.16 0.03 264 / 0.5) 28%, oklch(0.16 0.03 264 / 0.26) 52%, oklch(0.16 0.03 264 / 0.06) 72%, transparent 85%)",
             }}
           />
         </div>
         <div className="relative mx-auto max-w-7xl px-4 pt-14 pb-10 sm:px-6 sm:pt-20">
           <div className="max-w-xl text-start">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/15 px-3 py-1 text-xs font-semibold text-primary backdrop-blur-sm">
               <Plane className="size-3.5" />
               {t("heroBadge")}
             </span>
-            <h1 className="mt-4 text-4xl leading-[1.05] font-bold tracking-tight text-balance text-foreground sm:text-5xl">
+            <h1 className="mt-4 text-4xl leading-[1.05] font-bold tracking-tight text-balance text-white drop-shadow-sm sm:text-5xl">
               {t("heroTitle")}
             </h1>
-            <p className="mt-5 max-w-lg text-lg text-muted-foreground">{t("heroSubtitle")}</p>
+            <p className="mt-5 max-w-lg text-lg text-white/85">{t("heroSubtitle")}</p>
           </div>
         </div>
         <div className="relative z-10 mx-auto max-w-7xl px-4 pb-14 sm:px-6 sm:pb-20">

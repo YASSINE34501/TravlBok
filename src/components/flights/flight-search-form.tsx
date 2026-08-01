@@ -49,7 +49,7 @@ export function FlightSearchForm({
   }
 
   return (
-    <div className="rounded-3xl border bg-card p-4 shadow-xl ring-1 ring-black/5 sm:p-6">
+    <div className="rounded-3xl border border-white/40 bg-white/90 p-4 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl sm:p-6 dark:border-white/10 dark:bg-card/90">
       <div className="flex items-center gap-4 border-b pb-3">
         {(["roundTrip", "oneWay", "multiCity"] as const).map((type) => (
           <button
