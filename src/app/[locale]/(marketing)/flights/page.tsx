@@ -5,11 +5,13 @@ import { searchExternalOffers } from "@/domains/distribution/search";
 import { isDistributionConfigured } from "@/domains/distribution/providers/registry";
 import { FlightCard } from "@/components/flights/flight-card";
 import { FlightFilters } from "@/components/flights/flight-filters";
+import { FlightsLanding } from "@/components/flights/flights-landing";
 import { SearchSort } from "@/components/search/search-sort";
 import { SearchSummaryBar } from "@/components/search/search-summary-bar";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buildLocaleAlternates } from "@/lib/seo/alternates";
+import { getDisplayCurrencyContext } from "@/lib/currency/display";
 import type { ExternalFlightOffer } from "@/domains/distribution/types";
 
 export async function generateMetadata({
@@ -40,6 +42,14 @@ export default async function FlightsSearchPage({
   const query = await searchParams;
   const t = await getTranslations("Flights");
   const tSearch = await getTranslations("Search");
+
+  // No search submitted yet — show the real-data landing page instead of a
+  // results page that would otherwise render an empty/"no results" state
+  // before the user has actually searched for anything.
+  if (!query.origin || !query.destination) {
+    const { currency, rates } = await getDisplayCurrencyContext();
+    return <FlightsLanding locale={locale} currency={currency} rates={rates} />;
+  }
 
   const configured = isDistributionConfigured("FLIGHT");
 

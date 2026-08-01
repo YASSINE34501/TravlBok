@@ -70,3 +70,9 @@ export async function isFlightableCode(code: string): Promise<boolean> {
   const cities = await loadFlightableCities();
   return cities.some((city) => city.code === code.toUpperCase());
 }
+
+/** Real name + country for a city code (e.g. resolving a route's destination code for display) — `null` if unknown. */
+export async function resolveCity(code: string): Promise<FlightableCity | null> {
+  const cities = await loadFlightableCities();
+  return cities.find((city) => city.code === code.toUpperCase()) ?? null;
+}

@@ -98,6 +98,112 @@ export async function fetchPricesForDates(
   return body.data;
 }
 
+export type CityDirection = {
+  origin: string;
+  destination: string;
+  airline: string;
+  departure_at: string;
+  return_at?: string;
+  price: number;
+  flight_number: number;
+  transfers: number;
+};
+
+type CityDirectionsResponse = {
+  success?: boolean;
+  data: Record<string, CityDirection>;
+};
+
+/**
+ * Wraps Travelpayouts' `v1/city-directions` — the cheapest real fare found
+ * per destination from a given origin. Powers "Popular Routes" and "Top
+ * Destinations": real destinations Travelpayouts actually has fares for,
+ * never a curated/invented list.
+ */
+export async function fetchCityDirections(origin: string, currency = "usd"): Promise<CityDirection[]> {
+  const { apiToken } = getTravelpayoutsConfig();
+  const query = new URLSearchParams({ origin, currency });
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/v1/city-directions?${query.toString()}`, {
+      headers: { "X-Access-Token": apiToken },
+      signal: AbortSignal.timeout(10_000),
+      next: { revalidate: 3600 },
+    });
+  } catch {
+    throw new TravelpayoutsApiError("Failed to reach the Travelpayouts API");
+  }
+  if (!response.ok) {
+    throw new TravelpayoutsApiError(
+      `Travelpayouts API responded with status ${response.status}`,
+      response.status
+    );
+  }
+  const body = (await response.json()) as CityDirectionsResponse;
+  return Object.values(body.data ?? {});
+}
+
+export type LatestPriceEntry = {
+  origin: string;
+  destination: string;
+  value: number;
+  depart_date: string;
+  return_date?: string;
+  found_at: string;
+  gate: string;
+  number_of_changes: number;
+  duration: number;
+};
+
+type LatestPricesResponse = {
+  currency: string;
+  error: string;
+  data: LatestPriceEntry[];
+};
+
+/**
+ * Wraps Travelpayouts' `v2/prices/latest` — real recently-found cheap
+ * fares, each with its own real `found_at` timestamp. Powers "Cheapest
+ * Flights This Week" — callers should still filter to genuinely recent
+ * `found_at` values rather than trusting the label alone.
+ */
+export async function fetchLatestPrices(
+  origin: string,
+  currency = "usd",
+  limit = 30
+): Promise<LatestPriceEntry[]> {
+  const { apiToken } = getTravelpayoutsConfig();
+  const query = new URLSearchParams({
+    origin,
+    currency,
+    limit: String(limit),
+    sorting: "price",
+  });
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}/v2/prices/latest?${query.toString()}`, {
+      headers: { "X-Access-Token": apiToken },
+      signal: AbortSignal.timeout(10_000),
+      next: { revalidate: 3600 },
+    });
+  } catch {
+    throw new TravelpayoutsApiError("Failed to reach the Travelpayouts API");
+  }
+  if (!response.ok) {
+    throw new TravelpayoutsApiError(
+      `Travelpayouts API responded with status ${response.status}`,
+      response.status
+    );
+  }
+  const body = (await response.json()) as LatestPricesResponse;
+  if (body.error) {
+    throw new TravelpayoutsApiError(`Travelpayouts API reported an error: ${body.error}`);
+  }
+  return body.data ?? [];
+}
+
 /** Prepends the Aviasales domain and appends this account's marker to a fare's relative `link`. */
 export function buildAviasalesDeepLink(relativeLink: string): string {
   const { partnerId } = getTravelpayoutsConfig();
