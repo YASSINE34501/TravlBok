@@ -21,19 +21,14 @@ const isDev = process.env.NODE_ENV === "development";
 // finishes initializing) — this is the one domain observed in that
 // CSP-violation report; don't broaden connect-src beyond it speculatively.
 //
-// tpembd.com is the separate host for the official Travelpayouts Flights
-// Search Form widget (see TravelpayoutsFlightWidget, mounted in the
-// homepage's HeroSearch "flights" tab) — a different Travelpayouts product
-// from the Drive script, confirmed via a real browser console check to need
-// its own script-src entry (the script load itself was CSP-blocked without
-// it, distinct from the Drive script's separate connect-src issue).
-// (avsplow.com — a connect-src request this widget also makes — was tried
-// and reverted: allowlisting it did not change whether the widget rendered,
-// so it wasn't a proven requirement; the actual fix was moving off
-// next/script to a ref-scoped insertion, see TravelpayoutsFlightWidget.)
+// tpembd.com / www.apistp.com (the Flights Search Form widget's hosts) were
+// removed from here along with the widget itself — TravlBok's Flights tab
+// is its own native form again; Travelpayouts is only consulted server-side
+// via the /flights results page and the tracked /go/flight redirect, so no
+// browser-side CSP allowlisting for those hosts is needed anymore.
 const cspHeader = `
   default-src 'self';
-  script-src 'self' 'unsafe-inline' https://emrldtp.com https://tpembd.com${isDev ? " 'unsafe-eval'" : ""};
+  script-src 'self' 'unsafe-inline' https://emrldtp.com${isDev ? " 'unsafe-eval'" : ""};
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https:;
   font-src 'self' data:;

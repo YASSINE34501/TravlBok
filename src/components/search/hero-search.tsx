@@ -11,6 +11,7 @@ import {
   CalendarDays,
   Users,
   Search,
+  ArrowLeftRight,
   ChevronDown,
   Plus,
   Minus,
@@ -29,7 +30,8 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { TravelpayoutsFlightWidget } from "@/components/marketplace/travelpayouts-flight-widget";
+
+const FIELD_LABEL_CLASS = "text-xs font-semibold tracking-wide text-muted-foreground uppercase";
 
 export function HeroSearch() {
   const t = useTranslations("Search");
@@ -47,6 +49,13 @@ export function HeroSearch() {
   const [carDropoffLocation, setCarDropoffLocation] = useState("");
   const [pickupDate, setPickupDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
+
+  const [flightOrigin, setFlightOrigin] = useState("");
+  const [flightDestination, setFlightDestination] = useState("");
+  const [departDate, setDepartDate] = useState("");
+  const [flightReturnDate, setFlightReturnDate] = useState("");
+  const [passengers, setPassengers] = useState(1);
+  const [tripType, setTripType] = useState<"roundTrip" | "oneWay" | "multiCity">("roundTrip");
 
   function submitHotelSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -67,6 +76,23 @@ export function HeroSearch() {
     if (pickupDate) params.set("pickupDate", pickupDate);
     if (returnDate) params.set("returnDate", returnDate);
     router.push(`/cars?${params.toString()}`);
+  }
+
+  // TravlBok's own search form — the flight offers themselves come from
+  // Travelpayouts (via searchExternalOffers on the /flights results page,
+  // which redirects each offer through the tracked /go/flight route). The
+  // affiliate provider is plumbing behind this page, never the UI surface.
+  function submitFlightSearch(event: React.FormEvent) {
+    event.preventDefault();
+    const params = new URLSearchParams();
+    if (flightOrigin) params.set("origin", flightOrigin);
+    if (flightDestination) params.set("destination", flightDestination);
+    if (departDate) params.set("departDate", departDate);
+    if (tripType === "roundTrip" && flightReturnDate) {
+      params.set("returnDate", flightReturnDate);
+    }
+    if (passengers) params.set("passengers", String(passengers));
+    router.push(`/flights?${params.toString()}`);
   }
 
   return (
@@ -112,7 +138,7 @@ export function HeroSearch() {
             className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] lg:items-end"
           >
             <div className="sm:col-span-2 lg:col-span-1">
-              <Label htmlFor="hotel-destination" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("destination")}</Label>
+              <Label htmlFor="hotel-destination" className={FIELD_LABEL_CLASS}>{t("destination")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <MapPin className="size-4" />
@@ -126,7 +152,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="check-in" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("checkIn")}</Label>
+              <Label htmlFor="check-in" className={FIELD_LABEL_CLASS}>{t("checkIn")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />
@@ -140,7 +166,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="check-out" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("checkOut")}</Label>
+              <Label htmlFor="check-out" className={FIELD_LABEL_CLASS}>{t("checkOut")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />
@@ -154,7 +180,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div className="sm:col-span-3 lg:col-span-1">
-              <Label htmlFor="guests-rooms-trigger" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("guestsAndRooms")}</Label>
+              <Label htmlFor="guests-rooms-trigger" className={FIELD_LABEL_CLASS}>{t("guestsAndRooms")}</Label>
               <Popover>
                 <PopoverTrigger
                   render={
@@ -234,13 +260,140 @@ export function HeroSearch() {
           </form>
         </TabsContent>
 
+        <TabsContent value="flights">
+          <div className="flex items-center gap-4 border-b pb-3 pt-4">
+            {(["roundTrip", "oneWay", "multiCity"] as const).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setTripType(type)}
+                className={
+                  "relative -mb-3 pb-3 text-sm font-medium transition-colors " +
+                  (tripType === type
+                    ? "text-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary"
+                    : "text-muted-foreground hover:text-foreground")
+                }
+              >
+                {t(
+                  type === "roundTrip"
+                    ? "tripTypeRoundTrip"
+                    : type === "oneWay"
+                      ? "tripTypeOneWay"
+                      : "tripTypeMultiCity"
+                )}
+              </button>
+            ))}
+          </div>
+          {tripType === "multiCity" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {t("multiCityComingSoon")}
+            </p>
+          )}
+          <form
+            onSubmit={submitFlightSearch}
+            className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-6"
+          >
+            <div className="relative flex items-end gap-2 sm:col-span-2">
+              <div className="flex-1">
+                <Label htmlFor="flight-origin" className={FIELD_LABEL_CLASS}>{t("origin")}</Label>
+                <InputGroup className="mt-1.5 h-10">
+                  <InputGroupAddon>
+                    <Plane className="size-4" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="flight-origin"
+                    placeholder={t("originPlaceholder")}
+                    value={flightOrigin}
+                    onChange={(e) => setFlightOrigin(e.target.value)}
+                  />
+                </InputGroup>
+              </div>
+              <button
+                type="button"
+                aria-label={t("swapOriginDestination")}
+                onClick={() => {
+                  setFlightOrigin(flightDestination);
+                  setFlightDestination(flightOrigin);
+                }}
+                className="mb-0.5 flex size-8 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground transition-colors hover:text-primary"
+              >
+                <ArrowLeftRight className="size-3.5" />
+              </button>
+              <div className="flex-1">
+                <Label htmlFor="flight-destination" className={FIELD_LABEL_CLASS}>{t("destination")}</Label>
+                <InputGroup className="mt-1.5 h-10">
+                  <InputGroupAddon>
+                    <MapPin className="size-4" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="flight-destination"
+                    placeholder={t("destinationPlaceholder")}
+                    value={flightDestination}
+                    onChange={(e) => setFlightDestination(e.target.value)}
+                  />
+                </InputGroup>
+              </div>
+            </div>
+            <div className="sm:col-span-1">
+              <Label htmlFor="depart-date" className={FIELD_LABEL_CLASS}>{t("departDate")}</Label>
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <CalendarDays className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="depart-date"
+                  type="date"
+                  value={departDate}
+                  onChange={(e) => setDepartDate(e.target.value)}
+                />
+              </InputGroup>
+            </div>
+            {tripType === "roundTrip" && (
+              <div className="sm:col-span-1">
+                <Label htmlFor="flight-return-date" className={FIELD_LABEL_CLASS}>{t("returnDateOptional")}</Label>
+                <InputGroup className="mt-1.5 h-10">
+                  <InputGroupAddon>
+                    <CalendarDays className="size-4" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id="flight-return-date"
+                    type="date"
+                    value={flightReturnDate}
+                    onChange={(e) => setFlightReturnDate(e.target.value)}
+                  />
+                </InputGroup>
+              </div>
+            )}
+            <div className={tripType === "roundTrip" ? "sm:col-span-1" : "sm:col-span-2"}>
+              <Label htmlFor="passengers" className={FIELD_LABEL_CLASS}>{t("passengers")}</Label>
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <Users className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id="passengers"
+                  type="number"
+                  min={1}
+                  max={9}
+                  value={passengers}
+                  onChange={(e) => setPassengers(Number(e.target.value))}
+                />
+              </InputGroup>
+            </div>
+            <Button type="submit" size="lg" className="gap-2 sm:col-span-1 sm:self-end">
+              <Search className="size-4" />
+              {tCommon("search")}
+            </Button>
+          </form>
+        </TabsContent>
+
         <TabsContent value="cars">
           <form
             onSubmit={submitCarSearch}
             className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end"
           >
             <div>
-              <Label htmlFor="car-location" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("pickupLocation")}</Label>
+              <Label htmlFor="car-location" className={FIELD_LABEL_CLASS}>{t("pickupLocation")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <MapPin className="size-4" />
@@ -254,7 +407,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="car-dropoff-location" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("dropoffLocation")}</Label>
+              <Label htmlFor="car-dropoff-location" className={FIELD_LABEL_CLASS}>{t("dropoffLocation")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <MapPin className="size-4" />
@@ -268,7 +421,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="pickup-date" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("pickupDate")}</Label>
+              <Label htmlFor="pickup-date" className={FIELD_LABEL_CLASS}>{t("pickupDate")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />
@@ -282,7 +435,7 @@ export function HeroSearch() {
               </InputGroup>
             </div>
             <div>
-              <Label htmlFor="return-date" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("returnDate")}</Label>
+              <Label htmlFor="return-date" className={FIELD_LABEL_CLASS}>{t("returnDate")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
                   <CalendarDays className="size-4" />
@@ -300,10 +453,6 @@ export function HeroSearch() {
               {tCommon("search")}
             </Button>
           </form>
-        </TabsContent>
-
-        <TabsContent value="flights" keepMounted className="pt-4">
-          <TravelpayoutsFlightWidget />
         </TabsContent>
 
         <TabsContent value="activities">
