@@ -37,9 +37,27 @@ export async function FlightCard({
     sourceType: offer.sourceType,
   });
 
+  const alternativeLabel =
+    offer.alternativeType === "NEARBY_DATES"
+      ? t("alternativeNearbyDates")
+      : offer.alternativeType === "MONTHLY"
+        ? t("alternativeMonthly")
+        : offer.alternativeType === "ONE_WAY"
+          ? t("alternativeOneWay")
+          : null;
+
   return (
     <OfferLink checkoutMode={checkoutMode} externalHref={externalHref} className="group block">
-      <Card className="overflow-hidden rounded-2xl ring-1 ring-border transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/20">
+      <Card
+        className={`overflow-hidden rounded-2xl ring-1 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-primary/20 ${
+          alternativeLabel ? "ring-warning/30" : "ring-border"
+        }`}
+      >
+        {alternativeLabel && (
+          <div className="border-b border-warning/20 bg-warning/10 px-4 py-1.5">
+            <Badge variant="warning">{alternativeLabel}</Badge>
+          </div>
+        )}
         <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">

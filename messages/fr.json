@@ -280,7 +280,11 @@
     "staleNotice": "Prix trouvé récemment. Le prix final et la disponibilité sont confirmés sur le site du partenaire.",
     "unavailableTitle": "Les résultats de vols sont temporairement indisponibles",
     "unavailableDescription": "Nous n'avons pas pu contacter notre partenaire de données de vols. Merci de réessayer votre recherche dans un instant.",
-    "loadingResults": "Recherche de vols en cours…"
+    "loadingResults": "Recherche de vols en cours…",
+    "alternativesNotice": "Aucun tarif exact en cache n'a été trouvé. Voici des alternatives récemment trouvées.",
+    "alternativeNearbyDates": "Dates proches",
+    "alternativeMonthly": "Offre du mois en cache",
+    "alternativeOneWay": "Offre aller simple"
   },
   "Packages": {
     "title": "Séjours",

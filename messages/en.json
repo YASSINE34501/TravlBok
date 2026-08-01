@@ -280,7 +280,11 @@
     "staleNotice": "Price recently found. Final price and availability are confirmed on the partner website.",
     "unavailableTitle": "Flight results are temporarily unavailable",
     "unavailableDescription": "We couldn't reach our flight data partner just now. Please try your search again in a moment.",
-    "loadingResults": "Searching for flights…"
+    "loadingResults": "Searching for flights…",
+    "alternativesNotice": "No exact cached fare was found. Here are recently found alternatives.",
+    "alternativeNearbyDates": "Nearby dates",
+    "alternativeMonthly": "Monthly cached offer",
+    "alternativeOneWay": "One-way offer"
   },
   "Packages": {
     "title": "Travel packages",

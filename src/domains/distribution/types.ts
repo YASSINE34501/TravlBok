@@ -74,6 +74,13 @@ export type ExternalFlightOffer = ExternalOfferBase & {
    * Drives the "recently found" notice — never omit it for such offers.
    */
   isCachedPrice: boolean;
+  /**
+   * `null`/absent for an exact match to the searched criteria. Set only
+   * when the exact search returned too few results and this offer was
+   * found by a broader fallback query — never mix these into the same
+   * visual treatment as an exact match (see FlightCard's badge).
+   */
+  alternativeType?: "NEARBY_DATES" | "MONTHLY" | "ONE_WAY" | null;
 };
 
 export type ExternalOffer = ExternalHotelOffer | ExternalCarOffer | ExternalFlightOffer;

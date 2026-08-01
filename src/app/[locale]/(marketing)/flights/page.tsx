@@ -87,6 +87,11 @@ export default async function FlightsSearchPage({
 
   const airlineOptions = Array.from(new Set(offers.map((o) => o.airlineName))).sort();
   const hasCachedPrices = filtered.some((o) => o.isCachedPrice);
+  // The provider only ever returns alternatives (alternativeType set) once
+  // the exact search itself came back sparse/empty — if every remaining
+  // result here is an alternative, none of them matched the search exactly.
+  const hasExactMatches = filtered.some((o) => !o.alternativeType);
+  const showAlternativesNotice = filtered.length > 0 && !hasExactMatches;
 
   const summaryItems: Array<{ label: string; value: string }> = [];
   if (query.origin && query.destination) {
@@ -147,6 +152,12 @@ export default async function FlightsSearchPage({
           </aside>
 
           <div className="space-y-4">
+            {showAlternativesNotice && (
+              <Alert className="border-warning/30 bg-warning/10 *:[svg]:text-warning">
+                <TriangleAlert />
+                <AlertDescription className="text-foreground">{t("alternativesNotice")}</AlertDescription>
+              </Alert>
+            )}
             {hasCachedPrices && (
               <Alert>
                 <Info />
