@@ -15,6 +15,7 @@ export type HotelCardData = {
   fromPrice: unknown;
   fromPriceCurrency: ExternalHotelOffer["priceCurrency"];
   avgRating?: number | null;
+  reviewCount?: number | null;
   /** Absent (→ DIRECT_TRAVLBOK) for TravlBok's own inventory. Never rendered as UI copy. */
   sourceType?: ExternalHotelOffer["sourceType"];
   externalRedirectUrl?: string;

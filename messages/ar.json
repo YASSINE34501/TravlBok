@@ -162,10 +162,14 @@
     "rights": "جميع الحقوق محفوظة."
   },
   "Home": {
-    "heroTitle": "اكتشف العالم. احجز",
+    "heroTitle": "اكتشف العالم.",
+    "heroTitleLine2": "احجز",
     "heroTitleHighlight": "بثقة",
     "heroSubtitle": "قارن بين مئات مواقع السفر ووفر في رحلتك القادمة.",
     "startingFromPrice": "من {price}/الليلة",
+    "heroBadge": "أفضل سعر مضمون",
+    "heroCheckSupport": "دعم على مدار الساعة",
+    "heroCheckCancellation": "إلغاء مجاني",
     "searchHotels": "الفنادق",
     "searchCars": "تأجير السيارات",
     "searchFlights": "الرحلات الجوية",

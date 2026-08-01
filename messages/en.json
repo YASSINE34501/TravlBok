@@ -162,10 +162,14 @@
     "rights": "All rights reserved."
   },
   "Home": {
-    "heroTitle": "Discover the world. Book with",
+    "heroTitle": "Discover the world.",
+    "heroTitleLine2": "Book with",
     "heroTitleHighlight": "confidence",
     "heroSubtitle": "Compare hundreds of travel sites and save on your next trip.",
     "startingFromPrice": "From {price}/night",
+    "heroBadge": "Best Price Guarantee",
+    "heroCheckSupport": "24/7 Customer Support",
+    "heroCheckCancellation": "Free Cancellation",
     "searchHotels": "Hotels",
     "searchCars": "Car rentals",
     "searchFlights": "Flights",

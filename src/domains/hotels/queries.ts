@@ -126,6 +126,7 @@ export async function searchHotels(params: HotelSearchParams) {
       return {
         ...hotel,
         avgRating,
+        reviewCount: hotel.reviews.length,
         fromPrice: hotel.roomTypes[0]?.basePrice ?? null,
         fromPriceCurrency: hotel.roomTypes[0]?.currency ?? "MAD",
       };

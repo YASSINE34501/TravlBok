@@ -162,10 +162,14 @@
     "rights": "Tous droits réservés."
   },
   "Home": {
-    "heroTitle": "Découvrez le monde. Réservez en toute",
+    "heroTitle": "Découvrez le monde.",
+    "heroTitleLine2": "Réservez en toute",
     "heroTitleHighlight": "confiance",
     "heroSubtitle": "Comparez des centaines de sites de voyage et économisez sur votre prochain séjour.",
     "startingFromPrice": "À partir de {price}/nuit",
+    "heroBadge": "Meilleur prix garanti",
+    "heroCheckSupport": "Assistance 24/7",
+    "heroCheckCancellation": "Annulation gratuite",
     "searchHotels": "Hôtels",
     "searchCars": "Location de voitures",
     "searchFlights": "Vols",

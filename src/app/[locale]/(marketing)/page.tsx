@@ -123,16 +123,18 @@ export default async function HomePage({
             <div className="max-w-xl text-left">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
                 <ShieldCheck className="size-3.5" />
-                {t("trustBestPrices")}
+                {t("heroBadge")}
               </span>
-              <h1 className="mt-4 text-4xl leading-[1.05] font-bold tracking-tight text-balance text-foreground sm:text-5xl lg:text-6xl">
-                {t("heroTitle")} <span className="text-primary">{t("heroTitleHighlight")}</span>.
+              <h1 className="mt-4 text-4xl leading-[1.05] font-bold tracking-tight text-balance text-foreground sm:text-5xl lg:text-[3.5rem]">
+                {t("heroTitle")}
+                <br />
+                {t("heroTitleLine2")} <span className="text-primary">{t("heroTitleHighlight")}</span>.
               </h1>
               <p className="mt-5 max-w-lg text-lg text-muted-foreground">
                 {t("heroSubtitle")}
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2">
-                {[t("trustBestPrices"), t("trustSupport"), t("trustFlexible")].map((label) => (
+                {[t("heroBadge"), t("heroCheckSupport"), t("heroCheckCancellation")].map((label) => (
                   <span key={label} className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                     <CheckCircle2 className="size-4 text-primary" />
                     {label}
@@ -198,8 +200,10 @@ export default async function HomePage({
           <div className="border-t px-4 py-4 sm:px-6">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               {trustBarPrimary.map(({ icon: Icon, title, description }) => (
-                <div key={title} className="flex items-start gap-2">
-                  <Icon className="mt-0.5 size-4.5 shrink-0 text-primary" strokeWidth={1.75} />
+                <div key={title} className="flex items-start gap-2.5">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Icon className="size-4" strokeWidth={1.75} />
+                  </span>
                   <div>
                     <p className="text-sm font-semibold text-primary">{title}</p>
                     <p className="text-xs text-muted-foreground">{description}</p>
@@ -316,10 +320,14 @@ export default async function HomePage({
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {trustBarSecondary.map(({ icon: Icon, title, description }) => (
-              <div key={title} className="rounded-2xl border bg-card p-5">
-                <Icon className="size-6 text-primary" strokeWidth={1.75} />
-                <p className="mt-3 text-sm font-semibold text-foreground">{title}</p>
-                <p className="text-xs text-muted-foreground">{description}</p>
+              <div key={title} className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Icon className="size-5" strokeWidth={1.75} />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">{title}</p>
+                  <p className="text-xs text-muted-foreground">{description}</p>
+                </div>
               </div>
             ))}
           </div>

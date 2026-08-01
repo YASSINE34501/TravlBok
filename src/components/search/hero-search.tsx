@@ -74,7 +74,7 @@ export function HeroSearch() {
       <Tabs defaultValue="hotels">
         <TabsList
           variant="line"
-          className="h-10 max-w-full flex-nowrap gap-4 overflow-x-auto border-b pb-0 [&_[data-slot=tabs-trigger]]:shrink-0 [&_[data-slot=tabs-trigger]]:after:bg-primary"
+          className="h-10 max-w-full flex-nowrap justify-start gap-4 overflow-x-auto border-b pb-0 [&_[data-slot=tabs-trigger]]:shrink-0 [&_[data-slot=tabs-trigger]]:after:bg-primary"
         >
           <TabsTrigger
             value="hotels"
@@ -109,9 +109,9 @@ export function HeroSearch() {
         <TabsContent value="hotels">
           <form
             onSubmit={submitHotelSearch}
-            className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4"
+            className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4 lg:grid-cols-[2fr_1fr_1fr_1fr_auto] lg:items-end"
           >
-            <div className="sm:col-span-2">
+            <div className="sm:col-span-2 lg:col-span-1">
               <Label htmlFor="hotel-destination" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("destination")}</Label>
               <InputGroup className="mt-1.5 h-10">
                 <InputGroupAddon>
@@ -153,7 +153,7 @@ export function HeroSearch() {
                 />
               </InputGroup>
             </div>
-            <div className="sm:col-span-3">
+            <div className="sm:col-span-3 lg:col-span-1">
               <Label htmlFor="guests-rooms-trigger" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("guestsAndRooms")}</Label>
               <Popover>
                 <PopoverTrigger
@@ -237,7 +237,7 @@ export function HeroSearch() {
         <TabsContent value="cars">
           <form
             onSubmit={submitCarSearch}
-            className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4"
+            className="grid grid-cols-1 gap-3 pt-4 sm:grid-cols-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] lg:items-end"
           >
             <div>
               <Label htmlFor="car-location" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t("pickupLocation")}</Label>

@@ -100,8 +100,8 @@ export async function Navbar() {
 
         <div className="flex items-center gap-1.5">
           <div className="hidden items-center gap-1 sm:flex">
-            <CurrencySwitcher />
             <LanguageSwitcher />
+            <CurrencySwitcher />
             <Button variant="ghost" size="sm" render={<Link href="/faq" />}>
               {t("support")}
             </Button>
@@ -180,8 +180,8 @@ export async function Navbar() {
                   {t("support")}
                 </Link>
                 <div className="my-2 flex items-center gap-1 border-t pt-3">
-                  <CurrencySwitcher />
                   <LanguageSwitcher />
+                  <CurrencySwitcher />
                   <Button
                     variant="ghost"
                     size="icon"
