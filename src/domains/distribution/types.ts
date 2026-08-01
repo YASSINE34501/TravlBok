@@ -60,12 +60,20 @@ export type ExternalCarOffer = ExternalOfferBase & {
 export type ExternalFlightOffer = ExternalOfferBase & {
   vertical: "FLIGHT";
   airlineName: string;
+  flightNumber: string;
   originCode: string;
   destinationCode: string;
   departAt: string;
-  arriveAt: string;
+  /** Present only for round-trip searches. */
+  returnAt: string | null;
   durationMinutes: number;
   stops: number;
+  /**
+   * True for providers whose price is aggregated/cached fare data rather
+   * than a live seat-availability quote (e.g. Aviasales' prices_for_dates).
+   * Drives the "recently found" notice — never omit it for such offers.
+   */
+  isCachedPrice: boolean;
 };
 
 export type ExternalOffer = ExternalHotelOffer | ExternalCarOffer | ExternalFlightOffer;

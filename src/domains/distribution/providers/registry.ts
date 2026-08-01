@@ -1,6 +1,8 @@
 import type { DistributionVertical } from "@/generated/prisma/client";
 import type { ExternalOfferProvider } from "./types";
 import { createMockProvider } from "./mock-provider";
+import { createAviasalesProvider } from "./aviasales-provider";
+import { isTravelpayoutsConfigured } from "@/lib/env";
 
 /**
  * Unlike Channel Manager's registry (always-on mock, fine for partner-facing
@@ -8,8 +10,6 @@ import { createMockProvider } from "./mock-provider";
  * this is public customer-facing search — no mock/illustrative availability
  * may ever render in production. The sandbox provider only activates behind
  * an explicit opt-in env flag, unset by default, never set in production.
- * A real provider later is one new file implementing `ExternalOfferProvider`
- * plus one line here — no calling-code changes, same swap-in pattern.
  */
 function isMockProviderEnabled(): boolean {
   // Hard override, not just a documented convention: a leaked/misconfigured
@@ -19,14 +19,21 @@ function isMockProviderEnabled(): boolean {
   return process.env.ENABLE_MOCK_DISTRIBUTION_PROVIDER === "true";
 }
 
-const REAL_PROVIDERS: ExternalOfferProvider[] = [];
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for the per-vertical filtering a real provider will need (Phase 9); every provider today (mock or real) implements all three verticals.
-export function getConfiguredProviders(_vertical: DistributionVertical): ExternalOfferProvider[] {
-  if (isMockProviderEnabled()) {
-    return [...REAL_PROVIDERS, createMockProvider()];
+/** Real providers, included only once their required credentials are actually present. */
+function getRealProviders(vertical: DistributionVertical): ExternalOfferProvider[] {
+  const providers: ExternalOfferProvider[] = [];
+  if (vertical === "FLIGHT" && isTravelpayoutsConfigured()) {
+    providers.push(createAviasalesProvider());
   }
-  return REAL_PROVIDERS;
+  return providers;
+}
+
+export function getConfiguredProviders(vertical: DistributionVertical): ExternalOfferProvider[] {
+  const providers = getRealProviders(vertical);
+  if (isMockProviderEnabled()) {
+    return [...providers, createMockProvider()];
+  }
+  return providers;
 }
 
 /** Lets callers distinguish "no provider configured" from "provider configured, zero matches" for an honest empty state. */

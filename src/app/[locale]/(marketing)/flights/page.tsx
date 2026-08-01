@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
-import { PlaneTakeoff } from "lucide-react";
+import { PlaneTakeoff, TriangleAlert, Info } from "lucide-react";
 import { searchExternalOffers } from "@/domains/distribution/search";
 import { isDistributionConfigured } from "@/domains/distribution/providers/registry";
 import { FlightCard } from "@/components/flights/flight-card";
@@ -8,7 +8,9 @@ import { FlightFilters } from "@/components/flights/flight-filters";
 import { SearchSort } from "@/components/search/search-sort";
 import { SearchSummaryBar } from "@/components/search/search-summary-bar";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buildLocaleAlternates } from "@/lib/seo/alternates";
+import type { ExternalFlightOffer } from "@/domains/distribution/types";
 
 export async function generateMetadata({
   params,
@@ -41,15 +43,25 @@ export default async function FlightsSearchPage({
 
   const configured = isDistributionConfigured("FLIGHT");
 
-  const offers = configured
-    ? await searchExternalOffers("FLIGHT", {
+  // Distinguishes "not connected" (no provider configured at all) from
+  // "configured, but the live call to Travelpayouts failed just now" — the
+  // two need different empty states, and a fetch failure here must never
+  // crash the page or fall back to fabricated results.
+  let offers: ExternalFlightOffer[] = [];
+  let apiError = false;
+  if (configured) {
+    try {
+      offers = await searchExternalOffers("FLIGHT", {
         origin: query.origin,
         destination: query.destination,
         departDate: query.departDate,
         returnDate: query.returnDate,
         passengers: query.passengers ? Number(query.passengers) : undefined,
-      })
-    : [];
+      });
+    } catch {
+      apiError = true;
+    }
+  }
 
   let filtered = offers;
   if (query.nonStop === "1") {
@@ -74,6 +86,7 @@ export default async function FlightsSearchPage({
   }
 
   const airlineOptions = Array.from(new Set(offers.map((o) => o.airlineName))).sort();
+  const hasCachedPrices = filtered.some((o) => o.isCachedPrice);
 
   const summaryItems: Array<{ label: string; value: string }> = [];
   if (query.origin && query.destination) {
@@ -101,7 +114,7 @@ export default async function FlightsSearchPage({
         <h1 className="text-2xl font-semibold tracking-tight">
           {tSearch("resultsCount", { count: filtered.length })}
         </h1>
-        {configured && (
+        {configured && !apiError && (
           <SearchSort
             basePath="/flights"
             options={[
@@ -120,6 +133,13 @@ export default async function FlightsSearchPage({
           description={t("notConnectedDescription")}
           className="mt-8"
         />
+      ) : apiError ? (
+        <EmptyState
+          icon={TriangleAlert}
+          title={t("unavailableTitle")}
+          description={t("unavailableDescription")}
+          className="mt-8"
+        />
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-8 md:grid-cols-[260px_1fr]">
           <aside className="rounded-2xl border bg-card p-5 shadow-sm md:h-fit">
@@ -127,6 +147,12 @@ export default async function FlightsSearchPage({
           </aside>
 
           <div className="space-y-4">
+            {hasCachedPrices && (
+              <Alert>
+                <Info />
+                <AlertDescription>{t("staleNotice")}</AlertDescription>
+              </Alert>
+            )}
             {filtered.length === 0 ? (
               <EmptyState icon={PlaneTakeoff} title={t("noFlightsMatch")} />
             ) : (

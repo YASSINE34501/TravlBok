@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 const VISITOR_COOKIE = "TRAVLBOK_VISITOR";
 const VALID_VERTICALS: DistributionVertical[] = ["HOTEL", "CAR", "FLIGHT"];
-const VALID_PROVIDERS: DistributionProviderCode[] = ["MOCK_SANDBOX"];
+const VALID_PROVIDERS: DistributionProviderCode[] = ["MOCK_SANDBOX", "AVIASALES"];
 const VALID_SOURCE_TYPES: SourceType[] = [
   "DIRECT_TRAVLBOK",
   "AFFILIATE_REDIRECT",

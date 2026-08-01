@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Plane, ArrowRight } from "lucide-react";
+import { Plane, ArrowRight, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -9,8 +9,8 @@ import { buildGoHref } from "@/domains/distribution/checkout-mode";
 import { formatMoney } from "@/lib/currency/format";
 import type { ExternalFlightOffer } from "@/domains/distribution/types";
 
-function formatTime(iso: string, locale: string) {
-  return new Date(iso).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+function formatDate(iso: string, locale: string) {
+  return new Date(iso).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
 }
 
 function formatDuration(minutes: number) {
@@ -27,7 +27,6 @@ export async function FlightCard({
   locale: string;
 }) {
   const t = await getTranslations({ locale, namespace: "Flights" });
-  const tCommon = await getTranslations({ locale, namespace: "Common" });
   const checkoutMode = getCheckoutMode(offer.sourceType);
   const externalHref = buildGoHref({
     locale,
@@ -47,7 +46,9 @@ export async function FlightCard({
               <Plane className="size-5" />
             </span>
             <div>
-              <p className="font-medium text-foreground">{offer.airlineName}</p>
+              <p className="font-medium text-foreground">
+                {offer.airlineName} <span className="text-muted-foreground">· {offer.flightNumber}</span>
+              </p>
               {offer.stops === 0 ? (
                 <Badge variant="success" className="mt-1">
                   {t("nonStop")}
@@ -62,16 +63,24 @@ export async function FlightCard({
 
           <div className="flex items-center gap-3 text-sm">
             <div className="text-center">
-              <p className="font-semibold text-foreground">{formatTime(offer.departAt, locale)}</p>
-              <p className="text-muted-foreground">{offer.originCode}</p>
+              <p className="font-semibold text-foreground">{offer.originCode}</p>
+              <p className="text-muted-foreground">{formatDate(offer.departAt, locale)}</p>
             </div>
             <div className="flex flex-col items-center gap-1 text-muted-foreground">
-              <span className="text-xs">{formatDuration(offer.durationMinutes)}</span>
+              <span className="flex items-center gap-1 text-xs">
+                <Clock className="size-3" />
+                {formatDuration(offer.durationMinutes)}
+              </span>
               <ArrowRight className="size-4 rtl:rotate-180" />
+              {offer.returnAt && (
+                <span className="text-xs">{t("returnOn", { date: formatDate(offer.returnAt, locale) })}</span>
+              )}
             </div>
             <div className="text-center">
-              <p className="font-semibold text-foreground">{formatTime(offer.arriveAt, locale)}</p>
-              <p className="text-muted-foreground">{offer.destinationCode}</p>
+              <p className="font-semibold text-foreground">{offer.destinationCode}</p>
+              <p className="text-muted-foreground">
+                {offer.returnAt ? t("roundTrip") : t("oneWay")}
+              </p>
             </div>
           </div>
 
@@ -79,13 +88,15 @@ export async function FlightCard({
             <p className="text-lg font-semibold text-foreground">
               {formatMoney(offer.priceAmount, offer.priceCurrency, locale)}
             </p>
-            <p className="text-sm text-muted-foreground">{t("perPerson")}</p>
+            {offer.isCachedPrice && (
+              <p className="text-xs text-muted-foreground">{t("recentlyFoundTag")}</p>
+            )}
             {/* Decorative only — the whole card is already the click target. */}
             <span
               className={buttonVariants({ size: "sm", className: "mt-2" })}
               aria-hidden="true"
             >
-              {tCommon("viewDetails")}
+              {t("viewDeal")}
             </span>
           </div>
         </CardContent>

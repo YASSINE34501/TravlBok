@@ -68,3 +68,13 @@ export function getAppUrl(): string {
 export function isProduction(): boolean {
   return process.env.NODE_ENV === "production";
 }
+
+export function isTravelpayoutsConfigured(): boolean {
+  return Boolean(process.env.TRAVELPAYOUTS_API_TOKEN && process.env.TRAVELPAYOUTS_PARTNER_ID);
+}
+
+/** Throws MissingEnvError if unset — call only after checking isTravelpayoutsConfigured(), or inside a try/catch. */
+export function getTravelpayoutsConfig(): { apiToken: string; partnerId: string } {
+  const vars = requireVars(["TRAVELPAYOUTS_API_TOKEN", "TRAVELPAYOUTS_PARTNER_ID"] as const);
+  return { apiToken: vars.TRAVELPAYOUTS_API_TOKEN, partnerId: vars.TRAVELPAYOUTS_PARTNER_ID };
+}

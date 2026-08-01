@@ -2190,11 +2190,13 @@ enum DistributionVertical {
 }
 
 // Mirrors ChannelProviderCode's shape (a per-vertical registry of provider
-// codes). Starts with only the dev/test-only sandbox value — real codes are
-// added here once an actual provider contract exists (see MOCK_SANDBOX's
-// note in channel-manager/providers/mock-provider.ts for the same pattern).
+// codes). MOCK_SANDBOX is the dev/test-only sandbox value (see its note in
+// channel-manager/providers/mock-provider.ts for the same pattern).
+// AVIASALES is the first real provider: Travelpayouts' Aviasales Flight
+// Data API (prices_for_dates), wired in providers/aviasales-provider.ts.
 enum DistributionProviderCode {
   MOCK_SANDBOX
+  AVIASALES
 }
 
 // Click-tracking for externally-sourced offers only (never written for

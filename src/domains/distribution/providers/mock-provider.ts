@@ -106,7 +106,6 @@ export function createMockProvider(): ExternalOfferProvider {
         const durationMinutes = 90 + Math.floor(rand() * 300);
         const departAt = new Date(baseDate);
         departAt.setHours(departHour, Math.floor(rand() * 60), 0, 0);
-        const arriveAt = new Date(departAt.getTime() + durationMinutes * 60000);
         return {
           id,
           vertical: "FLIGHT",
@@ -116,12 +115,14 @@ export function createMockProvider(): ExternalOfferProvider {
           priceCurrency: "MAD",
           redirectUrl: buildRedirectUrl("flights", id, seed + i),
           airlineName,
+          flightNumber: String(1000 + Math.floor(rand() * 8999)),
           originCode: (params.origin || "CMN").slice(0, 3).toUpperCase(),
           destinationCode: (params.destination || "CDG").slice(0, 3).toUpperCase(),
           departAt: departAt.toISOString(),
-          arriveAt: arriveAt.toISOString(),
+          returnAt: params.returnDate ? new Date(params.returnDate).toISOString() : null,
           durationMinutes,
           stops: i % 3 === 0 ? 1 : 0,
+          isCachedPrice: false,
         };
       });
     },

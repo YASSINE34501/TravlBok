@@ -269,7 +269,16 @@
     "airlines": "Compagnies aériennes",
     "notConnectedTitle": "La recherche de vols n'est pas encore disponible",
     "notConnectedDescription": "Nous travaillons à l'ajout de la recherche de vols sur TravlBok. Revenez bientôt.",
-    "noFlightsMatch": "Aucun vol ne correspond à vos filtres."
+    "noFlightsMatch": "Aucun vol ne correspond à vos filtres.",
+    "viewDeal": "Voir l'offre",
+    "roundTrip": "Aller-retour",
+    "oneWay": "Aller simple",
+    "returnOn": "Retour {date}",
+    "recentlyFoundTag": "Prix trouvé récemment",
+    "staleNotice": "Prix trouvé récemment. Le prix final et la disponibilité sont confirmés sur le site du partenaire.",
+    "unavailableTitle": "Les résultats de vols sont temporairement indisponibles",
+    "unavailableDescription": "Nous n'avons pas pu contacter notre partenaire de données de vols. Merci de réessayer votre recherche dans un instant.",
+    "loadingResults": "Recherche de vols en cours…"
   },
   "Packages": {
     "title": "Séjours",

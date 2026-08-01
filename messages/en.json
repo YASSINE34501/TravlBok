@@ -269,7 +269,16 @@
     "airlines": "Airlines",
     "notConnectedTitle": "Flight search isn't connected yet",
     "notConnectedDescription": "We're working on bringing flight search to TravlBok. Check back soon.",
-    "noFlightsMatch": "No flights match your filters."
+    "noFlightsMatch": "No flights match your filters.",
+    "viewDeal": "View deal",
+    "roundTrip": "Round trip",
+    "oneWay": "One way",
+    "returnOn": "Return {date}",
+    "recentlyFoundTag": "Recently found price",
+    "staleNotice": "Price recently found. Final price and availability are confirmed on the partner website.",
+    "unavailableTitle": "Flight results are temporarily unavailable",
+    "unavailableDescription": "We couldn't reach our flight data partner just now. Please try your search again in a moment.",
+    "loadingResults": "Searching for flights…"
   },
   "Packages": {
     "title": "Travel packages",
