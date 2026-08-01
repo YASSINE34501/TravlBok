@@ -7,6 +7,9 @@ import {
   type PricesForDatesFare,
 } from "@/lib/travelpayouts/client";
 import { resolveAirlineName } from "@/lib/travelpayouts/airlines";
+import { isFlightableCode } from "@/lib/travelpayouts/cities";
+
+const IATA_CODE_PATTERN = /^[A-Z]{3}$/;
 
 async function toExternalFlightOffer(
   fare: PricesForDatesFare,
@@ -47,10 +50,27 @@ export function createAviasalesProvider(): ExternalOfferProvider {
 
     async searchFlights(params: FlightOfferSearchParams): Promise<ExternalFlightOffer[]> {
       if (!params.origin || !params.destination) return [];
+
+      // The origin/destination combobox only ever submits a code the user
+      // picked from Travelpayouts' own flightable-city list, so this is
+      // normally a no-op. It only matters for a hand-crafted URL (or any
+      // other future caller) — rejecting an invalid/non-flightable code
+      // here means a plain "no results" empty state instead of the search
+      // API's 400 (which would otherwise surface as a misleading "temporarily
+      // unavailable" error for what's really just bad input, not an outage).
+      const origin = params.origin.toUpperCase().trim();
+      const destination = params.destination.toUpperCase().trim();
+      if (!IATA_CODE_PATTERN.test(origin) || !IATA_CODE_PATTERN.test(destination)) return [];
+      const [originFlightable, destinationFlightable] = await Promise.all([
+        isFlightableCode(origin),
+        isFlightableCode(destination),
+      ]);
+      if (!originFlightable || !destinationFlightable) return [];
+
       const currency = "usd";
       const fares = await fetchPricesForDates({
-        origin: params.origin.slice(0, 3).toUpperCase(),
-        destination: params.destination.slice(0, 3).toUpperCase(),
+        origin,
+        destination,
         departDate: params.departDate,
         returnDate: params.returnDate,
         currency,

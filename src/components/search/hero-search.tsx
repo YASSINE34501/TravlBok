@@ -30,6 +30,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import { FlightCityCombobox, type SelectedCity } from "@/components/search/flight-city-combobox";
 
 const FIELD_LABEL_CLASS = "text-xs font-semibold tracking-wide text-muted-foreground uppercase";
 
@@ -50,8 +51,8 @@ export function HeroSearch() {
   const [pickupDate, setPickupDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
 
-  const [flightOrigin, setFlightOrigin] = useState("");
-  const [flightDestination, setFlightDestination] = useState("");
+  const [flightOrigin, setFlightOrigin] = useState<SelectedCity | null>(null);
+  const [flightDestination, setFlightDestination] = useState<SelectedCity | null>(null);
   const [departDate, setDepartDate] = useState("");
   const [flightReturnDate, setFlightReturnDate] = useState("");
   const [passengers, setPassengers] = useState(1);
@@ -85,8 +86,8 @@ export function HeroSearch() {
   function submitFlightSearch(event: React.FormEvent) {
     event.preventDefault();
     const params = new URLSearchParams();
-    if (flightOrigin) params.set("origin", flightOrigin);
-    if (flightDestination) params.set("destination", flightDestination);
+    if (flightOrigin) params.set("origin", flightOrigin.code);
+    if (flightDestination) params.set("destination", flightDestination.code);
     if (departDate) params.set("departDate", departDate);
     if (tripType === "roundTrip" && flightReturnDate) {
       params.set("returnDate", flightReturnDate);
@@ -296,17 +297,13 @@ export function HeroSearch() {
             <div className="relative flex items-end gap-2 sm:col-span-2">
               <div className="flex-1">
                 <Label htmlFor="flight-origin" className={FIELD_LABEL_CLASS}>{t("origin")}</Label>
-                <InputGroup className="mt-1.5 h-10">
-                  <InputGroupAddon>
-                    <Plane className="size-4" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="flight-origin"
-                    placeholder={t("originPlaceholder")}
-                    value={flightOrigin}
-                    onChange={(e) => setFlightOrigin(e.target.value)}
-                  />
-                </InputGroup>
+                <FlightCityCombobox
+                  id="flight-origin"
+                  icon={Plane}
+                  placeholder={t("originPlaceholder")}
+                  selected={flightOrigin}
+                  onSelectCity={setFlightOrigin}
+                />
               </div>
               <button
                 type="button"
@@ -321,17 +318,13 @@ export function HeroSearch() {
               </button>
               <div className="flex-1">
                 <Label htmlFor="flight-destination" className={FIELD_LABEL_CLASS}>{t("destination")}</Label>
-                <InputGroup className="mt-1.5 h-10">
-                  <InputGroupAddon>
-                    <MapPin className="size-4" />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    id="flight-destination"
-                    placeholder={t("destinationPlaceholder")}
-                    value={flightDestination}
-                    onChange={(e) => setFlightDestination(e.target.value)}
-                  />
-                </InputGroup>
+                <FlightCityCombobox
+                  id="flight-destination"
+                  icon={MapPin}
+                  placeholder={t("destinationPlaceholder")}
+                  selected={flightDestination}
+                  onSelectCity={setFlightDestination}
+                />
               </div>
             </div>
             <div className="sm:col-span-1">

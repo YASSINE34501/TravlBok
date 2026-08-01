@@ -227,6 +227,8 @@
     "tripTypeMultiCity": "Multi-City",
     "multiCityComingSoon": "Multi-city search is coming soon. Showing one-way fields for now.",
     "swapOriginDestination": "Swap origin and destination",
+    "startTypingCity": "Keep typing to search cities and airports…",
+    "noCityMatches": "No matching city or airport found",
     "priceRange": "Price range",
     "stars": "Star rating",
     "rating": "Guest rating",

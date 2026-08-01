@@ -227,6 +227,8 @@
     "tripTypeMultiCity": "Multi-destinations",
     "multiCityComingSoon": "La recherche multi-destinations arrive bientôt. Champs aller simple affichés pour le moment.",
     "swapOriginDestination": "Inverser le départ et la destination",
+    "startTypingCity": "Continuez à taper pour rechercher une ville ou un aéroport…",
+    "noCityMatches": "Aucune ville ou aéroport correspondant",
     "priceRange": "Fourchette de prix",
     "stars": "Classement en étoiles",
     "rating": "Note des voyageurs",

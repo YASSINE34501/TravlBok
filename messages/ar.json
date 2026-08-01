@@ -227,6 +227,8 @@
     "tripTypeMultiCity": "وجهات متعددة",
     "multiCityComingSoon": "البحث عن وجهات متعددة سيتوفر قريبًا. يتم حاليًا عرض حقول الذهاب فقط.",
     "swapOriginDestination": "تبديل نقطة المغادرة والوجهة",
+    "startTypingCity": "تابع الكتابة للبحث عن مدينة أو مطار…",
+    "noCityMatches": "لا توجد مدينة أو مطار مطابق",
     "priceRange": "نطاق السعر",
     "stars": "تصنيف النجوم",
     "rating": "تقييم الضيوف",
