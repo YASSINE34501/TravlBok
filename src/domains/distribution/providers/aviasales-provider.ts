@@ -16,7 +16,8 @@ const MIN_EXACT_RESULTS = 3;
 /** A fare within this many days of the requested departure date counts as "nearby" rather than just "somewhere in the month". */
 const NEARBY_DAYS_WINDOW = 3;
 
-async function toExternalFlightOffer(
+/** Exported for reuse by aviasales-content.ts (SEO content pages re-derive an offer from a fresh `PricesForDatesFare` the same way the live search provider does — one transform, not two). */
+export async function toExternalFlightOffer(
   fare: PricesForDatesFare,
   currency: string,
   alternativeType: ExternalFlightOffer["alternativeType"]

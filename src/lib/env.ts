@@ -78,3 +78,9 @@ export function getTravelpayoutsConfig(): { apiToken: string; partnerId: string 
   const vars = requireVars(["TRAVELPAYOUTS_API_TOKEN", "TRAVELPAYOUTS_PARTNER_ID"] as const);
   return { apiToken: vars.TRAVELPAYOUTS_API_TOKEN, partnerId: vars.TRAVELPAYOUTS_PARTNER_ID };
 }
+
+/** The "under X" threshold for the Flights deals page's under-threshold section — real cached fares filtered by this real price, never a fabricated discount. Defaults to 300 (USD) when unset or invalid. */
+export function getFlightsDealsThresholdUsd(): number {
+  const raw = Number(process.env.FLIGHTS_DEALS_THRESHOLD_USD);
+  return Number.isFinite(raw) && raw > 0 ? raw : 300;
+}

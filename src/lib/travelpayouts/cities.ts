@@ -1,4 +1,5 @@
 import "server-only";
+import { slugify } from "@/lib/flights/slugs";
 
 export type FlightableCity = {
   code: string;
@@ -75,4 +76,18 @@ export async function isFlightableCode(code: string): Promise<boolean> {
 export async function resolveCity(code: string): Promise<FlightableCity | null> {
   const cities = await loadFlightableCities();
   return cities.find((city) => city.code === code.toUpperCase()) ?? null;
+}
+
+/**
+ * Slug match against the same real flightable-cities dataset (e.g.
+ * `"paris"` → the real Paris/PAR entry) — used to turn a
+ * `/flights/destinations/[destination]` or route-slug segment into a real
+ * IATA code. `null` for anything that doesn't match a real city name, which
+ * callers must treat as `notFound()` rather than rendering a blank page.
+ */
+export async function resolveCityBySlug(slug: string): Promise<FlightableCity | null> {
+  const normalized = slug.trim().toLowerCase();
+  if (!normalized) return null;
+  const cities = await loadFlightableCities();
+  return cities.find((city) => slugify(city.name) === normalized) ?? null;
 }

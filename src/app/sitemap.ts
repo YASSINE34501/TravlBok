@@ -2,6 +2,33 @@ import type { MetadataRoute } from "next";
 import { prisma } from "@/lib/db";
 import { locales } from "@/i18n/routing";
 import { getAppUrl } from "@/lib/env";
+import { isDistributionConfigured } from "@/domains/distribution/providers/registry";
+import {
+  getTopDestinations,
+  getPopularRoutes,
+  getFeaturedAirlines,
+} from "@/domains/distribution/providers/aviasales-landing";
+import { resolveCity } from "@/lib/travelpayouts/cities";
+import { slugify, buildRouteSlug } from "@/lib/flights/slugs";
+
+/** TravlBok's one real Flights market anchor — matches the landing page and every Flights content page. */
+const FLIGHTS_HOME_ORIGIN = "CMN";
+/**
+ * Bounded, real seed counts for the Flights sitemap blocks below — the same
+ * functions (and the same real "Travelpayouts actually returned a price for
+ * this pair" guarantee) each page's own `generateStaticParams` already uses.
+ * Deliberately reused as-is rather than re-running each page's full
+ * `hasSufficientFlightContent` check per entry: that would mean up to
+ * several additional live API calls per destination/route just to build the
+ * sitemap (40+ destinations × multiple calls each), which is exactly the
+ * "unbounded API generation during build" this cap exists to avoid. A
+ * destination/route/airline appearing in these lists already means
+ * Travelpayouts returned a real price for it — a cheap, honest, if
+ * slightly coarser proxy for the same "strong" signal.
+ */
+const FLIGHTS_SITEMAP_DESTINATIONS_LIMIT = 40;
+const FLIGHTS_SITEMAP_ROUTES_LIMIT = 30;
+const FLIGHTS_SITEMAP_AIRLINES_LIMIT = 20;
 
 /**
  * Single sitemap.xml covering every locale of every public marketing route,
@@ -90,5 +117,42 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     withLocales(`/${page.slug}`, appUrl, page.updatedAt, "monthly", 0.4)
   );
 
-  return [...staticEntries, ...hotelEntries, ...vehicleEntries, ...cmsEntries];
+  const flightEntries = isDistributionConfigured("FLIGHT")
+    ? await buildFlightSitemapEntries(appUrl, now)
+    : [];
+
+  return [...staticEntries, ...hotelEntries, ...vehicleEntries, ...cmsEntries, ...flightEntries];
+}
+
+async function buildFlightSitemapEntries(appUrl: string, now: Date): Promise<MetadataRoute.Sitemap> {
+  const [destinations, popularRoutes, airlines, homeCity] = await Promise.all([
+    getTopDestinations(FLIGHTS_HOME_ORIGIN, FLIGHTS_SITEMAP_DESTINATIONS_LIMIT).catch(() => []),
+    getPopularRoutes(FLIGHTS_HOME_ORIGIN, FLIGHTS_SITEMAP_ROUTES_LIMIT).catch(() => []),
+    getFeaturedAirlines(FLIGHTS_HOME_ORIGIN, FLIGHTS_SITEMAP_AIRLINES_LIMIT).catch(() => []),
+    resolveCity(FLIGHTS_HOME_ORIGIN),
+  ]);
+
+  const dealsEntries = withLocales("/flights/deals", appUrl, now, "daily", 0.7);
+
+  const destinationEntries = destinations.flatMap((destination) =>
+    withLocales(`/flights/destinations/${slugify(destination.name)}`, appUrl, now, "daily", 0.6)
+  );
+
+  const routeEntries = homeCity
+    ? popularRoutes.flatMap((route) =>
+        withLocales(
+          `/flights/routes/${buildRouteSlug(homeCity.name, route.destinationName)}`,
+          appUrl,
+          now,
+          "daily",
+          0.6
+        )
+      )
+    : [];
+
+  const airlineEntries = airlines.flatMap((airline) =>
+    withLocales(`/flights/airlines/${slugify(airline.name)}`, appUrl, now, "weekly", 0.5)
+  );
+
+  return [...dealsEntries, ...destinationEntries, ...routeEntries, ...airlineEntries];
 }
