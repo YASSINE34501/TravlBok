@@ -14,6 +14,7 @@ import { GlobalAffiliateScript } from "@/components/marketplace/global-affiliate
 import { JsonLd } from "@/components/seo/json-ld";
 import { getAppUrl } from "@/lib/env";
 import { buildLocaleAlternates } from "@/lib/seo/alternates";
+import { Analytics } from "@vercel/analytics/next";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -150,6 +151,7 @@ export default async function LocaleLayout({
             </CurrencyProvider>
           </AuthSessionProvider>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );
