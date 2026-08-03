@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { SearchFieldRow, SEARCH_FIELD_INPUT_CLASS } from "@/components/search/search-field";
 import {
   Command,
   CommandList,
@@ -32,12 +33,19 @@ export function FlightCityCombobox({
   placeholder,
   selected,
   onSelectCity,
+  bare = false,
 }: {
   id: string;
   icon: LucideIcon;
   placeholder: string;
   selected: SelectedCity | null;
   onSelectCity: (city: SelectedCity) => void;
+  /**
+   * Renders the icon + input without their own border/height, for use inside
+   * the homepage `SearchFieldShell` which already draws both. Defaults to the
+   * original bordered `InputGroup` so `/flights` is unaffected.
+   */
+  bare?: boolean;
 }) {
   const t = useTranslations("Search");
   const [open, setOpen] = useState(false);
@@ -92,22 +100,39 @@ export function FlightCityCombobox({
       <PopoverTrigger
         render={
           <div>
-            <InputGroup className="mt-1.5 h-10">
-              <InputGroupAddon>
-                <Icon className="size-4" />
-              </InputGroupAddon>
-              <InputGroupInput
-                id={id}
-                autoComplete="off"
-                placeholder={placeholder}
-                value={query}
-                onFocus={() => setOpen(true)}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setOpen(true);
-                }}
-              />
-            </InputGroup>
+            {bare ? (
+              <SearchFieldRow icon={Icon}>
+                <input
+                  id={id}
+                  autoComplete="off"
+                  className={SEARCH_FIELD_INPUT_CLASS}
+                  placeholder={placeholder}
+                  value={query}
+                  onFocus={() => setOpen(true)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setOpen(true);
+                  }}
+                />
+              </SearchFieldRow>
+            ) : (
+              <InputGroup className="mt-1.5 h-10">
+                <InputGroupAddon>
+                  <Icon className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  id={id}
+                  autoComplete="off"
+                  placeholder={placeholder}
+                  value={query}
+                  onFocus={() => setOpen(true)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setOpen(true);
+                  }}
+                />
+              </InputGroup>
+            )}
             {/* Native required-field validation blocks submitting a city
                 that was typed but never actually picked from the list. */}
             <input
